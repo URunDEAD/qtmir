@@ -119,6 +119,7 @@ add_library(qtmirserver-nomirserver OBJECT
     displayconfigurationstorage.cpp
     nativeinterface.cpp
     services.cpp
+    urlbuilderdispatcher.cpp
     windowcontroller.cpp
     workspacecontroller.cpp
     tracepoints.c
