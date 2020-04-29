@@ -28,6 +28,7 @@
 #include "qtcompositor.h"
 #include "namedcursor.h"
 #include "promptsessionlistener.h"
+#include "qtwindowmanager.h"
 
 #include <miroil/prompt_session_manager.h>
 #include <miroil/persist_display_config.h>
@@ -176,6 +177,9 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
         QCoreApplication::quit();
     }};
 
+    miral::WaylandExtensions waylandExtensions{};
+    waylandExtensions.add_extension(qtmir::qtWindowmanagerExtension());
+
     runner.set_exception_handler([this]
     {
         try {
@@ -255,6 +259,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             config_keymap,
             miroil::PersistDisplayConfig{displayStorageBuilder(),
                                         m_displayConfigurationPolicy},
+            waylandExtensions,
         });
 }
 
