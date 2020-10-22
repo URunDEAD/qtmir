@@ -787,4 +787,4 @@ TEST_P(WindowModelTestTypes, WhenWindowStateChangedMirSurfaceEmitsStateChangedSi
 
 const Mir::State allKnownStates[] = {Mir::RestoredState, Mir::MinimizedState, Mir::MaximizedState, Mir::VertMaximizedState,
                                      Mir::FullscreenState, Mir::HorizMaximizedState, Mir::HiddenState};
-INSTANTIATE_TEST_CASE_P(WindowTypes, WindowModelTestTypes, ::testing::ValuesIn(allKnownStates));
+INSTANTIATE_TEST_SUITE_P(WindowTypes, WindowModelTestTypes, ::testing::ValuesIn(allKnownStates));
