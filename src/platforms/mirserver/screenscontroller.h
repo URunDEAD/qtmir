@@ -26,6 +26,7 @@
 #include "qtmir/screen.h"
 
 #include <memory>
+#include <miroil/display_configuration_controller_wrapper.h>
 
 class ScreensModel;
 
@@ -54,7 +55,7 @@ public:
 private:
     const std::shared_ptr<ScreensModel> m_screensModel;
     const std::shared_ptr<mir::graphics::Display> m_display;
-    const std::shared_ptr<mir::shell::DisplayConfigurationController> m_displayConfigurationController;
+    const std::shared_ptr<miroil::DisplayConfigurationControllerWrapper> m_displayConfigurationController;
 };
 
 #endif // SCREENSCONTROLLER_H
