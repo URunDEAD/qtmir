@@ -22,6 +22,7 @@ target_link_libraries(
   qtmirserver
   ${GTEST_BOTH_LIBRARIES}
   ${GMOCK_LIBRARIES}
+  ${MIROIL_LIBRARIES}
 )
 
 add_test(EventBuilder, EventBuilderTest)
