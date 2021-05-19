@@ -22,7 +22,6 @@
 #include "wrappedwindowmanagementpolicy.h"
 #include "inputdeviceobserver.h"
 #include "promptsessionmanager.h"
-#include "setqtcompositor.h"
 #include "qteventfeeder.h"
 #include "qtmir/sessionauthorizer.h"
 #include "miropenglcontext.h"
@@ -30,10 +29,12 @@
 #include "screenscontroller.h"
 #include "namedcursor.h"
 #include "promptsessionlistener.h"
+#include "qtcompositor.h"
 #include "qtwindowmanager.h"
 
 // prototyping for later incorporation in miral
 #include <miroil/persist_display_config.h>
+#include <miroil/set_compositor.h>
 
 // miral
 #include <miral/add_init_callback.h>
@@ -245,7 +246,23 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                                                                                eventFeeder,
                                                                                m_windowManagementPolicy),
             addInitCallback,
-            qtmir::SetQtCompositor{screensModel},
+            miroil::SetCompositor(
+                // Create the the QtCompositor
+                []() -> std::shared_ptr<miroil::Compositor>
+                {
+                    std::shared_ptr<miroil::Compositor> result = std::make_shared<QtCompositor>();
+                    return result;
+                },
+                // Initialization called by mir when the new compositor is setup up
+                [this](const std::shared_ptr<mir::graphics::Display>& display,
+                        const std::shared_ptr<miroil::Compositor> & compositor,
+                        const std::shared_ptr<mir::compositor::DisplayListener>& displayListener)
+                {
+                    std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
+                    qCDebug(QTMIR_MIR_MESSAGES) << "Initializing screens model";
+                    this->screensModel->init(display, qtCompsitor, displayListener);
+                }
+            ),
             setTerminator,
             miroil::PersistDisplayConfig{displayStorageBuilder(),
                                          m_displayConfigurationPolicy},

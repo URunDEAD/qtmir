@@ -43,6 +43,7 @@
 #include <QDebug>
 
 // miroil
+#include <miroil/compositor.h>
 #include <miroil/mir_server_hooks.h>
 #include <miroil/open_gl_context.h>
 
