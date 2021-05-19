@@ -30,7 +30,7 @@
 #include "qtmir/displayconfigurationstorage.h"
 
 // miroil
-#include <miroil/promptsessionmanager.h>
+#include <miroil/prompt_session_manager.h>
 
 // qtmir
 namespace qtmir {
