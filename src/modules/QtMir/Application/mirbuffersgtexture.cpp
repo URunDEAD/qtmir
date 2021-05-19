@@ -30,7 +30,7 @@ namespace mg = mir::geometry;
 class MirGlBuffer
 {
 public:
-    MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer);
+    MirGlBuffer(const std::shared_ptr<miroil::GLBuffer>& buffer);
     virtual ~MirGlBuffer();
 
     static std::shared_ptr<MirGlBuffer> from_mir_buffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
@@ -50,7 +50,7 @@ public:
 protected:
     virtual void bindTexture() = 0;
 
-    std::shared_ptr<miral::GLBuffer> m_mirBuffer;
+    std::shared_ptr<miroil::GLBuffer> m_mirBuffer;
     GLuint m_textureId;
 
 private:
@@ -66,7 +66,7 @@ public:
     MirGlBufferTexture(const std::shared_ptr<miral::GLBuffer>& buffer)
         : MirGlBuffer(buffer)
           // Strong reference held by base class.
-        , m_texBuf(static_cast<miral::GLTextureBuffer *>(buffer.get()))
+        , m_texBuf(static_cast<miroil::GLTextureBuffer *>(buffer.get()))
         {}
 
     void updateTextureId() override
@@ -94,7 +94,7 @@ public:
     MirGlBufferTexturesource(const std::shared_ptr<miral::GLBuffer>& buffer)
         : MirGlBuffer(buffer)
           // Strong reference held by base class.
-        , m_texSourceBuf(static_cast<miral::GLTextureSourceBuffer *>(buffer.get()))
+        , m_texSourceBuf(static_cast<miroil::GLTextureSourceBuffer *>(buffer.get()))
         {}
 
     void updateTextureId() override
@@ -116,7 +116,7 @@ private:
     miral::GLTextureSourceBuffer * m_texSourceBuf;
 };
 
-MirGlBuffer::MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer) :
+MirGlBuffer::MirGlBuffer(const std::shared_ptr<miroil::GLBuffer>& buffer) :
     m_mirBuffer(buffer)
     , m_textureId(0)
     , m_needsUpdate(true)
@@ -135,8 +135,8 @@ MirGlBuffer::~MirGlBuffer()
 }
 
 std::shared_ptr<MirGlBuffer> MirGlBuffer::from_mir_buffer(const std::shared_ptr<mir::graphics::Buffer>& buffer) {
-    auto glBuffer = miral::GLBuffer::from_mir_buffer(buffer);
-    if (glBuffer->type() == miral::GLBuffer::Type::GLTextureSource)
+    auto glBuffer = miroil::GLBuffer::from_mir_buffer(buffer);
+    if (glBuffer->type() == miroil::GLBuffer::Type::GLTextureSource)
         return std::make_shared<MirGlBufferTexturesource>(glBuffer);
     else
         return std::make_shared<MirGlBufferTexture>(glBuffer);
