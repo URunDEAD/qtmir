@@ -43,6 +43,7 @@
 #include <QDebug>
 
 // miroil
+#include <miroil/compositor.h>
 #include <miroil/mirserverhooks.h>
 #include <miroil/promptsessionmanager.h>
 #include <miroil/openglcontextfactory.h>

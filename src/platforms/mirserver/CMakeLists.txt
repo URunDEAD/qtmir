@@ -123,7 +123,6 @@ add_library(qtmirserver-mirserver OBJECT
     displayconfigurationpolicy.cpp
     wrappedwindowmanagementpolicy.cpp
     mirdisplayconfigurationobserver.cpp
-    setqtcompositor.cpp setqtcompositor.h
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
 
