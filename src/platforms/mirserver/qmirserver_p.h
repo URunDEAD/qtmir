@@ -51,6 +51,7 @@ namespace qtmir
 {
 class SessionAuthorizer;
 class PromptSessionManager;
+class PromptSessionListener;
 }
 
 class QMirServerPrivate
@@ -67,7 +68,7 @@ public:
     void run(const std::function<void()> &startCallback);
     void stop();
 
-    PromptSessionListener *promptSessionListener() const;
+    qtmir::PromptSessionListener *promptSessionListener() const;
     std::shared_ptr<qtmir::PromptSessionManager> promptSessionManager() const;
 
     std::shared_ptr<qtmir::SessionAuthorizer> theApplicationAuthorizer() const;

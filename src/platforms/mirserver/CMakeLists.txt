@@ -126,7 +126,6 @@ add_library(qtmirserver-mirserver OBJECT
     mirdisplayconfigurationobserver.cpp
     mirserverhooks.cpp mirserverhooks.h
     setqtcompositor.cpp setqtcompositor.h
-    promptsessionmanager.cpp promptsessionmanager.h promptsession.h
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
 
