@@ -119,7 +119,6 @@ include_directories(SYSTEM ${MIRSERVER_INCLUDE_DIRS})
 # These files will only compile with mirserver-dev
 add_library(qtmirserver-mirserver OBJECT
     openglcontextfactory.cpp openglcontextfactory.h
-    mircursorimages.cpp
     screenscontroller.cpp
     qtcompositor.cpp
     displayconfigurationpolicy.cpp
