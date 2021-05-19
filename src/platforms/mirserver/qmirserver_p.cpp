@@ -112,17 +112,14 @@ bool MirServerThread::waitForMirStartup()
 
 QPlatformOpenGLContext *QMirServerPrivate::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
-    QSurfaceFormat           format     = context->format();
-    mir::graphics::Display * mirDisplay = m_mirServerHooks.theMirDisplay().get();
+    QSurfaceFormat            format     = context->format();
+    mir::graphics::Display  * mirDisplay = m_mirServerHooks.theMirDisplay().get();
+    mir::graphics::GLConfig * gl_config  = m_openGLContext.the_open_gl_config();
     
-    return m_openGLContextFactory.createPlatformOpenGLContext(
-        [format, mirDisplay](mir::graphics::GLConfig &gl_config)
-        -> QPlatformOpenGLContext *
-        {
-            return new MirOpenGLContext(*mirDisplay, gl_config, format);
-        }
-    );
+    if (!gl_config)
+        throw std::logic_error("No gl config available. Server not running?");
     
+    return new MirOpenGLContext(*mirDisplay, *gl_config, format);
 }
 
 std::shared_ptr<miroil::PromptSessionManager> QMirServerPrivate::promptSessionManager() const
@@ -141,7 +138,7 @@ QMirServerPrivate::QMirServerPrivate()
     , m_windowManagementPolicy(buildWindowManagementPolicy)
     , m_displayConfigurationStorage(buildDisplayConfigurationStorage)
     , m_wrappedSessionAuthorizer(buildSessionAuthorizer)
-    , m_openGLContextFactory(new MirGLConfig())
+    , m_openGLContext(new MirGLConfig())
     , runner(qtmirArgc, qtmirArgv)
 {
 }
@@ -202,7 +199,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
         {
             miral::X11Support{},
             m_wrappedSessionAuthorizer,
-            m_openGLContextFactory,
+            m_openGLContext,
             m_mirServerHooks,
             miral::set_window_management_policy<WrappedWindowManagementPolicy>(m_windowModelNotifier,
                                                                                m_windowController,
