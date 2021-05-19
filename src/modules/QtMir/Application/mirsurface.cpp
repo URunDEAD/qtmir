@@ -40,7 +40,7 @@
 #include <mir/version.h>
 //#include <mir_toolkit/cursors.h>
 // #include <mir_toolkit/event.h>
-#include <miroil/surfaceobserver.h>
+#include <miroil/surface_observer.h>
 #include "namedcursor.h"
 
 // mirserver

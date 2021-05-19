@@ -6,6 +6,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include
 
     ${MIRSERVER_INCLUDE_DIRS}
+    ${MIROIL_INCLUDE_DIRS}
     ${MIRAL_INCLUDE_DIRS}
 
     ${Qt5Gui_PRIVATE_INCLUDE_DIRS}

@@ -27,6 +27,7 @@
 #include "screenscontroller.h"
 #include "qtcompositor.h"
 #include "namedcursor.h"
+#include "promptsessionlistener.h"
 
 #include <miroil/prompt_session_manager.h>
 #include <miroil/persist_display_config.h>
