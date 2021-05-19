@@ -140,7 +140,6 @@ add_library(qtmirserver-mirserver OBJECT
     qtcompositor.cpp
     displayconfigurationpolicy.cpp
     wrappedwindowmanagementpolicy.cpp
-    mirdisplayconfigurationobserver.cpp
     promptsessionmanager.cpp promptsessionmanager.h promptsession.h
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
