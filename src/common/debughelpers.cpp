@@ -17,7 +17,13 @@
 #include "debughelpers.h"
 #include <QTouchEvent>
 
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+#include <miral/toolkit_event.h>
+using namespace miral::toolkit;
+#else
 #include <mir_toolkit/event.h>
+#endif
 
 // Lomiri Shell API
 #include <lomiri/shell/application/ApplicationInfoInterface.h>

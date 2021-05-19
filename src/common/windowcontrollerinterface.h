@@ -19,7 +19,13 @@
 
 #include <miral/window.h>
 
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+#include <miral/toolkit_event.h>
+using namespace miral::toolkit;
+#else
 #include <mir_toolkit/event.h>
+#endif
 
 #include <QPoint>
 #include <QSize>

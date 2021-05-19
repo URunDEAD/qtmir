@@ -17,7 +17,13 @@
 #ifndef MIR_QT_EVENT_FEEDER_H
 #define MIR_QT_EVENT_FEEDER_H
 
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+#include <miral/toolkit_event.h>
+using namespace miral::toolkit;
+#else
 #include <mir_toolkit/event.h>
+#endif
 
 #include <QObject>
 #include <qpa/qwindowsysteminterface.h>
