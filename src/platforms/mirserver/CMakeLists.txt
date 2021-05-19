@@ -118,13 +118,11 @@ include_directories(SYSTEM ${MIRSERVER_INCLUDE_DIRS})
 
 # These files will only compile with mirserver-dev
 add_library(qtmirserver-mirserver OBJECT
-    openglcontextfactory.cpp openglcontextfactory.h
     screenscontroller.cpp
     qtcompositor.cpp
     displayconfigurationpolicy.cpp
     wrappedwindowmanagementpolicy.cpp
     mirdisplayconfigurationobserver.cpp
-    mirserverhooks.cpp mirserverhooks.h
     setqtcompositor.cpp setqtcompositor.h
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)

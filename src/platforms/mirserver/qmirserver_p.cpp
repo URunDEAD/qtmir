@@ -19,11 +19,14 @@
 // local
 #include "logging.h"
 #include "wrappedwindowmanagementpolicy.h"
-#include "promptsessionmanager.h"
 #include "setqtcompositor.h"
 #include "qteventfeeder.h"
 #include "qtmir/sessionauthorizer.h"
+#include "miropenglcontext.h"
+#include "screenscontroller.h"
+#include "mirglconfig.h"
 
+#include <miroil/promptsessionmanager.h>
 #include <miroil/persist_display_config.h>
 
 // miral
@@ -106,7 +109,17 @@ bool MirServerThread::waitForMirStartup()
 
 QPlatformOpenGLContext *QMirServerPrivate::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
-    return m_openGLContextFactory.createPlatformOpenGLContext(context->format(), *m_mirServerHooks.theMirDisplay());
+    QSurfaceFormat           format     = context->format();
+    mir::graphics::Display * mirDisplay = m_mirServerHooks.theMirDisplay().get();
+    
+    return m_openGLContextFactory.createPlatformOpenGLContext(
+        [format, mirDisplay](mir::graphics::GLConfig &gl_config)
+        -> QPlatformOpenGLContext *
+        {
+            return new MirOpenGLContext(*mirDisplay, gl_config, format);
+        }
+    );
+    
 }
 
 std::shared_ptr<qtmir::PromptSessionManager> QMirServerPrivate::promptSessionManager() const
@@ -125,13 +138,15 @@ QMirServerPrivate::QMirServerPrivate()
     , m_windowManagementPolicy(buildWindowManagementPolicy)
     , m_displayConfigurationStorage(buildDisplayConfigurationStorage)
     , m_wrappedSessionAuthorizer(buildSessionAuthorizer)
+    , m_mirServerHooks(&qtmir::PromptSessionListener::create)
+    , m_openGLContextFactory(new MirGLConfig())
     , runner(qtmirArgc, qtmirArgv)
 {
 }
 
-PromptSessionListener *QMirServerPrivate::promptSessionListener() const
+qtmir::PromptSessionListener *QMirServerPrivate::promptSessionListener() const
 {
-    return m_mirServerHooks.promptSessionListener();
+    return dynamic_cast <qtmir::PromptSessionListener*>(m_mirServerHooks.promptSessionListener());
 }
 
 void QMirServerPrivate::run(const std::function<void()> &startCallback)
