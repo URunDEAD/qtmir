@@ -754,7 +754,7 @@ void WrappedWindowManagementPolicy::ask_client_to_close(const miral::Window &win
 void WrappedWindowManagementPolicy::forceClose(const miral::Window &window)
 {
     tools.invoke_under_lock([&window, this]() {
-        tools.force_close(window);
+        tools.ask_client_to_close(window);
     });
 }
 
