@@ -29,14 +29,17 @@
 #include "qtmir/displayconfigurationpolicy.h"
 #include "qtmir/displayconfigurationstorage.h"
 
+// miroil
+#include <miroil/promptsessionmanager.h>
+
 // qtmir
 namespace qtmir {
-    class PromptSessionManager;
     class WindowModelNotifier;
     class AppNotifier;
 }
 namespace mir { class Server; }
 
+// qtmir
 class QMirServerPrivate;
 class ScreensController;
 class ScreensModel;
@@ -59,7 +62,7 @@ public:
     std::shared_ptr<ScreensModel> screensModel() const;
     QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;
     void *nativeResourceForIntegration(const QByteArray &resource) const;
-    std::shared_ptr<qtmir::PromptSessionManager> thePromptSessionManager() const;
+    std::shared_ptr<miroil::PromptSessionManager> thePromptSessionManager() const;
 
     qtmir::WindowModelNotifier *windowModelNotifier() const;
     qtmir::AppNotifier *appNotifier() const;
