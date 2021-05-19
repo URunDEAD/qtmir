@@ -35,6 +35,7 @@
 // prototyping for later incorporation in miral
 #include <miroil/persist_display_config.h>
 #include <miroil/set_compositor.h>
+#include <miroil/display_listener_wrapper.h>
 
 // miral
 #include <miral/add_init_callback.h>
@@ -260,7 +261,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                 {
                     std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
                     qCDebug(QTMIR_MIR_MESSAGES) << "Initializing screens model";
-                    this->screensModel->init(display, qtCompsitor, displayListener);
+                    this->screensModel->init(display, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
                 }
             ),
             setTerminator,

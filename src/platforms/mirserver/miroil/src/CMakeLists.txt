@@ -4,6 +4,7 @@ set(MIROIL_SRC
     persist_display_config.cpp ${MIROIL_INCLUDE_DIRS}/miroil/persist_display_config.h
     display_configuration_policy.cpp ${qtmir_include}/miroil/display_configuration_policy.h
     display_configuration_controller_wrapper.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_controller_wrapper.h
+    display_listener_wrapper.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_listener_wrapper.h
     eventdispatch.cpp ${MIROIL_INCLUDE_DIRS}/miroil/eventdispatch.h
     event_builder.cpp ${MIROIL_INCLUDE_DIRS}/miroil/event_builder.h
     input_device.cpp ${MIROIL_INCLUDE_DIRS}/miroil/input_device.h
