@@ -19,7 +19,7 @@
 
 #include <miral/window.h>
 
-#include <mir_toolkit/event.h>
+#include "mirtoolkitevent.h"
 
 #include <QPoint>
 #include <QSize>

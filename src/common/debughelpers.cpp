@@ -15,9 +15,9 @@
  */
 
 #include "debughelpers.h"
-#include <QTouchEvent>
+#include "mirtoolkitevent.h"
 
-#include <mir_toolkit/event.h>
+#include <QTouchEvent>
 
 // Lomiri Shell API
 #include <lomiri/shell/application/ApplicationInfoInterface.h>

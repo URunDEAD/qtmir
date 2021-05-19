@@ -17,13 +17,6 @@
 #include "wrappedwindowmanagementpolicy.h"
 
 #include <miroil/eventdispatch.h>
-#include <mir/version.h>
-#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
-#include <miral/toolkit_event.h>
-using namespace miral::toolkit;
-#else
-#include <mir_toolkit/event.h>
-#endif
 
 #include "initialsurfacesizes.h"
 #include "screensmodel.h"
@@ -33,6 +26,7 @@ using namespace miral::toolkit;
 #include "miral/window_specification.h"
 
 #include "mirqtconversion.h"
+#include "mirtoolkitevent.h"
 #include "qmirserver.h"
 #include "tracepoints.h"
 
