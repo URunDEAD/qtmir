@@ -95,8 +95,8 @@ public:
     qtmir::BasicSetDisplayConfigurationStorage m_displayConfigurationStorage;
     miral::SetApplicationAuthorizer<WrappedSessionAuthorizer> m_wrappedSessionAuthorizer;
 private:
-    miroil::MirServerHooks       m_mirServerHooks;
-    miroil::OpenGLContext m_openGLContext;
+    miroil::OpenGLContext       m_openGLContext;
+    miroil::MirServerHooks      m_mirServerHooks;
 
     miral::MirRunner runner;
 

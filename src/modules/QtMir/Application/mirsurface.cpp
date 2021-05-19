@@ -18,7 +18,6 @@
 #include "compositortextureprovider.h"
 #include "mirsurface.h"
 #include "mirsurfacelistmodel.h"
-#include "namedcursor.h"
 #include "session_interface.h"
 #include "surfacemanager.h"
 #include "timer.h"
@@ -42,6 +41,7 @@
 //#include <mir_toolkit/cursors.h>
 // #include <mir_toolkit/event.h>
 #include <miroil/surfaceobserver.h>
+#include <miroil/named_cursor.h>
 
 // mirserver
 #include <logging.h>
