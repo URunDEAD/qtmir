@@ -17,7 +17,7 @@
 #ifndef SCREENCONFIGURATIONOBSERVER_H
 #define SCREENCONFIGURATIONOBSERVER_H
 
-#include "mirdisplayconfigurationobserver.h"
+//#include "mirdisplayconfigurationobserver.h"
 
 #include <QObject>
 #include <QPoint>
@@ -61,7 +61,8 @@ class OrientationSensor;
  * All other methods must be called on the Qt GUI thread.
  */
 
-class ScreensModel : public MirDisplayConfigurationObserver
+class ScreensModel : public QObject
+//class ScreensModel : public MirDisplayConfigurationObserver
 {
     Q_OBJECT
 public:
