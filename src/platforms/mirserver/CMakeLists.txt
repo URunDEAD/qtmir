@@ -7,7 +7,7 @@ include(UseLttngGenTp)
 set(QTMIRSERVER_ABI 1)
 
 set(miroil_include ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
-set(qtmir_include ${CMAKE_SOURCE_DIR}/include/qtmir)
+set(qtmir_include ${CMAKE_SOURCE_DIR}/include)
 add_subdirectory(miroil)
 
 # Hacks for the QPA privates monster.

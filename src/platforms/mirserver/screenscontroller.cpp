@@ -88,7 +88,7 @@ bool ScreensController::setConfiguration(const qtmir::ScreenConfigurationList &n
     return true;
 }
 
-qtmir::ScreenConfiguration ScreensController::outputConfiguration(miral::OutputId outputId)
+qtmir::ScreenConfiguration ScreensController::outputConfiguration(miroil::OutputId outputId)
 {
     auto displayConfiguration = m_display->configuration();
     qtmir::ScreenConfiguration config;

@@ -3,7 +3,7 @@
 
 #include <mir/int_wrapper.h>
 
-#include <miroil/edid.h>
+#include <qtmir/miroil/edid.h>
 
 namespace mir { namespace graphics { namespace detail { struct GraphicsConfOutputIdTag; } } }
 

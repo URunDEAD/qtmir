@@ -33,10 +33,10 @@
 #include <qtmir/sessionauthorizer.h>
 #include <qtmir/windowmanagementpolicy.h>
 #include <qtmir/displayconfigurationstorage.h>
-#include <qtmir/miral/edid.h>
+#include <qtmir/miroil/edid.h>
 
 
-inline QString stringFromEdid(const miral::Edid& edid)
+inline QString stringFromEdid(const miroil::Edid& edid)
 {
     QString str;
     str += QString::fromStdString(edid.vendor);
@@ -75,12 +75,12 @@ public:
     }
 };
 
-struct DemoDisplayConfigurationStorage : miral::DisplayConfigurationStorage
+struct DemoDisplayConfigurationStorage : miroil::DisplayConfigurationStorage
 {
-    void save(const miral::DisplayId& displayId, const miral::DisplayConfigurationOptions& options) override
+    void save(const miroil::DisplayId& displayId, const miroil::DisplayConfigurationOptions& options) override
     {
         QFile f(stringFromEdid(displayId.edid) + ".edid");
-        qDebug() << "OVERRIDE miral::DisplayConfigurationStorage::save" << f.fileName();
+        qDebug() << "OVERRIDE miroil::DisplayConfigurationStorage::save" << f.fileName();
 
         QJsonObject json;
         if (options.used.is_set()) json.insert("used", options.used.value());
@@ -105,10 +105,10 @@ struct DemoDisplayConfigurationStorage : miral::DisplayConfigurationStorage
         }
     }
 
-    bool load(const miral::DisplayId& displayId, miral::DisplayConfigurationOptions& options) const override
+    bool load(const miroil::DisplayId& displayId, miroil::DisplayConfigurationOptions& options) const override
     {
         QFile f(stringFromEdid(displayId.edid) + ".edid");
-        qDebug() << "OVERRIDE miral::DisplayConfigurationStorage::load" << f.fileName();
+        qDebug() << "OVERRIDE miroil::DisplayConfigurationStorage::load" << f.fileName();
 
         if (f.open(QIODevice::ReadOnly)) {
             QByteArray saveData = f.readAll();
@@ -124,7 +124,7 @@ struct DemoDisplayConfigurationStorage : miral::DisplayConfigurationStorage
                     QString sz(jsonMode["size"].toString());
                     QStringList geo = sz.split("x", QString::SkipEmptyParts);
                     if (geo.count() == 2) {
-                        miral::DisplayConfigurationOptions::DisplayMode mode;
+                        miroil::DisplayConfigurationOptions::DisplayMode mode;
                         mode.size = mir::geometry::Size(geo[0].toInt(), geo[1].toInt());
                         mode.refresh_rate = jsonMode["refresh_rate"].toDouble();
                         options.mode = mode;

@@ -18,12 +18,13 @@
 #define QTMIR_DISPLAYCONFIGURATIONPOLICY_H
 
 //miroil
-#include <miroil/display_configuration_policy.h>
+#include <qtmir/miroil/display_configuration_policy.h>
 
 // mir
 #include <mir/server.h>
 
 #include <memory>
+#include <functional>
 
 class QMirServer;
 

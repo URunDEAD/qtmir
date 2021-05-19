@@ -19,7 +19,7 @@
 #ifndef MIROIL_DISPLAY_CONFIGURATION_STORAGE_H
 #define MIROIL_DISPLAY_CONFIGURATION_STORAGE_H
 
-#include <miroil/display_id.h>
+#include <qtmir/miroil/display_id.h>
 
 #include <mir/geometry/rectangle.h>
 #include <mir/optional_value.h>

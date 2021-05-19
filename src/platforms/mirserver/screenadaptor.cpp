@@ -60,7 +60,7 @@ ScreenAdaptor::~ScreenAdaptor()
     m_modes.clear();
 }
 
-miral::DisplayId ScreenAdaptor::displayId() const
+miroil::DisplayId ScreenAdaptor::displayId() const
 {
     auto platformScreen = static_cast<PlatformScreen*>(m_screen->handle());
     return platformScreen->displayId();
