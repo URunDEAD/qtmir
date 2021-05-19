@@ -4,7 +4,8 @@ set(
 )
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/include
+  ${MIROIL_INCLUDE_DIRS}
 )
 
 add_executable(MirALTests ${MIRAL_TEST_SOURCES})
@@ -13,6 +14,7 @@ target_link_libraries(MirALTests
   qtmirserver
   ${GTEST_BOTH_LIBRARIES}
   ${GMOCK_LIBRARIES}
+  ${MIROIL_LDFLAGS}
 )
 
 add_test(MirAL, MirALTests)

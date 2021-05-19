@@ -51,7 +51,7 @@ TaskController::TaskController(QObject *parent)
     auto appNotifier = static_cast<AppNotifier*>(nativeInterface->nativeResourceForIntegration("AppNotifier"));
     connectToAppNotifier(appNotifier);
 
-    auto promptSessionListener = static_cast<PromptSessionListener*>(nativeInterface->nativeResourceForIntegration("PromptSessionListener"));
+    auto promptSessionListener = static_cast<qtmir::PromptSessionListener*>(nativeInterface->nativeResourceForIntegration("PromptSessionListener"));
     connectToPromptSessionListener(promptSessionListener);
 
     auto sessionAuthorizer = static_cast<SessionAuthorizer*>(nativeInterface->nativeResourceForIntegration("SessionAuthorizer"));
@@ -94,7 +94,7 @@ void TaskController::onSessionStopping(const miral::ApplicationInfo &appInfo)
     qmlSession->setLive(false);
 }
 
-void TaskController::onPromptSessionStarting(const PromptSession &promptSession)
+void TaskController::onPromptSessionStarting(const qtmir::PromptSession &promptSession)
 {
     DEBUG_MSG << " - promptSession=" << promptSession.get();
 
@@ -108,7 +108,7 @@ void TaskController::onPromptSessionStarting(const PromptSession &promptSession)
     }
 }
 
-void TaskController::onPromptSessionStopping(const PromptSession &promptSession)
+void TaskController::onPromptSessionStopping(const qtmir::PromptSession &promptSession)
 {
     DEBUG_MSG << " - promptSession=" << promptSession.get();
 
@@ -118,7 +118,7 @@ void TaskController::onPromptSessionStopping(const PromptSession &promptSession)
     m_mirPromptToSessionHash.remove(promptSession.get());
 }
 
-void TaskController::onPromptProviderAdded(const PromptSession &promptSession,
+void TaskController::onPromptProviderAdded(const qtmir::PromptSession &promptSession,
                                            const miral::Application &promptProvider)
 {
     DEBUG_MSG << " - promptSession=" << promptSession.get() << " promptProvider=" << promptProvider.get();
@@ -138,7 +138,7 @@ void TaskController::onPromptProviderAdded(const PromptSession &promptSession,
     qmlAppSession->addChildSession(qmlPromptProvider);
 }
 
-void TaskController::onPromptProviderRemoved(const PromptSession &promptSession,
+void TaskController::onPromptProviderRemoved(const qtmir::PromptSession &promptSession,
                                              const miral::Application &promptProvider)
 {
     DEBUG_MSG << " - promptSession=" << promptSession.get() << " promptProvider=" << promptProvider.get();
@@ -170,7 +170,7 @@ void TaskController::connectToAppNotifier(AppNotifier *appNotifier)
                      this, &TaskController::onSessionStopping);
 }
 
-void TaskController::connectToPromptSessionListener(PromptSessionListener *listener)
+void TaskController::connectToPromptSessionListener(qtmir::PromptSessionListener *listener)
 {
     QObject::connect(listener, &PromptSessionListener::promptSessionStarting,
                      this, &TaskController::onPromptSessionStarting);

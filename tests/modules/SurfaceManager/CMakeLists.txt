@@ -1,3 +1,5 @@
+pkg_check_modules(MIROIL miroil REQUIRED)
+
 set(
   SURFACE_MANAGER_TEST_SOURCES
   surface_manager_test.cpp
@@ -15,7 +17,7 @@ include_directories(
 include_directories(
   SYSTEM
   ${APPLICATION_API_INCLUDE_DIRS}
-  ${MIRAL_INCLUDE_DIRS}
+  ${MIROIL_INCLUDE_DIRS}
   ${MIRTEST_INCLUDE_DIRS}
 )
 

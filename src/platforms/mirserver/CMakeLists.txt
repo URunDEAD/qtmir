@@ -173,6 +173,7 @@ add_library(qtmirserver SHARED
 target_link_libraries(qtmirserver
     PUBLIC
         ${MIRAL_LDFLAGS}
+        ${MIROIL_LDFLAGS}
         ${MIRSERVER_LDFLAGS}
         Qt5::Core
         Qt5::Gui

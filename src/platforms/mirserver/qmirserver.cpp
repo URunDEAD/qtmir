@@ -26,7 +26,6 @@
 #include "qmirserver.h"
 #include "qmirserver_p.h"
 
-
 QMirServer::QMirServer(QObject *parent)
     : QObject(parent)
     , d_ptr(new QMirServerPrivate)
