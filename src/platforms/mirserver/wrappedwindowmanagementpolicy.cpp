@@ -130,7 +130,7 @@ namespace qtmir
         if (!requestParameters.parent().is_set() || requestParameters.parent().value().lock().get() == nullptr) {
             QSize initialSize = InitialSurfaceSizes::get(appPid);
 
-            if (initialSize.isValid() && surfaceType == mir_surface_type_normal) {
+            if (initialSize.isValid() && surfaceType == mir_window_type_normal) {
                 parameters.size() = toMirSize(initialSize);
                 hasInitialSize = true;
             }
