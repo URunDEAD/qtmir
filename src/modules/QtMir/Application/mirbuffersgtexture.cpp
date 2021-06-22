@@ -1,4 +1,5 @@
 /*
+ * Copyright 2021 UBports Foundation.
  * Copyright (C) 2013-2015 Canonical, Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it under
@@ -21,24 +22,89 @@
 
 // Qt
 #include <QtGui/QOpenGLFunctions>
+#include <QMutexLocker>
 
 namespace mg = mir::geometry;
 
-MirBufferSGTexture::MirBufferSGTexture()
-    : QSGTexture()
+class MirGlBuffer
+{
+public:
+    MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer);
+    virtual ~MirGlBuffer();
+
+    static std::shared_ptr<MirGlBuffer> from_mir_buffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
+
+    void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
+    void freeBuffer();
+    bool hasBuffer() const;
+
+    int textureId();
+    QSize textureSize() const;
+    bool hasAlphaChannel() const;
+
+    void bind();
+
+    virtual void updateTextureId() = 0;
+    virtual void bindTexture() {};
+
+protected:
+    std::shared_ptr<miral::GLBuffer> m_mirBuffer;
+    GLuint m_textureId;
+
+private:
+    bool m_needsUpdate;
+    QMutex m_mutex;
+    int m_width;
+    int m_height;
+};
+
+class MirGlBufferTexture : public MirGlBuffer
+{
+public:
+    MirGlBufferTexture(const std::shared_ptr<miral::GLBuffer>& buffer) : MirGlBuffer(buffer) {}
+
+    void updateTextureId() override
+    {
+        auto f = QOpenGLContext::currentContext()->functions();
+
+        GLint current_binding;
+        f->glGetIntegerv(GL_TEXTURE_BINDING_2D, &current_binding);
+        m_mirBuffer->bind();
+        f->glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*) &m_textureId);
+        f->glBindTexture(GL_TEXTURE_2D, (GLint) current_binding);
+    }
+};
+
+class MirGlBufferTexturesource : public MirGlBuffer
+{
+public:
+    MirGlBufferTexturesource(const std::shared_ptr<miral::GLBuffer>& buffer) : MirGlBuffer(buffer) {}
+
+    void updateTextureId() override
+    {
+        auto f = QOpenGLContext::currentContext()->functions();
+        if (!m_textureId)
+            f->glGenTextures(1, &m_textureId);
+        f->glBindTexture(GL_TEXTURE_2D, (GLint) m_textureId);
+    }
+
+    void bindTexture() override
+    {
+        auto f = QOpenGLContext::currentContext()->functions();
+        f->glBindTexture(GL_TEXTURE_2D, m_textureId);
+    }
+};
+
+MirGlBuffer::MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer) :
+    m_mirBuffer(buffer)
+    , m_textureId(0)
+    , m_needsUpdate(false)
     , m_width(0)
     , m_height(0)
-    , m_textureId(0)
 {
-    auto f = QOpenGLContext::currentContext()->functions();
-    f->glGenTextures(1, &m_textureId);
-
-    setFiltering(QSGTexture::Linear);
-    setHorizontalWrapMode(QSGTexture::ClampToEdge);
-    setVerticalWrapMode(QSGTexture::ClampToEdge);
 }
 
-MirBufferSGTexture::~MirBufferSGTexture()
+MirGlBuffer::~MirGlBuffer()
 {
     if (m_textureId) {
         auto f = QOpenGLContext::currentContext()->functions();
@@ -46,54 +112,133 @@ MirBufferSGTexture::~MirBufferSGTexture()
     }
 }
 
-void MirBufferSGTexture::freeBuffer()
+std::shared_ptr<MirGlBuffer> MirGlBuffer::from_mir_buffer(const std::shared_ptr<mir::graphics::Buffer>& buffer) {
+    auto glBuffer = miral::GLBuffer::from_mir_buffer(buffer);
+    if (glBuffer->type() == miral::GLBuffer::Type::GLTextureSource)
+        return std::make_shared<MirGlBufferTexturesource>(glBuffer);
+    else
+        return std::make_shared<MirGlBufferTexture>(glBuffer);
+}
+
+void MirGlBuffer::freeBuffer()
 {
-    m_mirBuffer.reset();
+    QMutexLocker locker(&m_mutex);
+
+    if (!m_mirBuffer)
+        return;
+
+    m_mirBuffer->reset();
     m_width = 0;
     m_height = 0;
 }
 
-void MirBufferSGTexture::setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer)
+void MirGlBuffer::setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer)
 {
-    m_mirBuffer.reset(buffer);
-    mg::Size size = m_mirBuffer.size();
+    QMutexLocker locker(&m_mutex);
+
+    m_mirBuffer->reset(buffer);
+
+    mg::Size size = m_mirBuffer->size();
     m_height = size.height.as_int();
     m_width = size.width.as_int();
+    m_needsUpdate = true;
 }
 
-bool MirBufferSGTexture::hasBuffer() const
+bool MirGlBuffer::hasBuffer() const
 {
-    return m_mirBuffer;
+    if (!m_mirBuffer)
+        return false;
+
+    return !m_mirBuffer->empty();
 }
 
-int MirBufferSGTexture::textureId() const
+int MirGlBuffer::textureId()
 {
+    QMutexLocker locker(&m_mutex);
+
+    if (m_needsUpdate) {
+        updateTextureId();
+        m_needsUpdate = false;
+    }
+
     return m_textureId;
 }
 
-QSize MirBufferSGTexture::textureSize() const
+QSize MirGlBuffer::textureSize() const
 {
     return QSize(m_width, m_height);
 }
 
+bool MirGlBuffer::hasAlphaChannel() const
+{
+    return m_mirBuffer->has_alpha_channel();
+}
+
+void MirGlBuffer::bind() {
+    QMutexLocker locker(&m_mutex);
+
+    Q_ASSERT(hasBuffer());
+
+    m_mirBuffer->bind();
+}
+
+MirBufferSGTexture::MirBufferSGTexture()
+    : QSGTexture()
+{
+    setFiltering(QSGTexture::Linear);
+    setHorizontalWrapMode(QSGTexture::ClampToEdge);
+    setVerticalWrapMode(QSGTexture::ClampToEdge);
+}
+
+MirBufferSGTexture::~MirBufferSGTexture()
+{
+    m_mirBuffer.reset();
+}
+
+void MirBufferSGTexture::freeBuffer()
+{
+    if (!m_mirBuffer)
+        return;
+
+    m_mirBuffer->freeBuffer();
+}
+
+void MirBufferSGTexture::setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer)
+{
+    // For performance reasons, lets not recreate
+    // the glbuffer class
+    if (!m_mirBuffer)
+        m_mirBuffer = MirGlBuffer::from_mir_buffer(buffer);
+    else  // If we alredy have a buffer class, lets reuse that
+        m_mirBuffer->setBuffer(buffer);
+}
+
+bool MirBufferSGTexture::hasBuffer() const
+{
+    if (!m_mirBuffer)
+        return false;
+
+    return m_mirBuffer->hasBuffer();
+}
+
+int MirBufferSGTexture::textureId() const
+{
+    return m_mirBuffer->textureId();
+}
+
+QSize MirBufferSGTexture::textureSize() const
+{
+    return m_mirBuffer->textureSize();
+}
+
 bool MirBufferSGTexture::hasAlphaChannel() const
 {
-    return m_mirBuffer.has_alpha_channel();
+    return m_mirBuffer->hasAlphaChannel();
 }
 
 void MirBufferSGTexture::bind()
 {
-    Q_ASSERT(hasBuffer());
-
-    auto f = QOpenGLContext::currentContext()->functions();
-
-    f->glBindTexture(GL_TEXTURE_2D, m_textureId);
+    m_mirBuffer->bindTexture();
     updateBindOptions(true/* force */);
-
-    m_mirBuffer.bind_to_texture();
-    m_mirBuffer.secure_for_render();
-
-    // Fix for lp:1583088 - For non-GL clients, Mir uploads the client pixel buffer to a GL texture.
-    // But as it does so, it changes some GL state and neglects to restore it, which breaks Qt's rendering.
-    f->glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // 4 is the default which Qt uses
+    m_mirBuffer->bind();
 }

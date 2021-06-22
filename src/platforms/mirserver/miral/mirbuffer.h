@@ -28,22 +28,46 @@ namespace miral
 class GLBuffer
 {
 public:
-    GLBuffer();
+    enum Type {
+        GLTexture = 0,
+        GLTextureSource = 1,
+    };
+
     ~GLBuffer();
     explicit GLBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
 
-    operator bool() const;
     bool has_alpha_channel() const;
     mir::geometry::Size size() const;
 
+    virtual void bind() = 0;
+    virtual Type type() = 0;
+
     void reset();
     void reset(std::shared_ptr<mir::graphics::Buffer> const& buffer);
-    void bind_to_texture();
-    void secure_for_render();
+    bool empty();
 
-private:
+    static std::shared_ptr<GLBuffer> from_mir_buffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+
+protected:
     std::shared_ptr<mir::graphics::Buffer> wrapped;
 };
+
+class GLTextureSourceBuffer : public GLBuffer
+{
+public:
+    GLTextureSourceBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+    void bind() override;
+    Type type() override { return Type::GLTextureSource; };
+};
+
+class GLTextureBuffer : public GLBuffer
+{
+public:
+    GLTextureBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+    void bind() override;
+    Type type() override { return Type::GLTexture; };
+};
+
 }
 
 #endif //MIRAL_GLBUFFER_H
