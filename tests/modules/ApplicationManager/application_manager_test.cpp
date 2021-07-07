@@ -681,6 +681,26 @@ TEST_F(ApplicationManagerTests,maliitSessionsAccepted)
 }
 
 /*
+ * Test that maliit sessions, when cmdline contains full path, are accepted.
+ * This happens when maliit-server runs as a systemd user unit.
+ */
+TEST_F(ApplicationManagerTests,maliitFullPathAccepted)
+{
+    using namespace ::testing;
+    const pid_t procId = 151;
+    QByteArray cmdLine("/usr/bin/maliit-server --blah");
+
+    // Set up Mocks & signal watcher
+    EXPECT_CALL(procInfo,command_line(procId))
+        .Times(1)
+        .WillOnce(Return(cmdLine));
+
+    bool authed = false;
+    applicationManager.authorizeSession(procId, authed);
+    EXPECT_EQ(authed, true);
+}
+
+/*
  * Test that an application in the Starting state is not impacted by the upstart "Starting" message
  * for that application (i.e. the upstart message is effectively useless)
  */
