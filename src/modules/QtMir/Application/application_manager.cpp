@@ -42,6 +42,7 @@
 #include <QDebug>
 #include <QByteArray>
 #include <QDir>
+#include <QRegularExpression>
 
 // std
 #include <csignal>
@@ -546,7 +547,12 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         return;
     }
 
-    if (info->startsWith("maliit-server") || info->contains("qt5/libexec/QtWebProcess")) {
+    QString argv0 = info->asStringList().first();
+    // We want to match both "maliit-server" and "/usr/bin/maliit-server"
+    QRegularExpression isMaliitOrQtWebProess(
+        QStringLiteral("((^|/)maliit-server|qt5/libexec/QtWebProcess)$"));
+
+    if (isMaliitOrQtWebProess.match(argv0).hasMatch()) {
         authorized = true;
         return;
     }
