@@ -98,10 +98,11 @@ public:
 MirGlBuffer::MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer) :
     m_mirBuffer(buffer)
     , m_textureId(0)
-    , m_needsUpdate(false)
-    , m_width(0)
-    , m_height(0)
+    , m_needsUpdate(true)
 {
+    mg::Size size = m_mirBuffer->size();
+    m_height = size.height.as_int();
+    m_width = size.width.as_int();
 }
 
 MirGlBuffer::~MirGlBuffer()
