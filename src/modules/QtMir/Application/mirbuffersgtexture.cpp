@@ -85,7 +85,6 @@ public:
         auto f = QOpenGLContext::currentContext()->functions();
         if (!m_textureId)
             f->glGenTextures(1, &m_textureId);
-        f->glBindTexture(GL_TEXTURE_2D, (GLint) m_textureId);
     }
 
     void bindTexture() override
