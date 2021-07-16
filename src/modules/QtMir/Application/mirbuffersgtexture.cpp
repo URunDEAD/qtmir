@@ -21,6 +21,7 @@
 #include <mir/geometry/size.h>
 
 // Qt
+#include <QDebug>
 #include <QtGui/QOpenGLFunctions>
 #include <QMutexLocker>
 
@@ -45,9 +46,10 @@ public:
     void bind();
 
     virtual void updateTextureId() = 0;
-    virtual void bindTexture() {};
 
 protected:
+    virtual void bindTexture() = 0;
+
     std::shared_ptr<miral::GLBuffer> m_mirBuffer;
     GLuint m_textureId;
 
@@ -61,7 +63,11 @@ private:
 class MirGlBufferTexture : public MirGlBuffer
 {
 public:
-    MirGlBufferTexture(const std::shared_ptr<miral::GLBuffer>& buffer) : MirGlBuffer(buffer) {}
+    MirGlBufferTexture(const std::shared_ptr<miral::GLBuffer>& buffer)
+        : MirGlBuffer(buffer)
+          // Strong reference held by base class.
+        , m_texBuf(static_cast<miral::GLTextureBuffer *>(buffer.get()))
+        {}
 
     void updateTextureId() override
     {
@@ -69,16 +75,27 @@ public:
 
         GLint current_binding;
         f->glGetIntegerv(GL_TEXTURE_BINDING_2D, &current_binding);
-        m_mirBuffer->bind();
+        m_texBuf->tex_bind();
         f->glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*) &m_textureId);
         f->glBindTexture(GL_TEXTURE_2D, (GLint) current_binding);
     }
+
+    void bindTexture() override {
+        m_texBuf->tex_bind();
+    }
+
+private:
+    miral::GLTextureBuffer *m_texBuf;
 };
 
 class MirGlBufferTexturesource : public MirGlBuffer
 {
 public:
-    MirGlBufferTexturesource(const std::shared_ptr<miral::GLBuffer>& buffer) : MirGlBuffer(buffer) {}
+    MirGlBufferTexturesource(const std::shared_ptr<miral::GLBuffer>& buffer)
+        : MirGlBuffer(buffer)
+          // Strong reference held by base class.
+        , m_texSourceBuf(static_cast<miral::GLTextureSourceBuffer *>(buffer.get()))
+        {}
 
     void updateTextureId() override
     {
@@ -91,7 +108,12 @@ public:
     {
         auto f = QOpenGLContext::currentContext()->functions();
         f->glBindTexture(GL_TEXTURE_2D, m_textureId);
+
+        m_texSourceBuf->upload_to_texture();
     }
+
+private:
+    miral::GLTextureSourceBuffer * m_texSourceBuf;
 };
 
 MirGlBuffer::MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer) :
@@ -136,7 +158,7 @@ void MirGlBuffer::setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer
 {
     QMutexLocker locker(&m_mutex);
 
-    m_mirBuffer->reset(buffer);
+    m_mirBuffer->setWrapped(buffer);
 
     mg::Size size = m_mirBuffer->size();
     m_height = size.height.as_int();
@@ -179,7 +201,7 @@ void MirGlBuffer::bind() {
 
     Q_ASSERT(hasBuffer());
 
-    m_mirBuffer->bind();
+    bindTexture();
 }
 
 MirBufferSGTexture::MirBufferSGTexture()
@@ -207,10 +229,16 @@ void MirBufferSGTexture::setBuffer(const std::shared_ptr<mir::graphics::Buffer>&
 {
     // For performance reasons, lets not recreate
     // the glbuffer class
-    if (!m_mirBuffer)
-        m_mirBuffer = MirGlBuffer::from_mir_buffer(buffer);
-    else  // If we alredy have a buffer class, lets reuse that
-        m_mirBuffer->setBuffer(buffer);
+    if (m_mirBuffer) {
+        try {
+            m_mirBuffer->setBuffer(buffer);
+            return;
+        } catch (const std::runtime_error &) {
+            // Likely incompatible buffer. Try re-creating the wrapper.
+        }
+    }
+
+    m_mirBuffer = MirGlBuffer::from_mir_buffer(buffer);
 }
 
 bool MirBufferSGTexture::hasBuffer() const
@@ -238,7 +266,6 @@ bool MirBufferSGTexture::hasAlphaChannel() const
 
 void MirBufferSGTexture::bind()
 {
-    m_mirBuffer->bindTexture();
-    updateBindOptions(true/* force */);
     m_mirBuffer->bind();
+    updateBindOptions(true/* force */);
 }
