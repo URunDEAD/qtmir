@@ -20,7 +20,7 @@
 #include "urlbuilderdispatcher.h"
 #include "services.h"
 
-#include <wayland-generated/qt_windowmanager_wrapper.h>
+#include <wayland-generated/qt-windowmanager_wrapper.h>
 
 #include <QDebug>
 

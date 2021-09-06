@@ -147,7 +147,7 @@ add_library(qtmirserver-mirserver OBJECT
     setqtcompositor.cpp setqtcompositor.h
     eventdispatch.cpp eventdispatch.h
     promptsessionmanager.cpp promptsessionmanager.h promptsession.h
-    wayland-generated/qt_windowmanager_wrapper.cpp
+    wayland-generated/qt-windowmanager_wrapper.cpp
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
 
