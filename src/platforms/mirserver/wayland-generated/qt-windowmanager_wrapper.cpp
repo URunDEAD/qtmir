@@ -4,7 +4,7 @@
  * This file is generated from qt-windowmanager.xml by mir_wayland_generator
  */
 
-#include "qt_windowmanager_wrapper.h"
+#include "qt-windowmanager_wrapper.h"
 
 #include <boost/exception/diagnostic_information.hpp>
 #include <wayland-server-core.h>

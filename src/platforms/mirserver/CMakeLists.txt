@@ -132,7 +132,7 @@ add_library(qtmirserver-mirserver OBJECT
     displayconfigurationpolicy.cpp
     wrappedwindowmanagementpolicy.cpp
  #   mirdisplayconfigurationobserver.cpp
-    wayland-generated/qt_windowmanager_wrapper.cpp
+    wayland-generated/qt-windowmanager_wrapper.cpp
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
 
