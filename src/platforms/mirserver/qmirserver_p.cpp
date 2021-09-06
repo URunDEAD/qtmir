@@ -29,6 +29,8 @@
 #include "namedcursor.h"
 #include "promptsessionlistener.h"
 #include "qtwindowmanager.h"
+#include "wayland/xdgdecorationV1.h"
+#include "wayland/kwinserverdecoration.h"
 
 #include <miroil/prompt_session_manager.h>
 #include <miroil/persist_display_config.h>
@@ -179,6 +181,8 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
 
     miral::WaylandExtensions waylandExtensions{};
     waylandExtensions.add_extension(qtmir::qtWindowmanagerExtension());
+    waylandExtensions.add_extension(qtmir::qtXdgDecorationManagerV1Extension());
+    waylandExtensions.add_extension(qtmir::qtKwinServerDecorationManagerExtension());
 
     runner.set_exception_handler([this]
     {
