@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: UBports Developers <developers@ubports.com>
 Build-Depends: cmake,
-               cmake-extras (>= 1.5-4~),
+               cmake-extras (>= 1.6~),
                debhelper-compat (= 12),
                googletest (>= 1.10.0),
 #FIXME         libcontent-hub-dev (>= 0.2),
