@@ -163,6 +163,6 @@ TEST_P(EdidTest, CheckData)
     }
 }
 
-INSTANTIATE_TEST_CASE_P(AllEdidTests,
+INSTANTIATE_TEST_SUITE_P(AllEdidTests,
                         EdidTest,
                         ::testing::ValuesIn(testData));
