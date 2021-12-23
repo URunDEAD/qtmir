@@ -57,7 +57,7 @@ private:
     std::shared_ptr<Private> d;
 };
 
-using DisplayConfigurationPolicyWrapper = std::function<std::shared_ptr<miroil::DisplayConfigurationPolicy>()>;
+using DisplayConfigurationPolicyWrapper = std::function<std::shared_ptr<miroil::DisplayConfigurationPolicy>(std::shared_ptr<mir::graphics::DisplayConfigurationPolicy> const& wrapped)>;
 
 /*
     Base class for access to set the display configuration policy
@@ -85,7 +85,7 @@ public:
     template<typename ...Args>
     explicit SetDisplayConfigurationPolicy(Args const& ...args) :
         BasicSetDisplayConfigurationPolicy{
-            [&args...]() { return std::make_shared<Policy>(args...); }} {}
+            [&args...](auto) { return std::make_shared<Policy>(args...); }} {}
 };
 
 } // namespace qtmir

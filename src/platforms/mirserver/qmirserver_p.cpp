@@ -59,11 +59,6 @@ struct DefaultDisplayConfigurationStorage : miroil::DisplayConfigurationStorage
     bool load(const miroil::DisplayId&, miroil::DisplayConfigurationOptions&) const override { return false; }
 };
 
-std::shared_ptr<miroil::DisplayConfigurationPolicy> buildDisplayConfigurationPolicy()
-{
-    return std::make_shared<qtmir::DisplayConfigurationPolicy>();
-}
-
 std::shared_ptr<miroil::DisplayConfigurationStorage> buildDisplayConfigurationStorage()
 {
     return std::make_shared<DefaultDisplayConfigurationStorage>();
@@ -126,7 +121,7 @@ std::shared_ptr<qtmir::SessionAuthorizer> QMirServerPrivate::theApplicationAutho
 }
 
 QMirServerPrivate::QMirServerPrivate()
-    : m_displayConfigurationPolicy(buildDisplayConfigurationPolicy)
+    : m_displayConfigurationPolicy{[](auto) { return std::make_shared<qtmir::DisplayConfigurationPolicy>(); }}
     , m_windowManagementPolicy(buildWindowManagementPolicy)
     , m_displayConfigurationStorage(buildDisplayConfigurationStorage)
     , m_wrappedSessionAuthorizer(buildSessionAuthorizer)
