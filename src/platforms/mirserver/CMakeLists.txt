@@ -8,6 +8,10 @@ set(QTMIRSERVER_ABI 1)
 
 add_subdirectory(miral)
 
+set(miroil_include ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
+add_subdirectory(miroil)
+
+
 # Hacks for the QPA privates monster.
 pkg_check_modules(FONTCONFIG fontconfig REQUIRED)
 
@@ -68,6 +72,8 @@ if(WITH_CONTENTHUB)
 endif()
 
     ${VALGRIND_INCLUDE_DIRS}
+
+    ${miroil_include}
 )
 
 # We have to remove -pedantic for tracepoints.c
@@ -170,6 +176,7 @@ add_library(qtmirserver SHARED
     $<TARGET_OBJECTS:qtmirserver-nomirserver>
     $<TARGET_OBJECTS:qtmirserver-mirserver>
     $<TARGET_OBJECTS:miral-prototypes>
+    $<TARGET_OBJECTS:miroil>
 )
 
 target_link_libraries(qtmirserver
