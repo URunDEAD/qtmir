@@ -25,8 +25,7 @@
 #include "qteventfeeder.h"
 #include "qtmir/sessionauthorizer.h"
 
-// prototyping for later incorporation in miral
-#include <miral/persist_display_config.h>
+#include <miroil/persist_display_config.h>
 
 // miral
 #include <miral/add_init_callback.h>
@@ -202,7 +201,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             addInitCallback,
             qtmir::SetQtCompositor{screensModel},
             setTerminator,
-            miral::PersistDisplayConfig{displayStorageBuilder(),
+            miroil::PersistDisplayConfig{displayStorageBuilder(),
                                         m_displayConfigurationPolicy}
         });
 }

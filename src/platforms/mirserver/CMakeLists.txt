@@ -6,8 +6,6 @@ include(UseLttngGenTp)
 
 set(QTMIRSERVER_ABI 1)
 
-add_subdirectory(miral)
-
 set(miroil_include ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
 set(qtmir_include ${CMAKE_SOURCE_DIR}/include/qtmir)
 add_subdirectory(miroil)
@@ -175,7 +173,6 @@ add_library(qtmirserver SHARED
     ${QMIRSERVER_PLUGIN_SRC}
     $<TARGET_OBJECTS:qtmirserver-nomirserver>
     $<TARGET_OBJECTS:qtmirserver-mirserver>
-    $<TARGET_OBJECTS:miral-prototypes>
     $<TARGET_OBJECTS:miroil>
 )
 
