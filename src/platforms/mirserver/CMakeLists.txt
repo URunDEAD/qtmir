@@ -9,8 +9,8 @@ set(QTMIRSERVER_ABI 1)
 add_subdirectory(miral)
 
 set(miroil_include ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
+set(qtmir_include ${CMAKE_SOURCE_DIR}/include/qtmir)
 add_subdirectory(miroil)
-
 
 # Hacks for the QPA privates monster.
 pkg_check_modules(FONTCONFIG fontconfig REQUIRED)
