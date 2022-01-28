@@ -18,44 +18,84 @@
 #define MIROIL_GLBUFFER_H
 
 #include <mir/geometry/size.h>
-#include <mir/version.h>
+
 #include <memory>
 
-#include <GL/gl.h>
+namespace mir {
+    namespace graphics {
+        class Buffer;
 
-namespace mir { namespace graphics { class Buffer; }}
+        namespace gl {
+            class Texture;
+        }
+    }
 
-namespace miroil
+    namespace renderer {
+        namespace gl {
+            class TextureSource;
+        }
+    }
+}
+
+namespace miral
 {
 class GLBuffer
 {
 public:
-    GLBuffer();
+    enum Type {
+        GLTexture = 0,
+        GLTextureSource = 1,
+    };
+
     ~GLBuffer();
     explicit GLBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
 
-    operator bool() const;
     bool has_alpha_channel() const;
     mir::geometry::Size size() const;
 
+    virtual void setWrapped(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+
+    virtual Type type() = 0;
+
     void reset();
-    void reset(std::shared_ptr<mir::graphics::Buffer> const& buffer);
-    void bind();
-#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 3, 0)
-    void gl_bind_tex();
-#endif
+    bool empty();
+
+    static std::shared_ptr<GLBuffer> from_mir_buffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+
+protected:
+    std::shared_ptr<mir::graphics::Buffer> wrapped;
+};
+
+class GLTextureSourceBuffer : public GLBuffer
+{
+public:
+    GLTextureSourceBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+
+    void setWrapped(std::shared_ptr<mir::graphics::Buffer> const& buffer) override;
+
+    void upload_to_texture();
+
+    Type type() override { return Type::GLTextureSource; };
 
 private:
-    void init();
-    void destroy();
-
-    std::shared_ptr<mir::graphics::Buffer> wrapped;
-    GLuint m_textureId;
-#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 3, 0)
-    bool m_isOldTex = false;
-    bool m_inited = false;
-#endif
+    mir::renderer::gl::TextureSource* m_texSource;
 };
+
+class GLTextureBuffer : public GLBuffer
+{
+public:
+    GLTextureBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+
+    void setWrapped(std::shared_ptr<mir::graphics::Buffer> const& buffer) override;
+
+    void tex_bind();
+
+    Type type() override { return Type::GLTexture; };
+
+private:
+    mir::graphics::gl::Texture *m_mirTex;
+};
+
 }
 
-#endif //MIROIL_GLBUFFER_H
+#endif //MIRAL_GLBUFFER_H
