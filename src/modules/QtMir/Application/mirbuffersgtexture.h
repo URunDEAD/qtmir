@@ -17,7 +17,7 @@
 #ifndef MIRBUFFERSGTEXTURE_H
 #define MIRBUFFERSGTEXTURE_H
 
-#include "miral/mirbuffer.h"
+#include "miroil/mirbuffer.h"
 
 #include <QSGTexture>
 
