@@ -27,9 +27,9 @@ using namespace testing;
 using namespace QtDBusTest;
 using namespace QtDBusMock;
 
-const char POWERD_NAME[] = "com.canonical.powerd";
-const char POWERD_PATH[] = "/com/canonical/powerd";
-const char POWERD_INTERFACE[] = "com.canonical.powerd";
+const char POWERD_NAME[] = "com.lomiri.Repowerd";
+const char POWERD_PATH[] = "/com/lomiri/Repowerd";
+const char POWERD_INTERFACE[] = "com.lomiri.Repowerd";
 
 class SharedWakelockTest: public Test
 {
@@ -58,12 +58,12 @@ protected:
 
     void implementRequestSysState() {
         // Defines the mock impementation of this DBus method
-        powerdMockInterface().AddMethod("com.canonical.powerd",
+        powerdMockInterface().AddMethod("com.lomiri.Repowerd",
                 "requestSysState", "si", "s", "ret = 'cookie'").waitForFinished();
     }
 
     void implementClearSysState() {
-        powerdMockInterface().AddMethod("com.canonical.powerd",
+        powerdMockInterface().AddMethod("com.lomiri.Repowerd",
                 "clearSysState", "s", "", "").waitForFinished();
     }
 
@@ -249,7 +249,7 @@ TEST_F(SharedWakelockTest, wakelockAcquireReleaseFlood)
 
 TEST_F(SharedWakelockTest, wakelockAcquireReleaseAcquireWithDelays)
 {
-    powerdMockInterface().AddMethod("com.canonical.powerd",
+    powerdMockInterface().AddMethod("com.lomiri.Repowerd",
             "requestSysState", "si", "s",
             "i=100000\n" // delay the response from the mock dbus instance
             "while i>0:\n"

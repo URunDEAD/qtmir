@@ -37,7 +37,7 @@ class Wakelock : public AbstractDBusServiceMonitor
     Q_OBJECT
 public:
     Wakelock(const QDBusConnection &connection) noexcept
-        : AbstractDBusServiceMonitor(QStringLiteral("com.canonical.powerd"), QStringLiteral("/com/canonical/powerd"), QStringLiteral("com.canonical.powerd"), connection)
+        : AbstractDBusServiceMonitor(QStringLiteral("com.lomiri.Repowerd"), QStringLiteral("/com/lomiri/Repowerd"), QStringLiteral("com.lomiri.Repowerd"), connection)
         , m_wakelockEnabled(false)
     {
         // (re-)acquire wake lock when powerd (re-)appears on the bus
@@ -85,7 +85,7 @@ public:
         Q_EMIT enabledChanged(false);
 
         if (!serviceAvailable()) {
-            qWarning() << "com.canonical.powerd DBus interface not available, presuming no wakelocks held";
+            qWarning() << "com.lomiri.Repowerd DBus interface not available, presuming no wakelocks held";
             return;
         }
 
@@ -151,7 +151,7 @@ private:
     void acquireWakelock()
     {
         if (!serviceAvailable()) {
-            qWarning() << "com.canonical.powerd DBus interface not available, waiting for it";
+            qWarning() << "com.lomiri.Repowerd DBus interface not available, waiting for it";
             return;
         }
 
