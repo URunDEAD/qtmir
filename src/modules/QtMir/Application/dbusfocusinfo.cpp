@@ -32,8 +32,8 @@ using namespace qtmir;
 DBusFocusInfo::DBusFocusInfo(const QList<Application*> &applications)
     : m_applications(applications)
 {
-    QDBusConnection::sessionBus().registerService("com.canonical.Unity.FocusInfo");
-    QDBusConnection::sessionBus().registerObject("/com/canonical/Unity/FocusInfo", this, QDBusConnection::ExportScriptableSlots);
+    QDBusConnection::sessionBus().registerService("com.lomiri.Shell.FocusInfo");
+    QDBusConnection::sessionBus().registerObject("/com/lomiri/Shell/FocusInfo", this, QDBusConnection::ExportScriptableSlots);
 }
 
 bool DBusFocusInfo::isPidFocused(unsigned int pid)

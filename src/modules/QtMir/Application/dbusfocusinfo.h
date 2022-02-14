@@ -30,7 +30,7 @@ class MirSurfaceInterface;
 class DBusFocusInfo : public QObject
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.canonical.Unity.FocusInfo")
+    Q_CLASSINFO("D-Bus Interface", "com.lomiri.Shell.FocusInfo")
 public:
     explicit DBusFocusInfo(const QList<Application*> &applications);
     virtual ~DBusFocusInfo() {}
