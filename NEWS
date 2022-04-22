@@ -1,3 +1,12 @@
+Overview of changes in qtmir 0.7.0
+
+  * Stop linking to EGL and use builtin EGL functions from qt
+  * Add support for never buffer types in mir (gl::Textures)
+  * Rename and use renamed dbus interfaces
+  * Rename Unity.Application QML module to QtMir.Application
+  * Fixed some compile issues
+  * Fixed some cmake issues
+
 Overview of changes in qtmir 0.6.1
 
   * QtMir for Lomiri Operating Environment

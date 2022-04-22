@@ -1,7 +1,11 @@
-qtmir (0.7.0) UNRELEASED; urgency=medium
+qtmir (0.7.0) unstable; urgency=medium
 
 
- -- Ratchanan Srirattanamet <ratchanan@ubports.com>  Tue, 23 Mar 2021 22:47:49 +0700
+  [ UBports developers ]
+  * Upstream-provided Debian package for qtmir. See upstream ChangeLog
+    for recent changes.
+
+ -- UBports developers <developers@ubports.com>  Fri, 22 Apr 2022 06:26:25 +0200
 
 qtmir (0.6.1-0) unstable; urgency=medium
 
