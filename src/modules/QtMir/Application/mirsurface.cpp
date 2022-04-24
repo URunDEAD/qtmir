@@ -801,9 +801,9 @@ void MirSurface::keyPressEvent(QKeyEvent *qtEvent)
         if (!qtEvent->isAutoRepeat()) {
             Q_ASSERT(!isKeyPressed(qtEvent->nativeVirtualKey()));
             PressedKey pressedKey(qtEvent, msecsSinceReference());
-            auto info = EventBuilder::instance()->findInfo(qtEvent->timestamp());
+            auto info = EventBuilder::instance()->find_info(qtEvent->timestamp());
             if (info) {
-                pressedKey.deviceId = info->deviceId;
+                pressedKey.deviceId = info->device_id;
             }
             m_pressedKeys.append(std::move(pressedKey));
         }
@@ -1564,7 +1564,7 @@ void MirSurface::releaseAllPressedKeys()
         ulong timestamp = pressedKey.timestamp + deltaMs;
         std::vector<uint8_t> cookie{};
 
-        auto ev = mir::events::make_event(pressedKey.deviceId,
+        auto ev = EventBuilder::instance()->make_key_event(pressedKey.deviceId,
                 uncompressTimestamp<qtmir::Timestamp>(qtmir::Timestamp(timestamp)),
                 cookie, mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
                 mir_input_event_modifier_none);
