@@ -6,11 +6,13 @@ set(
 include_directories(
   ${CMAKE_SOURCE_DIR}/src/platforms/mirserver
   ${CMAKE_SOURCE_DIR}/src/common
+  ${CMAKE_SOURCE_DIR}/src/platforms/mirserver/miroil/include
 )
 
 include_directories(
   SYSTEM
   ${MIRSERVER_INCLUDE_DIRS}
+  ${MIRAL_INCLUDE_DIRS}
 )
 
 add_executable(EventBuilderTest ${EVENT_BUILDER_TEST_SOURCES})
