@@ -578,11 +578,11 @@ void WrappedWindowManagementPolicy::activate(const miral::Window &window)
                 Q_ASSERT(extraInfo->previousState != Mir::MinimizedState);
                 requestState(window, extraInfo->previousState);
             }
-
-            tools.invoke_under_lock([&]() {
-                tools.select_active_window(window);
-            });
         }
+
+        tools.invoke_under_lock([&]() {
+            tools.select_active_window(window);
+        });
     } catch (const std::out_of_range&) {
         // usually shell trying to operate on a window which already closed, just ignore
         // (throws from tools.info_for(...) ususally)
