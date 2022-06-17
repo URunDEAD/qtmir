@@ -224,6 +224,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     , m_shellChrome(toQtShellChrome(newWindowInfo.windowInfo.shell_chrome()))
     , m_parentSurface(parentSurface)
     , m_childSurfaceList(new MirSurfaceListModel(this))
+    , m_appId(newWindowInfo.windowInfo.application_id())
 {
     INFO_MSG << "("
         << "type=" << mirSurfaceTypeToStr(m_type)
@@ -918,15 +919,7 @@ void MirSurface::emitSizeChanged()
 
 QString MirSurface::appId() const
 {
-    QString appId;
-
-    if (m_session && m_session->application()) {
-        appId = m_session->application()->appId();
-    } else if (m_session) {
-        appId = m_session->name();
-    } else {
-        appId.append("-");
-    }
+    QString appId = QString::fromStdString(m_appId);
     return appId;
 }
 
