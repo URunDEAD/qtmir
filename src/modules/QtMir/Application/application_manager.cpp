@@ -576,6 +576,11 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         return;
     }
 
+    if (info->contains("android.hardware.graphics.composer@")) {
+        authorized = true;
+        return;
+    }
+
     QString desktopFileName = info->getParameter("--desktop_file_hint=");
 
     if (desktopFileName.isNull()) {
