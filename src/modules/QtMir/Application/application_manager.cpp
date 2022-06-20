@@ -432,11 +432,6 @@ void ApplicationManager::onProcessFailed(const QString &appId, TaskController::E
 
 void ApplicationManager::onProcessStopped(const QString &appId)
 {
-    if (appId.startsWith("waydroid.")) {
-        qWarning() << "Waydroid window for appId=" << appId << "closed, avoiding teardown.";
-        return;
-    }
-
     QMutexLocker locker(&m_mutex);
 
     tracepoint(qtmir, onProcessStopped);
