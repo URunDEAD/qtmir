@@ -15,7 +15,6 @@
  */
 
 #include <gtest/gtest.h>
-#include "gmock_fixes.h"
 
 #include "stub_display.h"
 #include "mock_main_loop.h"
