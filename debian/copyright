@@ -369,15 +369,6 @@ Copyright: 2014, Alex Merry <alex.merry@kde.org>
   2017, Marius Gripsgard <marius@ubports.com>
 License: BSD-3-clause
 
-Files: tests/framework/gmock_fixes.h
-Copyright: 2012, Canonical Ltd.
-           2007, Google Inc.
-License: BSD-3-clause
-
-Files: tests/include/check_gtest_version.h
-Copyright: 2018, Canonical Ltd.
-License: GPL-2
-
 Files: src/modules/QtMir/Application/timesource.cpp
        src/modules/QtMir/Application/timesource.h
 Copyright: 2015, Canonical Ltd.

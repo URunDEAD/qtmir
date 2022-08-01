@@ -18,7 +18,7 @@
 #define MOCKMAINLOOP_H
 
 #include <mir/main_loop.h>
-#include "gmock_fixes.h"
+#include <gmock/gmock.h>
 
 class MockMainLoop : public mir::MainLoop
 {
