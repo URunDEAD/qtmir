@@ -29,6 +29,7 @@
 #include "tracepoints.h"
 
 #include <QDebug>
+#include <QFileInfo>
 
 using namespace mir::geometry;
 
@@ -105,13 +106,24 @@ namespace qtmir
         const miral::ApplicationInfo &appInfo,
         const miral::WindowSpecification &requestParameters)
     {
+        int surfaceType = requestParameters.type().is_set() ? requestParameters.type().value() : -1;
+        pid_t appPid = miral::pid_of(appInfo.application());
         auto parameters = CanonicalWindowManagerPolicy::place_new_window(appInfo, requestParameters);
 
+        if (surfaceType == mir_window_type_inputmethod) {
+            QFileInfo info(QStringLiteral("/proc/%1/exe").arg(appPid));
+
+            // TODO: this is a brute-force fix to make sure only maliit-server can be an input method
+            if (info.symLinkTarget() != "/usr/bin/maliit-server") {
+                qWarning() << "removing mir_window_type_inputmethod method type for" << info.symLinkTarget()
+                        << "as it is not maliit-server";
+                surfaceType = mir_window_type_normal;
+                parameters.type() = mir_window_type_normal;
+            }
+        }
+
         if (!requestParameters.parent().is_set() || requestParameters.parent().value().lock().get() == nullptr) {
-
-            int surfaceType = requestParameters.type().is_set() ? requestParameters.type().value() : -1;
-
-            QSize initialSize = InitialSurfaceSizes::get(miral::pid_of(appInfo.application()));
+            QSize initialSize = InitialSurfaceSizes::get(appPid);
 
             if (initialSize.isValid() && surfaceType == mir_surface_type_normal) {
                 parameters.size() = toMirSize(initialSize);
@@ -145,6 +157,13 @@ namespace qtmir
         }
 
         CanonicalWindowManagerPolicy::handle_modify_window(windowInfo, modifications);
+
+        int surfaceType = modificationsClient.type().is_set() ? modificationsClient.type().value() : -1;
+
+        if (surfaceType == mir_window_type_inputmethod) {
+            // don't allow changing the window type to mir_window_type_inputmethod
+            modifications.type() = mir_window_type_normal;
+        }
 
         // TODO Once Qt processes the request we probably don't want to notify from here
         std::shared_ptr<mir::scene::Surface> surface{windowInfo.window()};
