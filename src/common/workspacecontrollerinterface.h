@@ -19,8 +19,6 @@
 
 #include <miral/window.h>
 
-#include <mir_toolkit/event.h>
-
 #include <QPoint>
 #include <QSize>
 

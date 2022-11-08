@@ -765,7 +765,7 @@ bool MirSurface::visible() const
 {
     return m_visible;
 }
-#include <mir_toolkit/event.h>
+
 void MirSurface::mousePressEvent(QMouseEvent *event)
 {
     auto ev = EventBuilder::instance()->reconstructMirEvent(event);
