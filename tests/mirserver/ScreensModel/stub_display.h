@@ -22,7 +22,7 @@
 namespace mg = mir::graphics; // Bug lp:1614983
 #include <mir/test/doubles/mock_display_configuration.h>
 
-#include <mir/compositor/display_listener.h>
+#include <miroil/display_listener_wrapper.h>
 
 namespace geom = mir::geometry;
 
@@ -96,8 +96,11 @@ private:
     std::vector<MockGLDisplayBuffer*> m_displayBuffers;
 };
 
-class StubDisplayListener : public mir::compositor::DisplayListener
+class StubDisplayListener : public miroil::DisplayListenerWrapper
 {
+public:
+    StubDisplayListener(): DisplayListenerWrapper(nullptr) {};
+
     void add_display(mir::geometry::Rectangle const& /*area*/) override {};
 
     void remove_display(mir::geometry::Rectangle const& /*area*/) override {};

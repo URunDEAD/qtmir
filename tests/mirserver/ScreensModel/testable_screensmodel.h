@@ -29,7 +29,7 @@ public:
 
     void do_init(const std::shared_ptr<mir::graphics::Display> &display,
                  const std::shared_ptr<QtCompositor> &compositor,
-                 const std::shared_ptr<mir::compositor::DisplayListener> &displayListener)
+                 const std::shared_ptr<miroil::DisplayListenerWrapper> & displayListener)
     {
         init(display, compositor, displayListener);
     }
