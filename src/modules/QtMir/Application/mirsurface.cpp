@@ -237,7 +237,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
 
     m_position = convertDisplayToLocalCoords(toQPoint(m_window.top_left()));
 
-    SurfaceObserver::registerObserverForSurface(m_surfaceObserver.get(), m_surface->getWrapped());
+    SurfaceObserver::registerObserverForSurface(m_surfaceObserver.get(), m_surface->get_wrapped());
     m_surface->add_observer(m_surfaceObserver);
 
     connect(m_surfaceObserver.get(), &SurfaceObserver::framesPosted, this, &MirSurface::onFramesPostedObserved);

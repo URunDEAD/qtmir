@@ -63,7 +63,7 @@ private:
 class MirGlBufferTexture : public MirGlBuffer
 {
 public:
-    MirGlBufferTexture(const std::shared_ptr<miral::GLBuffer>& buffer)
+    MirGlBufferTexture(const std::shared_ptr<miroil::GLBuffer>& buffer)
         : MirGlBuffer(buffer)
           // Strong reference held by base class.
         , m_texBuf(static_cast<miroil::GLTextureBuffer *>(buffer.get()))
@@ -85,13 +85,13 @@ public:
     }
 
 private:
-    miral::GLTextureBuffer *m_texBuf;
+    miroil::GLTextureBuffer *m_texBuf;
 };
 
 class MirGlBufferTexturesource : public MirGlBuffer
 {
 public:
-    MirGlBufferTexturesource(const std::shared_ptr<miral::GLBuffer>& buffer)
+    MirGlBufferTexturesource(const std::shared_ptr<miroil::GLBuffer>& buffer)
         : MirGlBuffer(buffer)
           // Strong reference held by base class.
         , m_texSourceBuf(static_cast<miroil::GLTextureSourceBuffer *>(buffer.get()))
@@ -113,7 +113,7 @@ public:
     }
 
 private:
-    miral::GLTextureSourceBuffer * m_texSourceBuf;
+    miroil::GLTextureSourceBuffer * m_texSourceBuf;
 };
 
 MirGlBuffer::MirGlBuffer(const std::shared_ptr<miroil::GLBuffer>& buffer) :
