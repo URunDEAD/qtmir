@@ -229,6 +229,13 @@ install(
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
+# To avoid conflicts, we install to qtmir include
+# and since do -I/some/thing/qtmir in the .pc we can
+# include miroil as <miroil/blah>
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/include/miroil
+  DESTINATION "include/qtmir"
+)
 
 add_library(qpa-mirserver SHARED
     mirserverintegration.cpp

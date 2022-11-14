@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include <numeric>
 
-#include "qtmir/miroil/edid.h"
+#include <miroil/edid.h>
 
 using namespace miroil;
 

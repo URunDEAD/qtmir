@@ -18,7 +18,7 @@
 #define QTMIR_SCREEN_H
 
 #include <qtmir/types.h>
-#include <qtmir/miroil/display_id.h>
+#include <miroil/display_id.h>
 
 #include <QObject>
 #include <QPointer>

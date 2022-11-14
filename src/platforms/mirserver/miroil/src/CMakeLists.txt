@@ -1,9 +1,9 @@
 add_library(miroil OBJECT
     compositor.cpp ${miroil_include}/miroil/compositor.h    
-    edid.cpp ${qtmir_include}/qtmir/miroil/edid.h
+    edid.cpp ${qtmir_include}/miroil/edid.h
     mirbuffer.cpp ${miroil_include}/miroil/mirbuffer.h
     persist_display_config.cpp ${miroil_include}/miroil/persist_display_config.h
-    display_configuration_policy.cpp ${qtmir_include}/qtmir/miroil/display_configuration_policy.h
+    display_configuration_policy.cpp ${qtmir_include}/miroil/display_configuration_policy.h
     display_configuration_controller_wrapper.cpp ${miroil_include}/miroil/display_configuration_controller_wrapper.h
     display_listener_wrapper.cpp ${miroil_include}/miroil/display_listener_wrapper.h
     eventdispatch.cpp ${miroil_include}/miroil/eventdispatch.h
@@ -17,8 +17,8 @@ add_library(miroil OBJECT
     prompt_session_manager.cpp ${miroil_include}/miroil/prompt_session_manager.h    
     set_compositor.cpp ${miroil_include}/miroil/set_compositor.h
     surface.cpp ${miroil_include}/miroil/surface.h
-    ${qtmir_include}/qtmir/miroil/display_configuration_storage.h
-    ${qtmir_include}/qtmir/miroil/display_id.h
+    ${qtmir_include}/miroil/display_configuration_storage.h
+    ${qtmir_include}/miroil/display_id.h
 )
 
 target_include_directories(miroil

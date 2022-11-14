@@ -27,9 +27,11 @@
 // Mir
 #include <mir_toolkit/common.h>
 
+// Miroil
+#include <miroil/display_configuration_storage.h>
+
 // local
 #include "qtmir/types.h"
-#include <qtmir/miroil/display_configuration_storage.h>
 #include "cursor.h"
 #include "screenplatformwindow.h"
 

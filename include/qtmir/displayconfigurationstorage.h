@@ -17,7 +17,7 @@
 #ifndef DISPLAYCONFIGURATIONSTORAGE_H
 #define DISPLAYCONFIGURATIONSTORAGE_H
 
-#include <qtmir/miroil/display_configuration_storage.h>
+#include <miroil/display_configuration_storage.h>
 
 #include <functional>
 #include <memory>

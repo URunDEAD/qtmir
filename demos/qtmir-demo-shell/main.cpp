@@ -33,7 +33,8 @@
 #include <qtmir/sessionauthorizer.h>
 #include <qtmir/windowmanagementpolicy.h>
 #include <qtmir/displayconfigurationstorage.h>
-#include <qtmir/miroil/edid.h>
+
+#include <miroil/edid.h>
 
 
 inline QString stringFromEdid(const miroil::Edid& edid)

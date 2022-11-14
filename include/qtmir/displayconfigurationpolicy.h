@@ -18,7 +18,7 @@
 #define QTMIR_DISPLAYCONFIGURATIONPOLICY_H
 
 //miroil
-#include <qtmir/miroil/display_configuration_policy.h>
+#include <miroil/display_configuration_policy.h>
 
 // mir
 #include <mir/server.h>
