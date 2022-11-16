@@ -263,5 +263,5 @@ void miroil::Surface::set_keymap(MirInputDeviceId /*id*/, const std::string& /*m
                          const std::string& /*layout*/, const std::string& /*variant*/,
                          const std::string& /*options*/)
 {
-    printf("Stubbed function miroil::Surface::set_keymap() called - per-surface keymaps no longer supported");
+    fprintf(stderr, "Stubbed function miroil::Surface::set_keymap() called - per-surface keymaps no longer supported");
 }
