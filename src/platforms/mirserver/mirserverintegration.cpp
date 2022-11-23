@@ -101,7 +101,7 @@ bool MirServerIntegration::hasCapability(QPlatformIntegration::Capability cap) c
 
 QPlatformWindow *MirServerIntegration::createPlatformWindow(QWindow *window) const
 {
-    QWindowSystemInterface::flushWindowSystemEvents();
+    // QWindowSystemInterface::flushWindowSystemEvents();
 
     auto screens = m_mirServer->screensModel();
     if (!screens) {
@@ -165,7 +165,9 @@ void MirServerIntegration::initialize()
             [this](PlatformScreen *screen) { handleScreenAdded(screen); });
     QObject::connect(screens.get(), &ScreensModel::screenRemoved,
             [this](PlatformScreen *screen) {
-        handleScreenRemoved(screen);
+        QTimer::singleShot(0, screen, [this, screen](){
+            handleScreenRemoved(screen);
+        });
     });
 
     Q_FOREACH(auto screen, screens->screens()) {

@@ -37,6 +37,7 @@ public:
     NativeInterface(QMirServer *);
 
     void *nativeResourceForIntegration(const QByteArray &resource) override;
+    void *nativeResourceForScreen(const QByteArray &resource, QScreen *screen) override;
 
     void setWindowProperty(QPlatformWindow *, const QString &name, const QVariant &value) override;
 

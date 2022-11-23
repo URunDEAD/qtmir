@@ -188,6 +188,8 @@ PlatformScreen::~PlatformScreen()
 {
     //if a ScreenWindow associated with this screen, kill it
     Q_FOREACH (ScreenPlatformWindow* window, m_screenWindows) {
+        if (!window->window())
+            continue;
         window->window()->destroy(); // ends up destroying window
     }
 }

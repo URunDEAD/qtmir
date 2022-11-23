@@ -88,7 +88,9 @@ ScreenPlatformWindow::~ScreenPlatformWindow()
 void ScreenPlatformWindow::setVisible(bool visible)
 {
     DEBUG_MSG << "(visible=" << visible << ")";
-    QPlatformWindow::setVisible(visible);
+    //QPlatformWindow::setVisible(visible);
+    QRect rect(QPoint(), geometry().size());
+    QWindowSystemInterface::handleExposeEvent(window(), rect);
 }
 
 void ScreenPlatformWindow::setGeometry(const QRect &rect)

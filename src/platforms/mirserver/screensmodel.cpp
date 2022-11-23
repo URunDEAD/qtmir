@@ -31,6 +31,7 @@
 
 // Qt
 #include <QScreen>
+#include <QThread>
 #include <QGuiApplication> // for qApp
 #include <qpa/qwindowsysteminterface.h>
 
@@ -70,6 +71,8 @@ void ScreensModel::init(
 
     connect(this, &MirDisplayConfigurationObserver::configurationApplied,
             this, &ScreensModel::update, Qt::BlockingQueuedConnection);
+    //connect(this, &MirDisplayConfigurationObserver::baseConfigurationUpdated,
+    //        this, &ScreensModel::update, Qt::BlockingQueuedConnection);
 }
 
 // terminate before shutting down the Mir server, or else liable to deadlock with the blocking connection above
@@ -86,7 +89,7 @@ void ScreensModel::onCompositorStarting()
 
     m_orientationSensor->start();
 
-    update(); // must handle all hardware changes before starting the renderer
+    updateInternal(false); // must handle all hardware changes before starting the renderer
 
     startRenderer();
 }
@@ -100,10 +103,15 @@ void ScreensModel::onCompositorStopping()
 
     haltRenderer(); // must stop all rendering before handling any hardware changes
 
-    update();
+    updateInternal(false);
 }
 
 void ScreensModel::update()
+{
+    updateInternal(false);
+}
+
+void ScreensModel::updateInternal(bool hideNewScreenWindows)
 {
     DEBUG_MSG << "()";
     auto display = m_display.lock();
@@ -118,8 +126,8 @@ void ScreensModel::update()
     m_screenList.clear();
 
     displayConfig->for_each_output(
-        [this, &oldScreenList, &newScreenList, &windowMoveList](const mg::DisplayConfigurationOutput &output) {
-            if (output.connected) {
+        [this, &oldScreenList, &newScreenList, &windowMoveList, &hideNewScreenWindows](const mg::DisplayConfigurationOutput &output) {
+            if (output.connected && !hideNewScreenWindows) {
                 PlatformScreen *screen = findScreenWithId(oldScreenList, output.id);
                 if (screen) { // we've already set up this display before
 
@@ -184,10 +192,14 @@ void ScreensModel::update()
         });
     });
 
+    DEBUG_MSG << "() - NAU 0";
+
     // Announce new Screens to Qt
     Q_FOREACH (auto screen, newScreenList) {
         Q_EMIT screenAdded(screen);
     }
+
+    DEBUG_MSG << "() - NAU 1";
 
     // Move Windows from about-to-be-deleted Screens to new Screen
     auto i = windowMoveList.constBegin();
@@ -196,6 +208,8 @@ void ScreensModel::update()
         i.key()->setScreen(i.value());
         i++;
     }
+
+    DEBUG_MSG << "() - NAU 2";
 
     // Delete any old & unused Screens
     Q_FOREACH (auto screen, oldScreenList) {
@@ -235,7 +249,7 @@ bool ScreensModel::canUpdateExistingScreen(const PlatformScreen *screen, const m
     bool canUpdateExisting = true;
 
     if (!qFuzzyCompare(screen->scale(), output.scale)) {
-        canUpdateExisting = true; //false; FIXME
+        canUpdateExisting = false;
     }
 
     return canUpdateExisting;

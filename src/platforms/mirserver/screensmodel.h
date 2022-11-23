@@ -94,6 +94,7 @@ protected Q_SLOTS:
     void onCompositorStopping();
 
 private:
+    void updateInternal(bool hideNewScreenWindows = false);
     PlatformScreen* findScreenWithId(const QList<PlatformScreen*> &list, const mir::graphics::DisplayConfigurationOutputId id);
     bool canUpdateExistingScreen(const PlatformScreen *screen, const mir::graphics::DisplayConfigurationOutput &output);
     void startRenderer();

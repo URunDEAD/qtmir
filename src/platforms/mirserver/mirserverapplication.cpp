@@ -45,6 +45,7 @@ MirServerApplication::MirServerApplication(int &argc,
     : QGuiApplication((init(options), argc), argv) // comma operator to ensure init called before QGuiApplication
 {
     Q_UNUSED(options);
+    setQuitOnLastWindowClosed(false);
 }
 
 MirServerApplication::~MirServerApplication()

@@ -65,6 +65,7 @@ public:
 
     bool used() const { return m_used; }
     float scale() const { return m_scale; }
+    float* scaleRef() { return &m_scale; }
     qtmir::FormFactor formFactor() const { return m_formFactor; }
     MirPowerMode powerMode() const { return m_powerMode; }
     miral::DisplayId displayId() const { return m_displayId; }
