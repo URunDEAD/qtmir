@@ -34,6 +34,7 @@
 #include <QThread>
 #include <QGuiApplication> // for qApp
 #include <qpa/qwindowsysteminterface.h>
+#include <QtCore/private/qabstractanimation_p.h>
 
 // std
 #include <memory>
@@ -71,8 +72,6 @@ void ScreensModel::init(
 
     connect(this, &MirDisplayConfigurationObserver::configurationApplied,
             this, &ScreensModel::update, Qt::BlockingQueuedConnection);
-    //connect(this, &MirDisplayConfigurationObserver::baseConfigurationUpdated,
-    //        this, &ScreensModel::update, Qt::BlockingQueuedConnection);
 }
 
 // terminate before shutting down the Mir server, or else liable to deadlock with the blocking connection above
@@ -114,6 +113,9 @@ void ScreensModel::update()
 void ScreensModel::updateInternal(bool hideNewScreenWindows)
 {
     DEBUG_MSG << "()";
+
+    const bool wasCompositing = m_compositing;
+
     auto display = m_display.lock();
     if (!display)
         return;
@@ -173,6 +175,12 @@ void ScreensModel::updateInternal(bool hideNewScreenWindows)
         }
     );
 
+    // Always stop the renderer if screen changes happened
+    if (wasCompositing && (newScreenList.count() > 0 || oldScreenList.count() > 0)) {
+        m_compositing = false;
+        haltRenderer();
+    }
+
     // Match up the new Mir DisplayBuffers with each Screen
     // Do this first so that the buffers are valid before we announce to Qt.
     display->for_each_display_sync_group([&](mg::DisplaySyncGroup &group) {
@@ -221,10 +229,14 @@ void ScreensModel::updateInternal(bool hideNewScreenWindows)
                 window->window()->hide();
             }
         }
+        QWindowSystemInterface::flushWindowSystemEvents();
+
         bool ok = QMetaObject::invokeMethod(qApp, "screenAboutToBeRemoved", Qt::DirectConnection, Q_ARG(QScreen*, screen->screen()));
         if (!ok) {
             DEBUG_MSG << "() - Failed to invoke QGuiApplication::onScreenAboutToBeRemoved(QScreen*) slot.";
         }
+
+        screen->destroyWindows();
         m_displayListener->remove_display(qtmir::toMirRectangle(screen->geometry()));
         Q_EMIT screenRemoved(screen); // should delete the backing Screen
     }
@@ -238,6 +250,12 @@ void ScreensModel::updateInternal(bool hideNewScreenWindows)
                                << "scale:" << screen->scale();
     }
     qCDebug(QTMIR_SCREENS) << "=======================================";
+
+    // Restart rendering
+    if (wasCompositing && !m_compositing && m_screenList.count() > 0) {
+        m_compositing = true;
+        startRenderer();
+    }
 }
 
 bool ScreensModel::canUpdateExistingScreen(const PlatformScreen *screen, const mg::DisplayConfigurationOutput &output)
@@ -271,6 +289,9 @@ void ScreensModel::startRenderer()
             }
         }
     }
+
+    auto animationTimer = QUnifiedTimer::instance();
+    animationTimer->startAnimationDriver();
 }
 
 /*
@@ -280,6 +301,9 @@ void ScreensModel::startRenderer()
  */
 void ScreensModel::haltRenderer()
 {
+    auto animationTimer = QUnifiedTimer::instance();
+    animationTimer->stopAnimationDriver();
+
     Q_FOREACH (const auto screen, m_screenList) {
 
         Q_FOREACH (ScreenPlatformWindow* window, screen->windows()) {
