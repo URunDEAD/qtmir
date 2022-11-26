@@ -88,7 +88,7 @@ void ScreensModel::onCompositorStarting()
 
     m_orientationSensor->start();
 
-    updateInternal(false); // must handle all hardware changes before starting the renderer
+    updateInternal(); // must handle all hardware changes before starting the renderer
 
     startRenderer();
 }
@@ -102,15 +102,19 @@ void ScreensModel::onCompositorStopping()
 
     haltRenderer(); // must stop all rendering before handling any hardware changes
 
-    updateInternal(false);
+    updateInternal();
 }
 
 void ScreensModel::update()
 {
-    updateInternal(false);
+    // TODO: Allow model refreshes without creating new screens,
+    // as this significantly improves the overall performance
+    // during screen hotplug with the QML instantiator.
+    // Previously the shell's "window" was just moved around.
+    updateInternal();
 }
 
-void ScreensModel::updateInternal(bool hideNewScreenWindows)
+void ScreensModel::updateInternal()
 {
     DEBUG_MSG << "()";
 
@@ -128,8 +132,8 @@ void ScreensModel::updateInternal(bool hideNewScreenWindows)
     m_screenList.clear();
 
     displayConfig->for_each_output(
-        [this, &oldScreenList, &newScreenList, &windowMoveList, &hideNewScreenWindows](const mg::DisplayConfigurationOutput &output) {
-            if (output.connected && !hideNewScreenWindows) {
+        [this, &oldScreenList, &newScreenList, &windowMoveList](const mg::DisplayConfigurationOutput &output) {
+            if (output.connected) {
                 PlatformScreen *screen = findScreenWithId(oldScreenList, output.id);
                 if (screen) { // we've already set up this display before
 
@@ -200,14 +204,10 @@ void ScreensModel::updateInternal(bool hideNewScreenWindows)
         });
     });
 
-    DEBUG_MSG << "() - NAU 0";
-
     // Announce new Screens to Qt
     Q_FOREACH (auto screen, newScreenList) {
         Q_EMIT screenAdded(screen);
     }
-
-    DEBUG_MSG << "() - NAU 1";
 
     // Move Windows from about-to-be-deleted Screens to new Screen
     auto i = windowMoveList.constBegin();
@@ -216,8 +216,6 @@ void ScreensModel::updateInternal(bool hideNewScreenWindows)
         i.key()->setScreen(i.value());
         i++;
     }
-
-    DEBUG_MSG << "() - NAU 2";
 
     // Delete any old & unused Screens
     Q_FOREACH (auto screen, oldScreenList) {
