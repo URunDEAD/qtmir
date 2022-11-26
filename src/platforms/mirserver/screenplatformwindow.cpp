@@ -80,7 +80,8 @@ ScreenPlatformWindow::~ScreenPlatformWindow()
 {
     DEBUG_MSG << "()";
     disconnect(static_cast<PlatformScreen *>(screen()), &PlatformScreen::primaryWindowChanged, this, 0);
-    static_cast<PlatformScreen *>(screen())->removeWindow(this);
+    if (screen())
+        static_cast<PlatformScreen *>(screen())->removeWindow(this);
 
     disconnect(window(), &QWindow::screenChanged, this, &ScreenPlatformWindow::updateExpose);
 }
@@ -88,9 +89,7 @@ ScreenPlatformWindow::~ScreenPlatformWindow()
 void ScreenPlatformWindow::setVisible(bool visible)
 {
     DEBUG_MSG << "(visible=" << visible << ")";
-    //QPlatformWindow::setVisible(visible);
-    QRect rect(QPoint(), geometry().size());
-    QWindowSystemInterface::handleExposeEvent(window(), rect);
+    QPlatformWindow::setVisible(visible);
 }
 
 void ScreenPlatformWindow::setGeometry(const QRect &rect)
@@ -172,9 +171,6 @@ void ScreenPlatformWindow::setActive(bool active)
 void ScreenPlatformWindow::setScreen(QPlatformScreen *newScreen)
 {
     auto platformScreen = static_cast<PlatformScreen *>(newScreen);
-    Q_ASSERT(platformScreen);
-    DEBUG_MSG << "(screen=" << platformScreen
-              << ", outputId=" << platformScreen->displayId().output_id.as_value() << ")";
 
     // Dis-associate the old screen
     if (screen()) {
@@ -182,6 +178,14 @@ void ScreenPlatformWindow::setScreen(QPlatformScreen *newScreen)
         disconnect(static_cast<PlatformScreen *>(screen()), &PlatformScreen::activeChanged, this, 0);
         static_cast<PlatformScreen *>(screen())->removeWindow(this);
     }
+
+    if (!platformScreen) {
+        return;
+    }
+
+    DEBUG_MSG << "(screen=" << platformScreen
+              << ", outputId=" << platformScreen->displayId().output_id.as_value() << ")";
+
     // Associate new screen and announce to Qt
     platformScreen->addWindow(this);
     setPrimary(platformScreen->primaryWindow() == this);
