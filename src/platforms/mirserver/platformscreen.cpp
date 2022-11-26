@@ -186,12 +186,19 @@ PlatformScreen::PlatformScreen(const mir::graphics::DisplayConfigurationOutput &
 
 PlatformScreen::~PlatformScreen()
 {
+    destroyWindows();
+}
+
+void PlatformScreen::destroyWindows()
+{
     //if a ScreenWindow associated with this screen, kill it
     Q_FOREACH (ScreenPlatformWindow* window, m_screenWindows) {
         if (!window->window())
             continue;
+
         window->window()->destroy(); // ends up destroying window
     }
+    m_screenWindows.clear();
 }
 
 // Only for tests

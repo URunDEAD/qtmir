@@ -87,6 +87,8 @@ public:
 
     void setActive(bool active);
 
+    void destroyWindows();
+
 Q_SIGNALS:
     void primaryWindowChanged(ScreenPlatformWindow* window);
 
