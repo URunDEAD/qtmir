@@ -634,6 +634,7 @@ void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface 
         connect(m_surface, &MirSurfaceInterface::sizeChanged, this, &MirSurfaceItem::onActualSurfaceSizeChanged);
         connect(m_surface, &MirSurfaceInterface::cursorChanged, this, &MirSurfaceItem::setCursor);
         connect(m_surface, &MirSurfaceInterface::shellChromeChanged, this, &MirSurfaceItem::shellChromeChanged);
+        connect(m_surface, &QObject::destroyed, this, [=](){ setSurface(nullptr); });
 
         Q_EMIT typeChanged(m_surface->type());
         Q_EMIT liveChanged(true);
