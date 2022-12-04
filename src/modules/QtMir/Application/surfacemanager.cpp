@@ -189,30 +189,15 @@ void SurfaceManager::onWindowRemoved(const miral::WindowInfo &windowInfo)
     MirSurface *surface = surfaceFor(windowInfo.window());
     forgetMirSurface(windowInfo.window());
 
-    if (!surface) return;
-    Q_EMIT surfaceRemoved(surface);
+    if (surface) {
+        const bool isDeleteable = !surface->isBeingDisplayed();
+        Q_EMIT surfaceRemoved(surface);
 
-    // Default expectance: delete the surface if it's not being displayed
-    if (!surface->isBeingDisplayed()) {
-        delete surface;
-        tracepoint(qtmir, surfaceDestroyed);
-    } else {
-        // Tricky: check the number of other surfaces related to the app
-        // and delete the surface if it's not the only one.
-        // This keeps the last window around in case of an OOM kill
-        // or in multi-process scenarios when a launcher window kills subprocesses.
-        if (surface->session() && surface->session()->application()) {
-            auto app = static_cast<Application*>(surface->session()->application());
-            if (app->surfaceCount() > 1) {
-                delete surface;
-                tracepoint(qtmir, surfaceDestroyed);
-            } else {
-                // Single window? Unset it being live.
-                surface->setLive(false);
-            }
-        } else {
-            // No application session assigned to it? Play it safe and unset it being live.
-            surface->setLive(false);
+        surface->setLive(false);
+
+        if (isDeleteable) {
+            delete surface;
+            tracepoint(qtmir, surfaceDestroyed);
         }
     }
 }
@@ -254,7 +239,7 @@ void SurfaceManager::raise(unityapi::MirSurfaceInterface *surface)
 {
     DEBUG_MSG << "(" << surface << ")";
     auto qtmirSurface = static_cast<qtmir::MirSurface*>(surface);
-    m_windowController->raise(qtmirSurface->window());
+    m_windowController->raise(qtmirSurface ? qtmirSurface->window() : miral::Window());
 }
 
 void SurfaceManager::activate(unityapi::MirSurfaceInterface *surface)

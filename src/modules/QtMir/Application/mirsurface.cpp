@@ -497,6 +497,10 @@ void MirSurface::onCompositorSwappedBuffers()
 {
     QMutexLocker locker(&m_mutex);
 
+    if(!isBeingDisplayed()) {
+        return;
+    }
+
     m_textures->forEachCompositorTexture([](qintptr, CompositorTexture* texture) {
         texture->setUpToDate(false);
     });
@@ -1147,7 +1151,14 @@ void MirSurface::onCloseTimedOut()
             m_controller->forceClose(m_window);
         }
     } else {
-        WARNING_MSG << " called but the surface is not live. What do we do?";
+        // In case this is a weird combie process, just try to remove the application it was related to
+        Application *app = static_cast<Application*>(m_session->application());
+        if (app) {
+            WARNING_MSG << "(), app with ID " << app->appId() << " has " <<
+                    "ignored request to close a window. Maybe it is dead already?" <<
+                    "Terminating the application anyway.";
+            app->terminate();
+        }
     }
 }
 
