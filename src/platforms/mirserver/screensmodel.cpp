@@ -31,8 +31,10 @@
 
 // Qt
 #include <QScreen>
+#include <QThread>
 #include <QGuiApplication> // for qApp
 #include <qpa/qwindowsysteminterface.h>
+#include <QtCore/private/qabstractanimation_p.h>
 
 // std
 #include <memory>
@@ -86,7 +88,7 @@ void ScreensModel::onCompositorStarting()
 
     m_orientationSensor->start();
 
-    update(); // must handle all hardware changes before starting the renderer
+    updateInternal(); // must handle all hardware changes before starting the renderer
 
     startRenderer();
 }
@@ -100,12 +102,24 @@ void ScreensModel::onCompositorStopping()
 
     haltRenderer(); // must stop all rendering before handling any hardware changes
 
-    update();
+    updateInternal();
 }
 
 void ScreensModel::update()
 {
+    // TODO: Allow model refreshes without creating new screens,
+    // as this significantly improves the overall performance
+    // during screen hotplug with the QML instantiator.
+    // Previously the shell's "window" was just moved around.
+    updateInternal();
+}
+
+void ScreensModel::updateInternal()
+{
     DEBUG_MSG << "()";
+
+    const bool wasCompositing = m_compositing;
+
     auto display = m_display.lock();
     if (!display)
         return;
@@ -165,6 +179,12 @@ void ScreensModel::update()
         }
     );
 
+    // Always stop the renderer if screen changes happened
+    if (wasCompositing && (newScreenList.count() > 0 || oldScreenList.count() > 0)) {
+        m_compositing = false;
+        haltRenderer();
+    }
+
     // Match up the new Mir DisplayBuffers with each Screen
     // Do this first so that the buffers are valid before we announce to Qt.
     display->for_each_display_sync_group([&](mg::DisplaySyncGroup &group) {
@@ -207,10 +227,14 @@ void ScreensModel::update()
                 window->window()->hide();
             }
         }
+        QWindowSystemInterface::flushWindowSystemEvents();
+
         bool ok = QMetaObject::invokeMethod(qApp, "screenAboutToBeRemoved", Qt::DirectConnection, Q_ARG(QScreen*, screen->screen()));
         if (!ok) {
             DEBUG_MSG << "() - Failed to invoke QGuiApplication::onScreenAboutToBeRemoved(QScreen*) slot.";
         }
+
+        screen->destroyWindows();
         m_displayListener->remove_display(qtmir::toMirRectangle(screen->geometry()));
         Q_EMIT screenRemoved(screen); // should delete the backing Screen
     }
@@ -224,6 +248,12 @@ void ScreensModel::update()
                                << "scale:" << screen->scale();
     }
     qCDebug(QTMIR_SCREENS) << "=======================================";
+
+    // Restart rendering
+    if (wasCompositing && !m_compositing && m_screenList.count() > 0) {
+        m_compositing = true;
+        startRenderer();
+    }
 }
 
 bool ScreensModel::canUpdateExistingScreen(const PlatformScreen *screen, const mg::DisplayConfigurationOutput &output)
@@ -235,7 +265,7 @@ bool ScreensModel::canUpdateExistingScreen(const PlatformScreen *screen, const m
     bool canUpdateExisting = true;
 
     if (!qFuzzyCompare(screen->scale(), output.scale)) {
-        canUpdateExisting = true; //false; FIXME
+        canUpdateExisting = false;
     }
 
     return canUpdateExisting;
@@ -257,6 +287,9 @@ void ScreensModel::startRenderer()
             }
         }
     }
+
+    auto animationTimer = QUnifiedTimer::instance();
+    animationTimer->startAnimationDriver();
 }
 
 /*
@@ -266,6 +299,9 @@ void ScreensModel::startRenderer()
  */
 void ScreensModel::haltRenderer()
 {
+    auto animationTimer = QUnifiedTimer::instance();
+    animationTimer->stopAnimationDriver();
+
     Q_FOREACH (const auto screen, m_screenList) {
 
         Q_FOREACH (ScreenPlatformWindow* window, screen->windows()) {

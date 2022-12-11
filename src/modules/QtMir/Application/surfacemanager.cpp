@@ -189,12 +189,16 @@ void SurfaceManager::onWindowRemoved(const miral::WindowInfo &windowInfo)
     MirSurface *surface = surfaceFor(windowInfo.window());
     forgetMirSurface(windowInfo.window());
 
-    if (!surface) return;
-    Q_EMIT surfaceRemoved(surface);
+    if (surface) {
+        const bool isDeleteable = !surface->isBeingDisplayed();
+        Q_EMIT surfaceRemoved(surface);
 
-    if (!surface->isBeingDisplayed()) {
-        delete surface;
-        tracepoint(qtmir, surfaceDestroyed);
+        surface->setLive(false);
+
+        if (isDeleteable) {
+            delete surface;
+            tracepoint(qtmir, surfaceDestroyed);
+        }
     }
 }
 
@@ -235,7 +239,7 @@ void SurfaceManager::raise(unityapi::MirSurfaceInterface *surface)
 {
     DEBUG_MSG << "(" << surface << ")";
     auto qtmirSurface = static_cast<qtmir::MirSurface*>(surface);
-    m_windowController->raise(qtmirSurface->window());
+    m_windowController->raise(qtmirSurface ? qtmirSurface->window() : miral::Window());
 }
 
 void SurfaceManager::activate(unityapi::MirSurfaceInterface *surface)

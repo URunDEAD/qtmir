@@ -18,9 +18,11 @@
 
 #include "qmirserver.h"
 #include "windowcontrollerinterface.h"
+#include "platformscreen.h"
 
 #include <QDebug>
 #include <QRect>
+#include <QScreen>
 
 NativeInterface::NativeInterface(QMirServer *server)
     : m_qMirServer(server)
@@ -30,6 +32,21 @@ NativeInterface::NativeInterface(QMirServer *server)
 void *NativeInterface::nativeResourceForIntegration(const QByteArray &resource)
 {
     return m_qMirServer->nativeResourceForIntegration(resource);
+}
+
+void *NativeInterface::nativeResourceForScreen(const QByteArray &resource, QScreen *screen)
+{
+    if (!screen)
+        return nullptr;
+
+    if (resource == QByteArrayLiteral("scale")) {
+        auto platformScreen = static_cast<PlatformScreen*>(screen->handle());
+        if (platformScreen) {
+            return (void*)platformScreen->scaleRef();
+        }
+    }
+
+    return nullptr;
 }
 
 void NativeInterface::setWindowProperty(QPlatformWindow */*window*/, const QString &name, const QVariant &value)

@@ -427,7 +427,7 @@ public:
     void handleTouchEvent(QWindow *window, ulong timestamp, QTouchDevice *device,
             const QList<struct QWindowSystemInterface::TouchPoint> &points, Qt::KeyboardModifiers mods) override
     {
-        QWindowSystemInterface::handleTouchEvent(window, timestamp, device, points, mods);
+        QWindowSystemInterface::handleTouchEvent<QWindowSystemInterface::AsynchronousDelivery>(window, timestamp, device, points, mods);
     }
 };
 

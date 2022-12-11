@@ -30,6 +30,7 @@
 
 #include <QDebug>
 #include <QFileInfo>
+#include <QTimer>
 
 using namespace mir::geometry;
 
@@ -304,20 +305,26 @@ namespace qtmir
     void WindowManagementPolicy::advise_output_create(miral::Output const& output)
     {
         Q_UNUSED(output);
-        Q_EMIT d->m_screensModel->update();
+        QTimer::singleShot(0, d->m_screensModel.get(), [this]() {
+            d->m_screensModel->update();
+        });
     }
 
     void WindowManagementPolicy::advise_output_update(miral::Output const& updated, miral::Output const& original)
     {
         Q_UNUSED(updated);
         Q_UNUSED(original);
-        Q_EMIT d->m_screensModel->update();
+        QTimer::singleShot(0, d->m_screensModel.get(), [this]() {
+            d->m_screensModel->update();
+        });
     }
 
     void WindowManagementPolicy::advise_output_delete(miral::Output const& output)
     {
         Q_UNUSED(output);
-        Q_EMIT d->m_screensModel->update();
+        QTimer::singleShot(0, d->m_screensModel.get(), [this]() {
+            d->m_screensModel->update();
+        });
     }
 
     Rectangle WindowManagementPolicy::confirm_inherited_move(miral::WindowInfo const& windowInfo, Displacement movement)
