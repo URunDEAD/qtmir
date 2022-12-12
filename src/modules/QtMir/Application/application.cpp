@@ -705,6 +705,11 @@ void Application::stop()
 {
     INFO_MSG << "()";
 
+    if (appId() == QStringLiteral("xwayland.qtmir")) {
+        INFO_MSG << "() ignoring stop event for legacy/X11 application.";
+        return;
+    }
+
     Q_EMIT stopProcessRequested();
 }
 
