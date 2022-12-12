@@ -713,7 +713,7 @@ void ApplicationManager::add(Application* application)
 
         connect(application, &Application::stopProcessRequested, this, [=]() {
             if (!m_taskController->stop(appId)) {
-                qWarning() << "FAILED to ask Upstart to stop application with appId" << appId
+                qWarning() << "FAILED to ask lomiri-app-launch to stop application with appId" << appId
                            << "Sending SIGTERM to process:" << appId;
                 application->terminate();
                 application->setProcessState(Application::ProcessStopped);
