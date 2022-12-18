@@ -97,8 +97,10 @@ void miral::GLTextureSourceBuffer::setWrapped(const std::shared_ptr<mir::graphic
 
 void miral::GLTextureSourceBuffer::upload_to_texture()
 {
-    if (!wrapped)
-        throw std::logic_error("Bind called without any buffers!");
+    if (!wrapped) {
+        qWarning() << "Bind called without any buffers!";
+        return;
+    }
 
     if (m_texSource) {
         m_texSource->gl_bind_to_texture();
@@ -130,8 +132,10 @@ void miral::GLTextureBuffer::setWrapped(const std::shared_ptr<mir::graphics::Buf
 
 void miral::GLTextureBuffer::tex_bind()
 {
-    if (!wrapped)
-        throw std::logic_error("Bind called without any buffers!");
+    if (!wrapped) {
+        qWarning() << "Bind called without any buffers!";
+        return;
+    }
 
     if (auto const texture = dynamic_cast<mir::graphics::gl::Texture*>(wrapped->native_buffer_base())) {
         texture->bind();
