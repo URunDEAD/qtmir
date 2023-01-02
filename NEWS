@@ -1,3 +1,11 @@
+Overview of changes in qtmir 0.7.1
+  
+  * WrappedWindowManagementPolicy: fix activating null window
+  * Fix FTBFS on never gcc
+  * WindowManagementPolicy: allow only maliit-server to be an input method
+  * Lots of Desktop mode fixes
+  * mirserver: miral: Reduce binding null buffers to warning
+
 Overview of changes in qtmir 0.7.0
 
   * Stop linking to EGL and use builtin EGL functions from qt

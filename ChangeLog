@@ -1,6 +1,83 @@
+2023-01-02 Marius Gripsgard
+
+        * Release 0.7.1 (HEAD -> main, tag: 0.7.1)
+
+2022-12-18 Marius Gripsgard
+
+        * Merge branch 'personal/fredldotme/allownullbufferbind' into 'main'
+          (c395da87)
+
+2022-12-18 Alfred Neumayer
+
+        * mirserver: miral: Reduce binding null buffers to warning (21d21c2b)
+
+2022-12-11 Marius Gripsgard
+
+        * Merge branch 'personal/fredldotme/desktopmode' into 'main'
+          (1c46ba2f)
+
+2022-12-04 Alfred Neumayer
+
+        * QtMir/Application: Various nullptr & crash fixes (8cb213ec)
+
+2022-12-03 Alfred Neumayer
+
+        * MirSurfaceItem: Set local pointer to nullptr during surface
+          destruction (d74fc931)
+        * SurfaceManager: Fix tapping OOM-killed windows crashing the shell
+          (efcbe4db)
+
+2022-12-01 Alfred Neumayer
+
+        * src: Deliver touch events asynchronously (342a68c5)
+        * src: Run screen model updates enqueued (15d4f6cf)
+
+2022-11-26 Alfred Neumayer
+
+        * src: Cleanup & TODO (1fa5164e)
+        * src: Fix various ScreensModel issues (854eac83)
+        * src: Cleanups and allow setScreen to be passed a nullptr (902058c7)
+        * src: Make window destruction a separate operation (8f4dde6f)
+        * src: Handle screenRemoved synchronously again (2135bb44)
+
+2022-11-23 Alfred Neumayer
+
+        * src: Begin investigation into several crashes & scaling issues
+          (a3f46dc6)
+
+2022-08-12 Ratchanan Srirattanamet
+
+        * Merge branch 'focal_-_qtmir-disallow-inputmethod' into 'main'
+          (cb2ea486)
+
+2022-08-07 Maciej Sopyło
+
+        * WindowManagementPolicy: allow only maliit-server to be an input
+          method (05a14ac7)
+
+2022-08-01 Marius Gripsgard
+
+        * Merge branch 'gmock-fixes' into 'main' (21f28916)
+
+2022-07-27 Luca Weiss
+
+        * Remove unused gmock_fixes.h (09018b81)
+
+2022-06-28 Marius Gripsgard
+
+        * Merge branch 'personal/peat-psuwit/do-activate-null-window' into
+          'main' (d11d6951)
+
+2022-06-17 Ratchanan Srirattanamet
+
+        * WrappedWindowManagementPolicy: fix activating null window
+          (5dbb7225)
+          Fixes:
+          https://gitlab.com/ubports/development/core/qtmir/-/issues/10
+
 2022-04-22 Marius Gripsgard
 
-        * Release 0.7.0 (HEAD -> main, tag: 0.7.0)
+        * Release 0.7.0 (1e28b1d7) (tag: 0.7.0)
 
 2022-02-21 Ratchanan Srirattanamet
 
