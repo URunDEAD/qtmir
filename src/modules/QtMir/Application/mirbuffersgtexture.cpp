@@ -75,13 +75,13 @@ public:
 
         GLint current_binding;
         f->glGetIntegerv(GL_TEXTURE_BINDING_2D, &current_binding);
-        m_texBuf->tex_bind();
+        m_texBuf->bind();
         f->glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*) &m_textureId);
         f->glBindTexture(GL_TEXTURE_2D, (GLint) current_binding);
     }
 
     void bindTexture() override {
-        m_texBuf->tex_bind();
+        m_texBuf->bind();
     }
 
 private:
@@ -109,7 +109,7 @@ public:
         auto f = QOpenGLContext::currentContext()->functions();
         f->glBindTexture(GL_TEXTURE_2D, m_textureId);
 
-        m_texSourceBuf->upload_to_texture();
+        m_texSourceBuf->bind();
     }
 
 private:
@@ -158,7 +158,7 @@ void MirGlBuffer::setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer
 {
     QMutexLocker locker(&m_mutex);
 
-    m_mirBuffer->setWrapped(buffer);
+    m_mirBuffer->reset(buffer);
 
     mg::Size size = m_mirBuffer->size();
     m_height = size.height.as_int();

@@ -52,8 +52,9 @@ public:
 
     bool has_alpha_channel() const;
     mir::geometry::Size size() const;
+    virtual void bind() = 0;
 
-    virtual void setWrapped(std::shared_ptr<mir::graphics::Buffer> const& buffer);
+    virtual void reset(std::shared_ptr<mir::graphics::Buffer> const& buffer);
 
     virtual Type type() = 0;
 
@@ -71,14 +72,11 @@ class GLTextureSourceBuffer : public GLBuffer
 public:
     GLTextureSourceBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
 
-    void setWrapped(std::shared_ptr<mir::graphics::Buffer> const& buffer) override;
+    void reset(std::shared_ptr<mir::graphics::Buffer> const& buffer) override;
 
-    void upload_to_texture();
+    void bind() override;
 
     Type type() override { return Type::GLTextureSource; };
-
-private:
-    mir::renderer::gl::TextureSource* m_texSource;
 };
 
 class GLTextureBuffer : public GLBuffer
@@ -86,14 +84,11 @@ class GLTextureBuffer : public GLBuffer
 public:
     GLTextureBuffer(std::shared_ptr<mir::graphics::Buffer> const& buffer);
 
-    void setWrapped(std::shared_ptr<mir::graphics::Buffer> const& buffer) override;
+    void reset(std::shared_ptr<mir::graphics::Buffer> const& buffer) override;
 
-    void tex_bind();
+    void bind() override;
 
     Type type() override { return Type::GLTexture; };
-
-private:
-    mir::graphics::gl::Texture *m_mirTex;
 };
 
 }

@@ -48,7 +48,7 @@ std::shared_ptr<miral::GLBuffer> miral::GLBuffer::from_mir_buffer(std::shared_pt
         return std::make_shared<miral::GLTextureBuffer>(buffer);
 }
 
-void miral::GLBuffer::setWrapped(std::shared_ptr<mir::graphics::Buffer> const& buffer)
+void miral::GLBuffer::reset(std::shared_ptr<mir::graphics::Buffer> const& buffer)
 {
     wrapped = buffer;
 }
@@ -81,30 +81,27 @@ miral::GLTextureSourceBuffer::GLTextureSourceBuffer(std::shared_ptr<mir::graphic
     auto texsource = dynamic_cast<mir::renderer::gl::TextureSource*>(buffer->native_buffer_base());
     if (!texsource)
         throw std::runtime_error("Incompatible buffer for GLTextureSourceBuffer");
-    m_texSource = texsource;
 }
 
-void miral::GLTextureSourceBuffer::setWrapped(const std::shared_ptr<mir::graphics::Buffer> &buffer)
+void miral::GLTextureSourceBuffer::reset(const std::shared_ptr<mir::graphics::Buffer> &buffer)
 {
     auto texsource = dynamic_cast<mir::renderer::gl::TextureSource*>(buffer->native_buffer_base());
     if (!texsource)
         throw std::runtime_error("Incompatible buffer for GLTextureSourceBuffer");
 
-    GLBuffer::setWrapped(buffer);
-
-    m_texSource = texsource;
+    GLBuffer::reset(buffer);
 }
 
-void miral::GLTextureSourceBuffer::upload_to_texture()
+void miral::GLTextureSourceBuffer::bind()
 {
     if (!wrapped) {
         qWarning() << "Bind called without any buffers!";
         return;
     }
 
-    if (m_texSource) {
-        m_texSource->gl_bind_to_texture();
-        m_texSource->secure_for_render();
+    if (auto texsource = dynamic_cast<mir::renderer::gl::TextureSource*>(wrapped->native_buffer_base())) {
+        texsource->gl_bind_to_texture();
+        texsource->secure_for_render();
     } else {
         throw std::logic_error("Buffer does not support GL rendering");
     }
@@ -116,21 +113,18 @@ miral::GLTextureBuffer::GLTextureBuffer(std::shared_ptr<mir::graphics::Buffer> c
     auto texture = dynamic_cast<mir::graphics::gl::Texture*>(buffer->native_buffer_base());
     if (!texture)
         throw std::runtime_error("Incompatible buffer for GLTextureBuffer");
-    m_mirTex = texture;
 }
 
-void miral::GLTextureBuffer::setWrapped(const std::shared_ptr<mir::graphics::Buffer> &buffer)
+void miral::GLTextureBuffer::reset(const std::shared_ptr<mir::graphics::Buffer> &buffer)
 {
     auto texture = dynamic_cast<mir::graphics::gl::Texture*>(buffer->native_buffer_base());
     if (!texture)
         throw std::runtime_error("Incompatible buffer for GLTextureBuffer");
 
-    GLBuffer::setWrapped(buffer);
-
-    m_mirTex = texture;
+    GLBuffer::reset(buffer);
 }
 
-void miral::GLTextureBuffer::tex_bind()
+void miral::GLTextureBuffer::bind()
 {
     if (!wrapped) {
         qWarning() << "Bind called without any buffers!";
