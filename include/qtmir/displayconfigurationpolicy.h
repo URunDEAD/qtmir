@@ -19,9 +19,7 @@
 
 //miroil
 #include <miroil/display_configuration_policy.h>
-
-// mir
-#include <mir/server.h>
+#include <miroil/persist_display_config.h>
 
 #include <memory>
 #include <functional>
