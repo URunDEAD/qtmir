@@ -1,9 +1,13 @@
 include(UseLttngGenTp)
 
+if(NOT WITH_MIR2)
+ set(MIROIL_INC ${CMAKE_SOURCE_DIR}/src/platforms/mirserver/miroil/include)
+endif()
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src/platforms/mirserver
-    ${CMAKE_SOURCE_DIR}/src/platforms/mirserver/miroil/include
+    ${MIROIL_INC}
     ${CMAKE_SOURCE_DIR}/src/common
     ${CMAKE_CURRENT_BINARY_DIR} # for tracepoints.h
 )
@@ -15,6 +19,7 @@ include_directories(
     ${GIO_UNIX_INCLUDE_DIRS}
     ${MIRAL_INCLUDE_DIRS}
     ${MIRSERVER_INCLUDE_DIRS}
+    ${MIROIL_INCLUDE_DIRS}
     ${MIRRENDERERGLDEV_INCLUDE_DIRS}
     ${PROCESS_CPP_INCLUDE_DIRS}
     ${UBUNTU_PLATFORM_API_INCLUDE_DIRS}

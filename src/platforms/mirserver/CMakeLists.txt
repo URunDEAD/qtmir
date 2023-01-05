@@ -6,9 +6,12 @@ include(UseLttngGenTp)
 
 set(QTMIRSERVER_ABI 1)
 
-set(miroil_include ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
 set(qtmir_include ${CMAKE_SOURCE_DIR}/include)
-add_subdirectory(miroil)
+
+if(NOT WITH_MIR2)
+  set(MIROIL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
+  add_subdirectory(miroil)
+endif()
 
 # Hacks for the QPA privates monster.
 pkg_check_modules(FONTCONFIG fontconfig REQUIRED)
@@ -50,6 +53,7 @@ include_directories(
     ${MIRSERVER_INCLUDE_DIRS}
     ${MIRRENDERERGLDEV_INCLUDE_DIRS}
     ${MIRSERVER_INCLUDE_DIRS}
+    ${MIROIL_INCLUDE_DIRS}
 
     ${URL_DISPATCHER_INCLUDE_DIRS}
     ${EGL_INCLUDE_DIRS}
@@ -70,8 +74,6 @@ if(WITH_CONTENTHUB)
 endif()
 
     ${VALGRIND_INCLUDE_DIRS}
-
-    ${miroil_include}
 )
 
 # We have to remove -pedantic for tracepoints.c
@@ -163,17 +165,22 @@ set(QMIRSERVER_PLUGIN_SRC
     ${CMAKE_SOURCE_DIR}/src/common/appnotifier.h
 )
 
+if(NOT WITH_MIR2)
+  set(MIROIL_OBJ $<TARGET_OBJECTS:miroil>)
+endif()
+
 add_library(qtmirserver SHARED
     ${QMIRSERVER_PLUGIN_SRC}
     $<TARGET_OBJECTS:qtmirserver-nomirserver>
     $<TARGET_OBJECTS:qtmirserver-mirserver>
-    $<TARGET_OBJECTS:miroil>
+    ${MIROIL_OBJ}
 )
 
 target_link_libraries(qtmirserver
     PUBLIC
         ${MIRAL_LDFLAGS}
         ${MIROIL_LDFLAGS}
+        ${MIROIL_LIBRARIES}
         ${MIRSERVER_LDFLAGS}
         Qt5::Core
         Qt5::Gui
@@ -224,13 +231,15 @@ install(
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
-# To avoid conflicts, we install to qtmir include
-# and since do -I/some/thing/qtmir in the .pc we can
-# include miroil as <miroil/blah>
-install(
-  DIRECTORY ${CMAKE_SOURCE_DIR}/include/miroil
-  DESTINATION "include/qtmir"
-)
+if(NOT WITH_MIR2)
+  # To avoid conflicts, we install to qtmir include
+  # and since do -I/some/thing/qtmir in the .pc we can
+  # include miroil as <miroil/blah>
+  install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/include/miroil
+    DESTINATION "include/qtmir"
+  )
+endif()
 
 add_library(qpa-mirserver SHARED
     mirserverintegration.cpp

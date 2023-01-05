@@ -66,6 +66,7 @@ add_custom_target(cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2
 
 option(WITH_CONTENTHUB "Build with content-hub" OFF)
 option(WITH_VALGRIND "Build with Valgrind detection" ON)
+option(WITH_MIR2 "Build with mir 2.x" OFF)
 
 include(FindPkgConfig)
 find_package(Qt5Core 5.9 REQUIRED)
@@ -79,7 +80,11 @@ find_package(Qt5Test 5.9 REQUIRED)
 find_package(Threads REQUIRED)
 
 pkg_check_modules(MIRSERVER mirserver>=0.26 REQUIRED)
+if(WITH_MIR2)
+pkg_check_modules(MIROIL miroil REQUIRED)
+else()
 pkg_check_modules(MIRCLIENT mirclient>=0.26 REQUIRED)
+endif()
 pkg_check_modules(MIRRENDERERGLDEV mir-renderer-gl-dev>=0.26 REQUIRED)
 pkg_check_modules(MIRAL miral>=1.1.0 REQUIRED)
 pkg_check_modules(XKBCOMMON xkbcommon REQUIRED)
@@ -164,7 +169,7 @@ endif()
 add_definitions(-DQT_NO_KEYWORDS)
 
 # Tests
-if (NO_TESTS)
+if (NO_TESTS OR WITH_MIR2)
     message(STATUS "Tests disabled")
 else()
     include(CTest)

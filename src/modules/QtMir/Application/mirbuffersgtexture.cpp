@@ -19,6 +19,7 @@
 
 // Mir
 #include <mir/geometry/size.h>
+#include <mir/version.h>
 
 // Qt
 #include <QDebug>
@@ -66,7 +67,11 @@ public:
     MirGlBufferTexture(const std::shared_ptr<miroil::GLBuffer>& buffer)
         : MirGlBuffer(buffer)
           // Strong reference held by base class.
+#if MIR_SERVER_MAJOR_VERSION < 2
         , m_texBuf(static_cast<miroil::GLTextureBuffer *>(buffer.get()))
+#else
+        , m_texBuf(buffer.get())
+#endif
         {}
 
     void updateTextureId() override
@@ -85,9 +90,14 @@ public:
     }
 
 private:
+#if MIR_SERVER_MAJOR_VERSION < 2
     miroil::GLTextureBuffer *m_texBuf;
+#else
+    miroil::GLBuffer *m_texBuf;
+#endif
 };
 
+#if MIR_SERVER_MAJOR_VERSION < 2
 class MirGlBufferTexturesource : public MirGlBuffer
 {
 public:
@@ -115,6 +125,7 @@ public:
 private:
     miroil::GLTextureSourceBuffer * m_texSourceBuf;
 };
+#endif
 
 MirGlBuffer::MirGlBuffer(const std::shared_ptr<miroil::GLBuffer>& buffer) :
     m_mirBuffer(buffer)
@@ -136,9 +147,11 @@ MirGlBuffer::~MirGlBuffer()
 
 std::shared_ptr<MirGlBuffer> MirGlBuffer::from_mir_buffer(const std::shared_ptr<mir::graphics::Buffer>& buffer) {
     auto glBuffer = miroil::GLBuffer::from_mir_buffer(buffer);
+ #if MIR_SERVER_MAJOR_VERSION < 2
     if (glBuffer->type() == miroil::GLBuffer::Type::GLTextureSource)
         return std::make_shared<MirGlBufferTexturesource>(glBuffer);
     else
+#endif
         return std::make_shared<MirGlBufferTexture>(glBuffer);
 }
 

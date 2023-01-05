@@ -1,4 +1,6 @@
 import QtQuick 2.5
+import QtQml.Models 2.15
+import QtQml 2.15
 import QtMir.DemoShell 0.1
 
 Instantiator {
