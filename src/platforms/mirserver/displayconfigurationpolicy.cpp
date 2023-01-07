@@ -76,6 +76,7 @@ void DisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
     //
     // Best we can do currently is guess that LVDS panel implies a phone/tablet
     bool phoneDetected = false;
+    bool tabletDetected = false;
     int screenCount = 0;
     conf.for_each_output(
         [&](const mg::DisplayConfigurationOutput &output )
@@ -83,8 +84,10 @@ void DisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
             if (output.connected) {
                 screenCount++;
 
-                if (output.type == mg::DisplayConfigurationOutputType::lvds) {
+                if (output.form_factor == mir_form_factor_phone) {
                     phoneDetected = true;
+                } else if (output.form_factor == mir_form_factor_tablet) {
+                    tabletDetected = true;
                 }
             }
         });
@@ -107,6 +110,9 @@ void DisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
                     output.form_factor = mir_form_factor_monitor;
                     output.scale = 1;
                 }
+            } else if (tabletDetected) {
+                output.form_factor = mir_form_factor_tablet;
+                output.scale = d->m_defaultScale;
             } else { // desktop
                 output.form_factor = mir_form_factor_monitor;
                 output.scale = d->m_defaultScale; // probably 1 on desktop anyway.
