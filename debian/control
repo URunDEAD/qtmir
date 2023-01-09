@@ -94,7 +94,7 @@ Description: Developer files for QtMir server API
  .
  This package contains the library headers for developers.
 
-Package: libqtmirserver1
+Package: libqtmirserver2
 Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
