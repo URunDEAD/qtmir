@@ -4,7 +4,7 @@
 include(FindQt5PlatformSupport)
 include(UseLttngGenTp)
 
-set(QTMIRSERVER_ABI 1)
+set(QTMIRSERVER_ABI 2)
 
 set(qtmir_include ${CMAKE_SOURCE_DIR}/include)
 
