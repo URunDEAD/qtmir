@@ -35,6 +35,7 @@
 #include <QGuiApplication> // for qApp
 #include <qpa/qwindowsysteminterface.h>
 #include <QtCore/private/qabstractanimation_p.h>
+#include <QtQml/private/qabstractanimationjob_p.h>
 
 // std
 #include <memory>
@@ -84,12 +85,10 @@ void ScreensModel::terminate()
 void ScreensModel::onCompositorStarting()
 {
     DEBUG_MSG << "()";
-    m_compositing = true;
-
-    m_orientationSensor->start();
-
     updateInternal(); // must handle all hardware changes before starting the renderer
 
+    m_compositing = true;
+    m_orientationSensor->start();
     startRenderer();
 }
 
@@ -97,9 +96,7 @@ void ScreensModel::onCompositorStopping()
 {
     DEBUG_MSG << "()";
     m_compositing = false;
-
     m_orientationSensor->stop();
-
     haltRenderer(); // must stop all rendering before handling any hardware changes
 
     updateInternal();
@@ -288,8 +285,8 @@ void ScreensModel::startRenderer()
         }
     }
 
-    auto animationTimer = QUnifiedTimer::instance();
-    animationTimer->startAnimationDriver();
+    QUnifiedTimer::instance()->startAnimationDriver();
+    QQmlAnimationTimer::instance()->startAnimations();
 }
 
 /*
@@ -299,15 +296,15 @@ void ScreensModel::startRenderer()
  */
 void ScreensModel::haltRenderer()
 {
-    auto animationTimer = QUnifiedTimer::instance();
-    animationTimer->stopAnimationDriver();
-
     Q_FOREACH (const auto screen, m_screenList) {
 
         Q_FOREACH (ScreenPlatformWindow* window, screen->windows()) {
             window->setExposed(false);
         }
     }
+
+    QUnifiedTimer::instance()->stopAnimationDriver();
+    QQmlAnimationTimer::instance()->stopTimer();
 }
 
 PlatformScreen* ScreensModel::createScreen(const mg::DisplayConfigurationOutput &output) const
