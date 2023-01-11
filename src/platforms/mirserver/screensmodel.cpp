@@ -34,7 +34,6 @@
 #include <QThread>
 #include <QGuiApplication> // for qApp
 #include <qpa/qwindowsysteminterface.h>
-#include <QtCore/private/qabstractanimation_p.h>
 
 // std
 #include <memory>
@@ -84,12 +83,10 @@ void ScreensModel::terminate()
 void ScreensModel::onCompositorStarting()
 {
     DEBUG_MSG << "()";
-    m_compositing = true;
-
-    m_orientationSensor->start();
-
     updateInternal(); // must handle all hardware changes before starting the renderer
 
+    m_compositing = true;
+    m_orientationSensor->start();
     startRenderer();
 }
 
@@ -97,9 +94,7 @@ void ScreensModel::onCompositorStopping()
 {
     DEBUG_MSG << "()";
     m_compositing = false;
-
     m_orientationSensor->stop();
-
     haltRenderer(); // must stop all rendering before handling any hardware changes
 
     updateInternal();
@@ -227,7 +222,6 @@ void ScreensModel::updateInternal()
                 window->window()->hide();
             }
         }
-        QWindowSystemInterface::flushWindowSystemEvents();
 
         bool ok = QMetaObject::invokeMethod(qApp, "screenAboutToBeRemoved", Qt::DirectConnection, Q_ARG(QScreen*, screen->screen()));
         if (!ok) {
@@ -287,9 +281,6 @@ void ScreensModel::startRenderer()
             }
         }
     }
-
-    auto animationTimer = QUnifiedTimer::instance();
-    animationTimer->startAnimationDriver();
 }
 
 /*
@@ -299,9 +290,6 @@ void ScreensModel::startRenderer()
  */
 void ScreensModel::haltRenderer()
 {
-    auto animationTimer = QUnifiedTimer::instance();
-    animationTimer->stopAnimationDriver();
-
     Q_FOREACH (const auto screen, m_screenList) {
 
         Q_FOREACH (ScreenPlatformWindow* window, screen->windows()) {

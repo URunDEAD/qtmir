@@ -655,26 +655,31 @@ void WrappedWindowManagementPolicy::raise(const miral::Window &window)
 
 void WrappedWindowManagementPolicy::requestState(const miral::Window &window, const Mir::State state)
 {
-    auto &windowInfo = tools.info_for(window);
-    auto extraWinInfo = qtmir::getExtraInfo(windowInfo);
+    try {
+        auto &windowInfo = tools.info_for(window);
+        auto extraWinInfo = qtmir::getExtraInfo(windowInfo);
 
-    if (extraWinInfo->state == state)
-        return;
+        if (extraWinInfo->state == state)
+            return;
 
-    miral::WindowSpecification modifications;
-    modifications.state() = qtmir::toMirState(state);
+        miral::WindowSpecification modifications;
+        modifications.state() = qtmir::toMirState(state);
 
-    // TODO: What if the window modification fails? Is that possible?
-    //       Assuming here that the state will indeed change
-    extraWinInfo->previousState = extraWinInfo->state;
-    extraWinInfo->state = state;
+        // TODO: What if the window modification fails? Is that possible?
+        //       Assuming here that the state will indeed change
+        extraWinInfo->previousState = extraWinInfo->state;
+        extraWinInfo->state = state;
 
-    if (modifications.state() == windowInfo.state()) {
-        Q_EMIT d->m_windowModel.windowStateChanged(windowInfo, state);
-    } else {
-        tools.invoke_under_lock([&]() {
-            tools.modify_window(windowInfo, modifications);
-        });
+        if (modifications.state() == windowInfo.state()) {
+            Q_EMIT d->m_windowModel.windowStateChanged(windowInfo, state);
+        } else {
+            tools.invoke_under_lock([&]() {
+                tools.modify_window(windowInfo, modifications);
+            });
+        }
+    } catch (const std::out_of_range&) {
+        // usually shell trying to operate on a window which already closed, just ignore
+        // TODO: see above comment in resize, same issue
     }
 }
 
