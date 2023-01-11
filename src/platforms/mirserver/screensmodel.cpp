@@ -34,8 +34,6 @@
 #include <QThread>
 #include <QGuiApplication> // for qApp
 #include <qpa/qwindowsysteminterface.h>
-#include <QtCore/private/qabstractanimation_p.h>
-#include <QtQml/private/qabstractanimationjob_p.h>
 
 // std
 #include <memory>
@@ -284,9 +282,6 @@ void ScreensModel::startRenderer()
             }
         }
     }
-
-    QUnifiedTimer::instance()->startAnimationDriver();
-    QQmlAnimationTimer::instance()->startAnimations();
 }
 
 /*
@@ -302,9 +297,6 @@ void ScreensModel::haltRenderer()
             window->setExposed(false);
         }
     }
-
-    QUnifiedTimer::instance()->stopAnimationDriver();
-    QQmlAnimationTimer::instance()->stopTimer();
 }
 
 PlatformScreen* ScreensModel::createScreen(const mg::DisplayConfigurationOutput &output) const
