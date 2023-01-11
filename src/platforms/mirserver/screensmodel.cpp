@@ -222,7 +222,6 @@ void ScreensModel::updateInternal()
                 window->window()->hide();
             }
         }
-        QWindowSystemInterface::flushWindowSystemEvents();
 
         bool ok = QMetaObject::invokeMethod(qApp, "screenAboutToBeRemoved", Qt::DirectConnection, Q_ARG(QScreen*, screen->screen()));
         if (!ok) {
