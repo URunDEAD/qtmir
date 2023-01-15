@@ -280,6 +280,12 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         targetRect.setWidth(qMin(width(), static_cast<qreal>(textureSize.width())));
         targetRect.setHeight(qMin(height(), static_cast<qreal>(textureSize.height())));
 
+        // If the texture is bigger then target size, we want to center it
+        if (textureSize.width() > width())
+            targetRect.setX(-((textureSize.width() - width()) / 2));
+        if (textureSize.height() > height())
+            targetRect.setY(-((textureSize.height() - height()) / 2));
+
         qreal u = targetRect.width() / textureSize.width();
         qreal v = targetRect.height() / textureSize.height();
         node->setSubSourceRect(QRectF(0, 0, u, v));
