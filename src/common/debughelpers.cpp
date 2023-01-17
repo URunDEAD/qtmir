@@ -130,6 +130,7 @@ const char *mirSurfaceTypeToStr(int value)
     case mir_window_type_inputmethod:  return "input Method";  /**< AKA "OSK" or handwriting etc.   */
     case mir_window_type_satellite:    return "satellite";     /**< AKA "toolbox"/"toolbar"         */
     case mir_window_type_tip:          return "tip";           /**< AKA "tooltip"                   */
+    case mir_window_type_decoration:   return "decoration";
     case mir_window_types:             Q_UNREACHABLE();
     }
     Q_UNREACHABLE();
