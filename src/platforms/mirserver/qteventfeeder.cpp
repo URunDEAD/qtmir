@@ -720,13 +720,9 @@ bool QtEventFeeder::event(QEvent *e)
     switch (e->type()) {
     case QEvent::Wheel:
     {
-        QWindowSystemInterface::setSynchronousWindowSystemEvents(true);
-
         QWheelEvent* we = static_cast<QWheelEvent*>(e);
         QWindowSystemInterface::handleWheelEvent(nullptr, we->timestamp(), we->pos(), we->globalPos(),
                 we->pixelDelta(), we->angleDelta(), we->modifiers(), Qt::ScrollUpdate);
-
-        QWindowSystemInterface::setSynchronousWindowSystemEvents(false);
         return true;
     } break;
 
@@ -734,16 +730,12 @@ bool QtEventFeeder::event(QEvent *e)
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     {
-        QWindowSystemInterface::setSynchronousWindowSystemEvents(true);
-
         QMouseEvent* me = static_cast<QMouseEvent*>(e);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
         QWindowSystemInterface::handleMouseEvent(nullptr, me->timestamp(), me->localPos(), me->globalPos(), me->buttons(), Qt::NoButton, QEvent::None, me->modifiers());
 #else
         QWindowSystemInterface::handleMouseEvent(nullptr, me->timestamp(), me->localPos(), me->globalPos(), me->buttons(), me->modifiers());
 #endif
-
-        QWindowSystemInterface::setSynchronousWindowSystemEvents(false);
         return true;
     } break;
 
