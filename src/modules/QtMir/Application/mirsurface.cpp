@@ -96,7 +96,7 @@ public:
     void attrib_changed(mir::scene::Surface const*, MirWindowAttrib, int) override;
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(1, 6, 0)
     void content_resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override;
-    void window_resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override {}
+    void window_resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override { qWarning("Window resized to");}
 #else
     void resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override;
 #endif
@@ -256,6 +256,12 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     });
     connect(m_surfaceObserver.get(), &SurfaceObserver::inputBoundsChanged, this, &MirSurface::setInputBounds);
     connect(m_surfaceObserver.get(), &SurfaceObserver::confinesMousePointerChanged, this, &MirSurface::confinesMousePointerChanged);
+    connect(m_surfaceObserver.get(), &SurfaceObserver::resized, this, [&](QSize const &size){
+
+        qWarning() << "Resize" << size;
+        m_size = size;
+        QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
+    });
     m_surfaceObserver->setListener(this);
 
     connect(session, &SessionInterface::stateChanged, this, [this]() {

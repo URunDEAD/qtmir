@@ -896,6 +896,12 @@ shellapp::MirSurfaceListInterface* Application::promptSurfaceList() const
     return m_proxyPromptSurfaceList;
 }
 
+// TODO
+bool Application::serverSideDecoration() const
+{
+    return true;
+}
+
 void Application::requestFocus()
 {
     if (m_surfaceList.rowCount() > 0) {

@@ -38,6 +38,7 @@
 #include <miral/add_init_callback.h>
 #include <miral/set_terminator.h>
 #include <miral/x11_support.h>
+#include <miral/keymap.h>
 
 // Qt
 #include <QCoreApplication>
@@ -205,6 +206,8 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
 
     auto displayStorageBuilder = m_displayConfigurationStorage.builder();
 
+    miral::Keymap config_keymap;
+
     runner.run_with(
         {
             miral::X11Support{},
@@ -240,6 +243,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                 }
             ),
             setTerminator,
+            config_keymap,
             miroil::PersistDisplayConfig{displayStorageBuilder(),
                                         m_displayConfigurationPolicy},
         });

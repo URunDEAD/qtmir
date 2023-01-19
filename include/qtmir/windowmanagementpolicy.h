@@ -18,7 +18,7 @@
 #define QTMIR_WINDOWMANAGEMENTPOLICY_H
 
 // miral
-#include <miral/canonical_window_manager.h>
+#include <miral/minimal_window_manager.h>
 #include <miral/version.h>
 #if MIRAL_VERSION > MIR_VERSION_NUMBER(1,3,1)
 #include <miral/set_window_management_policy.h>
@@ -43,7 +43,7 @@ class WindowManagementPolicyPrivate;
 /*
     Provides window management callbacks for window behaviour customization
  */
-class WindowManagementPolicy : public miral::CanonicalWindowManagerPolicy
+class WindowManagementPolicy : public miral::MinimalWindowManager
 {
 public:
 

@@ -36,6 +36,8 @@ using namespace miral::toolkit;
 #include "qmirserver.h"
 #include "tracepoints.h"
 
+#include "debughelpers.h"
+
 #include <QDebug>
 #include <QFileInfo>
 #include <QTimer>
@@ -106,7 +108,7 @@ namespace qtmir
     };
 
     WindowManagementPolicy::WindowManagementPolicy(const miral::WindowManagerTools &tools, std::shared_ptr<qtmir::WindowManagementPolicyPrivate> dd)
-        : miral::CanonicalWindowManagerPolicy(tools)
+        : miral::MinimalWindowManager(tools)
         , d(dd)
     {
     }
@@ -117,7 +119,7 @@ namespace qtmir
     {
         int surfaceType = requestParameters.type().is_set() ? requestParameters.type().value() : -1;
         pid_t appPid = miral::pid_of(appInfo.application());
-        auto parameters = CanonicalWindowManagerPolicy::place_new_window(appInfo, requestParameters);
+        auto parameters = MinimalWindowManager::place_new_window(appInfo, requestParameters);
 
         if (surfaceType == mir_window_type_inputmethod) {
             QFileInfo info(QStringLiteral("/proc/%1/exe").arg(appPid));
@@ -198,6 +200,8 @@ namespace qtmir
 
     void WindowManagementPolicy::handle_window_ready(miral::WindowInfo &windowInfo)
     {
+        MinimalWindowManager::handle_window_ready(windowInfo);
+
         Q_EMIT d->m_windowModel.windowReady(windowInfo);
 
         auto appInfo = tools.info_for(windowInfo.window().application());
@@ -217,7 +221,7 @@ namespace qtmir
             }
         }
 
-        CanonicalWindowManagerPolicy::handle_modify_window(windowInfo, modifications);
+        MinimalWindowManager::handle_modify_window(windowInfo, modifications);
 
         int surfaceType = modificationsClient.type().is_set() ? modificationsClient.type().value() : -1;
 
@@ -235,7 +239,7 @@ namespace qtmir
 
     void WindowManagementPolicy::handle_raise_window(miral::WindowInfo &windowInfo)
     {
-        CanonicalWindowManagerPolicy::handle_raise_window(windowInfo);
+        MinimalWindowManager::handle_raise_window(windowInfo);
 
         Q_EMIT d->m_windowModel.windowRequestedRaise(windowInfo);
     }
@@ -249,18 +253,27 @@ namespace qtmir
 
     bool WindowManagementPolicy::handle_keyboard_event(const MirKeyboardEvent *event)
     {
+        // We do not want to pass this over to MinimalWindowManager as it only
+        // Adds logic around some shortcuts, we want to do this ourself.
+
         d->m_eventFeeder->dispatchKey(event);
-        return true;
+
+        // We still want this to get passed on to the wayland/xwayland surfaces
+        return false;
     }
 
     bool WindowManagementPolicy::handle_touch_event(const MirTouchEvent *event)
     {
+        MinimalWindowManager::handle_touch_event(event);
+
         d->m_eventFeeder->dispatchTouch(event);
         return true;
     }
 
     bool WindowManagementPolicy::handle_pointer_event(const MirPointerEvent *event)
     {
+        MinimalWindowManager::handle_pointer_event(event);
+
         d->m_eventFeeder->dispatchPointer(event);
         return true;
     }
@@ -307,7 +320,7 @@ namespace qtmir
         // update Qt model ASAP, before applying Mir policy
         Q_EMIT d->m_windowModel.windowFocusChanged(windowInfo, true);
 
-        CanonicalWindowManagerPolicy::advise_focus_gained(windowInfo);
+        MinimalWindowManager::advise_focus_gained(windowInfo);
     }
 
     void WindowManagementPolicy::advise_state_change(const miral::WindowInfo &windowInfo, MirWindowState state)
@@ -349,7 +362,7 @@ namespace qtmir
     void WindowManagementPolicy::advise_adding_to_workspace(std::shared_ptr<miral::Workspace> const& workspace,
                                                             std::vector<miral::Window> const& windows)
     {
-        miral::CanonicalWindowManagerPolicy::advise_adding_to_workspace(workspace, windows);
+        miral::MinimalWindowManager::advise_adding_to_workspace(workspace, windows);
 
         Q_EMIT d->m_windowModel.windowsAddedToWorkspace(workspace, windows);
     }
@@ -357,7 +370,7 @@ namespace qtmir
     void WindowManagementPolicy::advise_removing_from_workspace(std::shared_ptr<miral::Workspace> const& workspace,
                                                                 std::vector<miral::Window> const& windows)
     {
-        miral::CanonicalWindowManagerPolicy::advise_removing_from_workspace(workspace, windows);
+        miral::MinimalWindowManager::advise_removing_from_workspace(workspace, windows);
 
         Q_EMIT d->m_windowModel.windowsAboutToBeRemovedFromWorkspace(workspace, windows);
     }
@@ -390,7 +403,7 @@ namespace qtmir
     Rectangle WindowManagementPolicy::confirm_inherited_move(miral::WindowInfo const& windowInfo, Displacement movement)
     {
         if (d->m_confinementRegions.isEmpty()) {
-            return CanonicalWindowManagerPolicy::confirm_inherited_move(windowInfo, movement);
+            return MinimalWindowManager::confirm_inherited_move(windowInfo, movement);
         }
 
         auto window = windowInfo.window();
@@ -434,21 +447,21 @@ namespace qtmir
         return toMirRectangle(geom.marginsRemoved(windowMargins));
     }
 
-    void WindowManagementPolicy::handle_request_drag_and_drop(miral::WindowInfo &/*window_info*/)
+    void WindowManagementPolicy::handle_request_drag_and_drop(miral::WindowInfo &window_info)
     {
-
+        MinimalWindowManager::handle_request_drag_and_drop(window_info);
     }
 
-    void WindowManagementPolicy::handle_request_move(miral::WindowInfo &/*window_info*/,
-                                                    const MirInputEvent */*input_event*/)
+    void WindowManagementPolicy::handle_request_move(miral::WindowInfo &window_info,
+                                                    const MirInputEvent *input_event)
     {
-
+        MinimalWindowManager::handle_request_move(window_info, input_event);
     }
 
-    void WindowManagementPolicy::handle_request_resize(miral::WindowInfo &/*window_info*/,
-                                                    const MirInputEvent */*input_event*/, MirResizeEdge /*edge*/)
+    void WindowManagementPolicy::handle_request_resize(miral::WindowInfo &window_info,
+                                                    const MirInputEvent *input_event, MirResizeEdge edge)
     {
-
+        MinimalWindowManager::handle_request_resize(window_info, input_event, edge);
     }
 }
 

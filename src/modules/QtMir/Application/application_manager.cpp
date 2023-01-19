@@ -86,6 +86,7 @@ public:
     QString name() const override { return m_name; };
     QString comment() const override { return m_name; };
     QUrl icon() const override {return QUrl(); };
+    bool showSplash() const override { return false; };
     QString splashTitle() const override {return m_name; };
     QUrl splashImage() const override {return QUrl(); };
     bool splashShowHeader() const override { return false; };

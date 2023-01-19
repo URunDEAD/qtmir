@@ -62,6 +62,7 @@ FocusScope {
                 height: surface.size.height
                 focus: surface.focused
                 visible: surface.visible
+                fillMode: MirSurfaceItem.PadOrCrop
 
                 Rectangle {
                     anchors { top: parent.bottom; right: parent.right }
@@ -104,8 +105,8 @@ Resize window: Ctrl+Right click"
         color: "black"
         width: 6
         height: 10
-        x: PointerPosition.x - window.screen.position.x
-        y: PointerPosition.y - window.screen.position.y
+        x: PointerPosition.x// - window.screen.position.x
+        y: PointerPosition.y// - window.screen.position.y
     }
 
     MouseArea {

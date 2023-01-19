@@ -57,8 +57,8 @@ public:
 
     virtual QScreen* qscreen() const = 0;
 
-    virtual ScreenConfiguration *beginConfiguration() const = 0;
-    virtual bool applyConfiguration(ScreenConfiguration *configuration) = 0;
+    virtual Q_INVOKABLE ScreenConfiguration *beginConfiguration() const = 0;
+    virtual Q_INVOKABLE bool applyConfiguration(ScreenConfiguration *configuration) = 0;
 
 Q_SIGNALS:
     void usedChanged();
