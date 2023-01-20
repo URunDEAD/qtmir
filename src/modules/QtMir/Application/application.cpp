@@ -152,6 +152,11 @@ QUrl Application::icon() const
     return m_appInfo->icon();
 }
 
+bool Application::showSplash() const
+{
+    return m_appInfo->showSplash();
+}
+
 QString Application::splashTitle() const
 {
     return m_appInfo->splashTitle();
@@ -431,6 +436,12 @@ bool Application::fullscreen() const
         }
     }
     return false;
+}
+
+// TODO
+bool Application::serverSideDecoration() const
+{
+    return true;
 }
 
 void Application::close()
