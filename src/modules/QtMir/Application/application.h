@@ -88,6 +88,7 @@ public:
     RequestedState requestedState() const override;
     void setRequestedState(RequestedState) override;
     bool focused() const override;
+    bool showSplash() const override;
     QString splashTitle() const override;
     QUrl splashImage() const override;
     bool splashShowHeader() const override;

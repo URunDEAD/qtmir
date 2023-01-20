@@ -40,6 +40,7 @@ public:
     virtual QString name() const = 0;
     virtual QString comment() const = 0;
     virtual QUrl icon() const = 0;
+    virtual bool showSplash() const { return true; };
     virtual QString splashTitle() const = 0;
     virtual QUrl splashImage() const = 0;
     virtual bool splashShowHeader() const = 0;
