@@ -433,6 +433,12 @@ bool Application::fullscreen() const
     return false;
 }
 
+// TODO
+bool Application::serverSideDecoration() const
+{
+    return true;
+}
+
 void Application::close()
 {
     INFO_MSG << "()";

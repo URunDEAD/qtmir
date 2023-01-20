@@ -104,6 +104,7 @@ public:
     lomiri::shell::application::MirSurfaceListInterface* surfaceList() const override;
     lomiri::shell::application::MirSurfaceListInterface* promptSurfaceList() const override;
     int surfaceCount() const override { return surfaceList()->count(); }
+    bool serverSideDecoration() const override;
     void close() override;
 
     ProcessState processState() const { return m_processState; }
