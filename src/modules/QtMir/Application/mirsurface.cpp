@@ -390,9 +390,9 @@ void MirSurface::dropPendingBuffer()
                 texture->freeBuffer();
                 texture->setBuffer(renderables[0]->buffer());
                 if (texture->textureSize() != m_size) {
-                    m_size = texture->textureSize();
-                    m_sizePendingChange = false;
-                    QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
+                    //m_size = texture->textureSize();
+                    //m_sizePendingChange = false;
+                    //QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
                 }
                 compositorTexture->setUpToDate(true);
 
@@ -479,9 +479,9 @@ bool MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *composit
         compositorTexture->incrementFrame();
 
         if (texture->textureSize() != m_size) {
-            m_size = texture->textureSize();
-            m_sizePendingChange = false;
-            QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
+            //m_size = texture->textureSize();
+            //m_sizePendingChange = false;
+            //QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
         }
 
         compositorTexture->setUpToDate(true);
