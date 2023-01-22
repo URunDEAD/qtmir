@@ -39,6 +39,7 @@
 #include <miral/set_terminator.h>
 #include <miral/x11_support.h>
 #include <miral/keymap.h>
+#include <miral/wayland_extensions.h>
 
 // Qt
 #include <QCoreApplication>
@@ -214,6 +215,14 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             m_wrappedSessionAuthorizer,
             m_openGLContext,
             m_mirServerHooks,
+        miral::WaylandExtensions{}
+            .enable(miral::WaylandExtensions::zwlr_layer_shell_v1)
+            .enable(miral::WaylandExtensions::zwlr_foreign_toplevel_manager_v1)
+            .enable(miral::WaylandExtensions::zxdg_output_manager_v1)
+            .enable(miral::WaylandExtensions::zwp_virtual_keyboard_manager_v1)
+            .enable(miral::WaylandExtensions::zwlr_virtual_pointer_manager_v1)
+            .enable(miral::WaylandExtensions::zwp_input_method_manager_v2)
+            .enable(miral::WaylandExtensions::zwlr_screencopy_manager_v1),
             miral::set_window_management_policy<WrappedWindowManagementPolicy>(m_windowModelNotifier,
                                                                                m_windowController,
                                                                                m_workspaceController,
