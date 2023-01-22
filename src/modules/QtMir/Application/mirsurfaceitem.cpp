@@ -284,8 +284,6 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         qreal v = targetRect.height() / textureSize.height();
         node->setSubSourceRect(QRectF(0, 0, u, v));
 
-        qWarning() << "Padding or crop" << targetRect << v << u;
-
         node->setTargetRect(targetRect);
         node->setInnerTargetRect(targetRect);
     } else {
