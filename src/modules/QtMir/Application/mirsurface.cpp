@@ -276,6 +276,11 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     });
     connect(m_surfaceObserver.get(), &SurfaceObserver::inputBoundsChanged, this, &MirSurface::setInputBounds);
     connect(m_surfaceObserver.get(), &SurfaceObserver::confinesMousePointerChanged, this, &MirSurface::confinesMousePointerChanged);
+    connect(m_surfaceObserver.get(), &SurfaceObserver::resized, this, [this](QSize const &size){
+        m_size = size;
+        m_sizePendingChange = false;
+        QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
+    });
     m_surfaceObserver->setListener(this);
 
     connect(session, &SessionInterface::stateChanged, this, [this]() {
@@ -418,11 +423,6 @@ void MirSurface::dropPendingBuffer()
             // free the current before acquiring the next
             texture->freeBuffer();
             texture->setBuffer(renderables[i]->buffer());
-            if (i == 0 && texture->textureSize() != m_size) {
-                m_size = texture->textureSize();
-                m_sizePendingChange = false;
-                QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
-            }
         }
 
         framesPending = m_surface->buffers_ready_for_compositor((void*)userId);
@@ -538,11 +538,6 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
             slot.extent = extentOf(renderables[i]->screen_position());
 
             if (i == 0) {
-                if (texture->textureSize() != m_size) {
-                    m_size = texture->textureSize();
-                    m_sizePendingChange = false;
-                    QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
-                }
                 // Per-output copy; the mirror keeps windowExtents() as it was.
                 if (m_extents != slot.extent) {
                     m_extents = slot.extent;
