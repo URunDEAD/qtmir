@@ -170,6 +170,10 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
     {
         screensController = m_mirServerHooks.createScreensController(screensModel);
         m_mirServerHooks.createInputDeviceObserver();
+        if (auto const x11_display = runner.x11_display())
+        {
+            setenv("DISPLAY", x11_display.value().c_str(), 1);
+        }
     });
 
     runner.add_start_callback(startCallback);
