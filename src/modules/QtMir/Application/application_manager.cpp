@@ -50,6 +50,9 @@
 // Unity API
 #include <lomiri/shell/application/MirSurfaceInterface.h>
 
+// Linux
+#include <unistd.h>
+
 namespace ms = mir::scene;
 
 namespace unityapi = lomiri::shell::application;
@@ -548,6 +551,22 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
     }
 
     QString argv0 = info->asStringList().first();
+
+    // Allow connections with the same pid as this process as this is Xwayland
+    if (pid == getpid()) {
+        auto appInfo = m_taskController->getInfoForApp("xwayland.qtmir");
+        if (!appInfo) {
+            qCWarning(QTMIR_APPLICATIONS) << "ApplicationManager::authorizeSession - Unable to instantiate application for Xwayland";
+            return;
+        }
+
+        const QStringList arguments(info->asStringList());
+        queuedAddApp(appInfo, arguments, pid);
+        m_authorizedPids.insert(pid, "xwayland.qtmir");
+        authorized = true;
+        return;
+    }
+
     // We want to match both "maliit-server" and "/usr/bin/maliit-server"
     QRegularExpression isMaliitOrQtWebProess(
         QStringLiteral("((^|/)maliit-server|qt5/libexec/QtWebProcess)$"));
@@ -686,18 +705,21 @@ void ApplicationManager::add(Application* application)
     // a Application::respawn() to take place.
     // In any case, it seems like in general QML works better when don't do too many things
     // in the same event loop iteration.
-    connect(application, &Application::startProcessRequested,
-            this, [=]() { m_taskController->start(appId, arguments); },
-            Qt::QueuedConnection);
+    // Additionally, only do this in case it's not a legacy app, ie Xwayland
+    if (appId != QStringLiteral("xwayland.qtmir")) {
+        connect(application, &Application::startProcessRequested,
+                this, [=]() { m_taskController->start(appId, arguments); },
+                Qt::QueuedConnection);
 
-    connect(application, &Application::stopProcessRequested, this, [=]() {
-        if (!m_taskController->stop(appId)) {
-            qWarning() << "FAILED to ask Upstart to stop application with appId" << appId
-                    << "Sending SIGTERM to process:" << appId;
-            application->terminate();
-            application->setProcessState(Application::ProcessStopped);
-        }
-    });
+        connect(application, &Application::stopProcessRequested, this, [=]() {
+            if (!m_taskController->stop(appId)) {
+                qWarning() << "FAILED to ask lomiri-app-launch to stop application with appId" << appId
+                           << "Sending SIGTERM to process:" << appId;
+                application->terminate();
+                application->setProcessState(Application::ProcessStopped);
+            }
+        });
+    }
 
     connect(application, &Application::suspendProcessRequested, this, [=]() { m_taskController->suspend(appId); } );
     connect(application, &Application::resumeProcessRequested, this, [=]() { m_taskController->resume(appId); } );

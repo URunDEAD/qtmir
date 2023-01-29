@@ -31,6 +31,7 @@
 // miral
 #include <miral/add_init_callback.h>
 #include <miral/set_terminator.h>
+#include <miral/x11_support.h>
 
 // Qt
 #include <QCoreApplication>
@@ -183,6 +184,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
 
     runner.run_with(
         {
+            miral::X11Support{},
             m_wrappedSessionAuthorizer,
             m_openGLContextFactory,
             m_mirServerHooks,

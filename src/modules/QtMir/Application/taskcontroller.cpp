@@ -27,6 +27,9 @@
 #include "promptsession.h"
 #include "qtmir/sessionauthorizer.h"
 
+// Linux
+#include <unistd.h>
+
 // common
 #include "appnotifier.h"
 

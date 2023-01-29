@@ -24,6 +24,9 @@
 // Qt
 #include <QStandardPaths>
 
+// Linux
+#include <unistd.h>
+
 // upstart
 extern "C" {
     #include "lomiri-app-launch.h"
@@ -179,6 +182,10 @@ bool TaskController::stop(const QString& appId)
     }
 
     for (auto &instance: app->instances()) {
+        // Let's neither kill ourselves nor Xwayland
+        if (instance->hasPid(getpid()))
+            continue;
+
         instance->stop();
     }
 
