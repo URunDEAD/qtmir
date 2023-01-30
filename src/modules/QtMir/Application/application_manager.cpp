@@ -626,7 +626,23 @@ unityapi::ApplicationInfoInterface *ApplicationManager::findApplicationWithSurfa
     auto qtmirSurface = static_cast<qtmir::MirSurfaceInterface*>(surface);
 
     QMutexLocker locker(&m_mutex);
+    if (auto app = findApplicationWithAppId(qtmirSurface))
+        return app;
+
     return findApplicationWithSession(qtmirSurface->session()->session());
+}
+
+Application* ApplicationManager::findApplicationWithAppId(const qtmir::MirSurfaceInterface* surface) const
+{
+    if (!surface)
+        return nullptr;
+
+    for (auto *application : m_applications) {
+        if (application->appId() == surface->appId())
+            return application;
+    }
+
+    return nullptr;
 }
 
 Application* ApplicationManager::findApplicationWithSession(const std::shared_ptr<ms::Session> &session) const

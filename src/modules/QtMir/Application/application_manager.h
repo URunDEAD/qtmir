@@ -111,7 +111,7 @@ Q_SIGNALS:
 private:
     // All calls to private functions happen with the mutex held
     Application* findApplicationMutexHeld(const QString &inputAppId) const;
-
+    Application* findApplicationWithAppId(const qtmir::MirSurfaceInterface* surface) const;
     Application* findApplicationWithSession(const std::shared_ptr<mir::scene::Session> &session) const;
     void setFocused(Application *application);
     void add(Application *application);

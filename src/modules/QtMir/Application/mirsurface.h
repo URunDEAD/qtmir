@@ -306,6 +306,8 @@ private:
         qint64 msecsSinceReference{0};
     };
     QVector<PressedKey> m_pressedKeys;
+
+    std::string m_appId;
 };
 
 } // namespace qtmir
