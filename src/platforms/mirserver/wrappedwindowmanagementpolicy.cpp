@@ -189,6 +189,8 @@ namespace qtmir
             }
         }
 
+        parameters.server_side_decorated() = false;
+
         parameters.userdata() = std::make_shared<ExtraWindowInfo>();
 
         return parameters;
