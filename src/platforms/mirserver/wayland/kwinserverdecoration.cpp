@@ -32,17 +32,24 @@ class QtKwinServerDecoration : public KwinServerDecoration
 public:
     using KwinServerDecoration::KwinServerDecoration;
 
-    QtKwinServerDecoration(struct wl_resource* resource) : KwinServerDecoration(resource, Version<1>{}) {
+    QtKwinServerDecoration(struct wl_resource* resource, struct wl_resource* surface, qtmir::WindowModelNotifier &windowModel) :
+        KwinServerDecoration(resource, Version<1>{}),
+        m_windowModel(windowModel),
+        surface(surface)
+    {
         send_mode_event(Mode::Server);
     };
 
-    void release() override {
-        qDebug() << "destroy";
-    };
     void request_mode(uint32_t mode) override {
+        qDebug() << "set KDE mode: " << mode;
+        auto win = miral::window_for(resource);
+
+        Q_EMIT m_windowModel.windowDecorationChanged(win, mode == Mode::Server);
         send_mode_event(mode);
-        qDebug() << "set mode: " << mode;
     };
+private:
+    qtmir::WindowModelNotifier &m_windowModel;
+    struct wl_resource* surface;
 };
 
 class QtKwinServerDecorationManager : public KwinServerDecorationManager
@@ -50,19 +57,21 @@ class QtKwinServerDecorationManager : public KwinServerDecorationManager
 public:
     using KwinServerDecorationManager::KwinServerDecorationManager;
 
-    QtKwinServerDecorationManager(struct wl_resource*);
+    QtKwinServerDecorationManager(struct wl_resource*, qtmir::WindowModelNotifier &windowModel);
 
     void create(struct wl_resource* id, struct wl_resource* surface) override {
-        Q_UNUSED(surface);
-        new QtKwinServerDecoration{id};
+        new QtKwinServerDecoration{id, surface, m_windowModel};
     };
+private:
+    qtmir::WindowModelNotifier &m_windowModel;
 };
 
 
 
 QtKwinServerDecorationManager::QtKwinServerDecorationManager(
-    struct wl_resource* resource) :
-    KwinServerDecorationManager{resource, Version<1>{}}
+    struct wl_resource* resource, qtmir::WindowModelNotifier &windowModel) :
+    KwinServerDecorationManager{resource, Version<1>{}},
+    m_windowModel(windowModel)
 {
     send_default_mode_event(Mode::Server);
 }
@@ -70,28 +79,31 @@ QtKwinServerDecorationManager::QtKwinServerDecorationManager(
 class MyGlobal : public KwinServerDecorationManager::Global
 {
 public:
-    explicit MyGlobal(wl_display* display);
+    explicit MyGlobal(wl_display* display, qtmir::WindowModelNotifier &windowModel);
     
     void bind(wl_resource* new_xdgdecormanager) override;
+
+private:
+    qtmir::WindowModelNotifier &m_windowModel;
 };
 
 }
 
-MyGlobal::MyGlobal(wl_display* display) :
-    Global(display, Version<1>{})
+MyGlobal::MyGlobal(wl_display* display, qtmir::WindowModelNotifier &windowModel) :
+    Global(display, Version<1>{}), m_windowModel(windowModel)
 {
 }
 
 void MyGlobal::bind(wl_resource* new_kdedecormanager)
 {
-    new QtKwinServerDecorationManager{new_kdedecormanager};
+    new QtKwinServerDecorationManager{new_kdedecormanager, m_windowModel};
 }
 
-auto qtmir::qtKwinServerDecorationManagerExtension() -> WaylandExtensions::Builder {
+auto qtmir::qtKwinServerDecorationManagerExtension(qtmir::WindowModelNotifier &windowModel) -> WaylandExtensions::Builder {
     return {
         KwinServerDecorationManager::interface_name,
-        [](WaylandExtensions::Context const* context) {
-            return std::make_shared<MyGlobal>(context->display());
+        [&](WaylandExtensions::Context const* context) {
+            return std::make_shared<MyGlobal>(context->display(), windowModel);
         }
     };
 }

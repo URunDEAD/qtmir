@@ -182,7 +182,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
     miral::WaylandExtensions waylandExtensions{};
     waylandExtensions.add_extension(qtmir::qtWindowmanagerExtension());
     waylandExtensions.add_extension(qtmir::qtXdgDecorationManagerV1Extension());
-    waylandExtensions.add_extension(qtmir::qtKwinServerDecorationManagerExtension());
+    waylandExtensions.add_extension(qtmir::qtKwinServerDecorationManagerExtension(m_windowModelNotifier));
 
     runner.set_exception_handler([this]
     {
@@ -223,7 +223,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             m_wrappedSessionAuthorizer,
             m_openGLContext,
             m_mirServerHooks,
-        miral::WaylandExtensions{}
+        waylandExtensions
             .enable(miral::WaylandExtensions::zwlr_layer_shell_v1)
             .enable(miral::WaylandExtensions::zwlr_foreign_toplevel_manager_v1)
             .enable(miral::WaylandExtensions::zxdg_output_manager_v1)
@@ -263,7 +263,6 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             config_keymap,
             miroil::PersistDisplayConfig{displayStorageBuilder(),
                                         m_displayConfigurationPolicy},
-            waylandExtensions,
         });
 }
 

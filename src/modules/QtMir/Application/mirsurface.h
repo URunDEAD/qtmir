@@ -274,6 +274,7 @@ private:
     bool m_sizePendingChange;
     QSize m_pendingResize;
     QString m_keymap;
+    bool m_ssd;
 
     QCursor m_cursor;
     Mir::State m_state; // FIXME: remove when Mir gains additional window states to match Mir::State

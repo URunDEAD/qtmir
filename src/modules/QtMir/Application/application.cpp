@@ -441,12 +441,6 @@ bool Application::fullscreen() const
     return false;
 }
 
-// TODO
-bool Application::serverSideDecoration() const
-{
-    return true;
-}
-
 void Application::close()
 {
     DEBUG_MSG << "()";
@@ -896,10 +890,14 @@ shellapp::MirSurfaceListInterface* Application::promptSurfaceList() const
     return m_proxyPromptSurfaceList;
 }
 
-// TODO
 bool Application::serverSideDecoration() const
 {
-    return true;
+    return m_ssd;
+}
+
+void Application::setServerSideDecoration(bool ssd) {
+    m_ssd = ssd;
+    Q_EMIT serverSideDecorationChanged(ssd);
 }
 
 void Application::requestFocus()

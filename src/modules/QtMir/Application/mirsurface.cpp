@@ -194,6 +194,10 @@ public:
         connect(this, &WindowNotifierObserver::windowRequestedRaise, this, [surface]() {
             surface->requestFocus();
         });
+        connect(this, &WindowNotifierObserver::windowDecorationChanged, this, [surface]( bool ssd) {
+            Application *app = static_cast<Application*>(surface->session()->application());
+            app->setServerSideDecoration(ssd);
+        });
     }
 };
 
@@ -257,8 +261,6 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     connect(m_surfaceObserver.get(), &SurfaceObserver::inputBoundsChanged, this, &MirSurface::setInputBounds);
     connect(m_surfaceObserver.get(), &SurfaceObserver::confinesMousePointerChanged, this, &MirSurface::confinesMousePointerChanged);
     connect(m_surfaceObserver.get(), &SurfaceObserver::resized, this, [&](QSize const &size){
-
-        qWarning() << "Resize" << size;
         m_size = size;
         QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
     });

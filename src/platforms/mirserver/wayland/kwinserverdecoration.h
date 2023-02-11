@@ -22,10 +22,13 @@
 #include "services.h"
 
 #include <miral/wayland_extensions.h>
+#include <miral/window.h>
+
+#include "windowmodelnotifier.h"
 
 namespace qtmir
 {
 // The casing is deliberate, given 'Windowmanager' is all one word according to
 // the Wayland spec
-auto qtKwinServerDecorationManagerExtension() -> miral::WaylandExtensions::Builder;
+auto qtKwinServerDecorationManagerExtension(qtmir::WindowModelNotifier &windowModel) -> miral::WaylandExtensions::Builder;
 }

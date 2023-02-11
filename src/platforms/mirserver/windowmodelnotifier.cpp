@@ -18,6 +18,7 @@
 
 #include <QMultiHash>
 #include <QMutex>
+#include <QDebug>
 
 using namespace qtmir;
 
@@ -77,12 +78,20 @@ WindowModelNotifier::WindowModelNotifier()
             Q_EMIT observer->windowRequestedRaise();
         });
     }, Qt::QueuedConnection);
+
+    connect(this, &WindowModelNotifier::windowDecorationChanged,    this, [](const miral::Window &window, bool ssd) {
+        WindowNotifierObserver::foreachObserverForWindow(window, [ssd](WindowNotifierObserver* observer) {
+            Q_EMIT observer->windowDecorationChanged(ssd);
+        });
+    }, Qt::QueuedConnection);
+
 }
 
 WindowNotifierObserver::WindowNotifierObserver(const miral::Window &window)
 {
     QMutexLocker locker(&mutex);
     windowToObserverMap.insert(window, this);
+    qWarning() << "ADD WIN: " << window;
 }
 
 WindowNotifierObserver::~WindowNotifierObserver()
@@ -103,6 +112,7 @@ void WindowNotifierObserver::foreachObserverForWindow(const miral::Window &windo
 {
     QMutexLocker locker(&mutex);
     auto observers = windowToObserverMap.values(window);
+
     Q_FOREACH(auto observer, observers) {
         fn(observer);
     }

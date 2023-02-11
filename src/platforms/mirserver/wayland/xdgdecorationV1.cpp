@@ -36,12 +36,9 @@ public:
         send_configure_event(Mode::server_side);
     };
 
-    void destroy() override {
-        qDebug() << "destroy";
-    };
     void set_mode(uint32_t mode) override {
         send_configure_event(Mode::server_side);
-        qDebug() << "set mode: " << mode;
+        qDebug() << "set XDG mode: " << mode;
     };
     void unset_mode() override {
         qDebug("unset_mode");
@@ -54,10 +51,6 @@ public:
     using XdgDecorationManagerV1::XdgDecorationManagerV1;
 
     QtXdgDecorationManagerV1(struct wl_resource*);
-
-    void destroy() override {
-        qDebug() << "destroy manager";
-    };
 
     void get_toplevel_decoration(struct wl_resource* id, struct wl_resource* toplevel) override {
         Q_UNUSED(toplevel);

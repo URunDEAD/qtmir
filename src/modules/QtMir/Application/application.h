@@ -106,6 +106,8 @@ public:
     lomiri::shell::application::MirSurfaceListInterface* promptSurfaceList() const override;
     int surfaceCount() const override { return surfaceList()->count(); }
     bool serverSideDecoration() const override;
+    void setServerSideDecoration(bool ssd);
+
     void close() override;
 
     ProcessState processState() const { return m_processState; }
@@ -180,6 +182,7 @@ private:
     bool m_exemptFromLifecycle;
     QSize m_initialSurfaceSize;
     bool m_closing{false};
+    bool m_ssd{true};
 
     mutable MirSurfaceListModel m_surfaceList;
     ProxySurfaceListModel *m_proxyPromptSurfaceList;

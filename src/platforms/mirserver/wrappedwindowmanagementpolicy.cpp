@@ -482,6 +482,7 @@ WrappedWindowManagementPolicy::WrappedWindowManagementPolicy(const miral::Window
     qRegisterMetaType<qtmir::NewWindow>();
     qRegisterMetaType<std::vector<miral::Window>>();
     qRegisterMetaType<miral::ApplicationInfo>();
+    qRegisterMetaType<miral::Window>();
     windowController.setPolicy(this);
     workspaceController.setPolicy(this);
 }

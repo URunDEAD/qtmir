@@ -90,6 +90,8 @@ Q_SIGNALS: // **Must used Queued Connection or else events will be out of order*
     void modificationsStarted();
     void modificationsEnded();
 
+    void windowDecorationChanged(const miral::Window &window, bool ssd);
+
 private:
     Q_DISABLE_COPY(WindowModelNotifier)
 };
@@ -112,6 +114,7 @@ Q_SIGNALS:
     void windowStateChanged(Mir::State state);
     void windowFocusChanged(bool focused);
     void windowRequestedRaise();
+    void windowDecorationChanged(bool ssd);
 };
 
 } // namespace qtmir
@@ -120,5 +123,6 @@ Q_DECLARE_METATYPE(qtmir::NewWindow)
 Q_DECLARE_METATYPE(miral::WindowInfo)
 Q_DECLARE_METATYPE(std::vector<miral::Window>)
 Q_DECLARE_METATYPE(MirWindowState)
+Q_DECLARE_METATYPE(miral::Window)
 
 #endif // WINDOWMODELNOTIFIER_H
