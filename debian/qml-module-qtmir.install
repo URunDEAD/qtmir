@@ -1,4 +1,4 @@
 usr/lib/*/qt5/qml/*
 usr/share/glib-2.0/schemas
-usr/share/applications
-usr/share/icons/hicolor/256x256/apps
+usr/share/applications/xwayland.qtmir.desktop
+usr/share/icons/hicolor/256x256/apps/xwayland.qtmir.png

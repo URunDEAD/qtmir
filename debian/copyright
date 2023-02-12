@@ -1,12 +1,12 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: qtmir
 Upstream-Contact: Marius Gripsgard <marius@ubports.com>
-Source: https://gitlab.com/ubports/core/qtmir/
+Source: https://gitlab.com/ubports/development/core/qtmir/
 
-Files: demos/qml-demo-shell/screens.cpp
- demos/qml-demo-shell/screens.h
- demos/qml-demo-shell/screenwindow.cpp
- demos/qml-demo-shell/screenwindow.h
+Files: demos/qtmir-demo-shell/screens.cpp
+ demos/qtmir-demo-shell/screens.h
+ demos/qtmir-demo-shell/screenwindow.cpp
+ demos/qtmir-demo-shell/screenwindow.h
  include/qtmir/displayconfigurationpolicy.h
  include/qtmir/displayconfigurationstorage.h
  include/qtmir/mirserverapplication.h
@@ -26,19 +26,18 @@ Files: demos/qml-demo-shell/screens.cpp
  src/common/workspacecontrollerinterface.h
  src/modules/QtMir/Application/application.cpp
  src/modules/QtMir/Application/application.h
+ src/modules/QtMir/Application/application_manager.cpp
  src/modules/QtMir/Application/application_manager.h
  src/modules/QtMir/Application/applicationinfo.h
- src/modules/QtMir/Application/cgmanager.cpp
- src/modules/QtMir/Application/cgmanager.h
  src/modules/QtMir/Application/compositortextureprovider.cpp
  src/modules/QtMir/Application/compositortextureprovider.h
  src/modules/QtMir/Application/dbusfocusinfo.cpp
  src/modules/QtMir/Application/dbusfocusinfo.h
  src/modules/QtMir/Application/gscopedpointer.h
- src/modules/QtMir/Application/mirbuffersgtexture.cpp
  src/modules/QtMir/Application/mirbuffersgtexture.h
  src/modules/QtMir/Application/mirsurface.h
  src/modules/QtMir/Application/mirsurfaceinterface.h
+ src/modules/QtMir/Application/mirsurfaceitem.cpp
  src/modules/QtMir/Application/mirsurfaceitem.h
  src/modules/QtMir/Application/objectlistmodel.h
  src/modules/QtMir/Application/plugin.cpp
@@ -78,8 +77,6 @@ Files: demos/qml-demo-shell/screens.cpp
  src/platforms/mirserver/inputdeviceobserver.h
  src/platforms/mirserver/logging.cpp
  src/platforms/mirserver/logging.h
- src/platforms/mirserver/mircursorimages.cpp
- src/platforms/mirserver/mircursorimages.h
  src/platforms/mirserver/mirdisplayconfigurationobserver.cpp
  src/platforms/mirserver/mirdisplayconfigurationobserver.h
  src/platforms/mirserver/mirglconfig.h
@@ -107,6 +104,7 @@ Files: demos/qml-demo-shell/screens.cpp
  src/platforms/mirserver/qmirserver_p.h
  src/platforms/mirserver/qtcompositor.cpp
  src/platforms/mirserver/qtcompositor.h
+ src/platforms/mirserver/qteventfeeder.cpp
  src/platforms/mirserver/qteventfeeder.h
  src/platforms/mirserver/screenadaptor.cpp
  src/platforms/mirserver/screenadaptor.h
@@ -130,6 +128,7 @@ Files: demos/qml-demo-shell/screens.cpp
  src/platforms/mirserver/windowmodelnotifier.cpp
  src/platforms/mirserver/workspacecontroller.cpp
  src/platforms/mirserver/workspacecontroller.h
+ src/platforms/mirserver/wrappedsessionauthorizer.cpp
  src/platforms/mirserver/wrappedsessionauthorizer.h
  src/platforms/mirserver/wrappedwindowmanagementpolicy.cpp
  src/platforms/mirserver/wrappedwindowmanagementpolicy.h
@@ -214,8 +213,10 @@ Copyright: 2011-2014, Canonical, Ltd.
   2017, Canonical, Ltd.
 License: LGPL-3
 
-Files: CMakeLists.txt
- Jenkinsfile
+Files:
+ AUTHORS
+ CMakeLists.txt
+ ChangeLog
  NEWS
  README
  benchmarks/CMakeLists.txt
@@ -225,24 +226,27 @@ Files: CMakeLists.txt
  cmake/modules/QmlTest.cmake
  cmake/modules/UseLttngGenTp.cmake
  cmake/modules/autopilot.cmake
+ data/CMakeLists.txt
+ data/xwayland.qtmir.desktop
+ data/xwayland.qtmir.png
  demos/CMakeLists.txt
- demos/qml-demo-client/CMakeLists.txt
- demos/qml-demo-client/MovingRect.qml
- demos/qml-demo-client/qml-demo-client.qml
- demos/qml-demo-client/qtmir-demo-client.desktop.in
- demos/qml-demo-shell/Button.qml
- demos/qml-demo-shell/CMakeLists.txt
- demos/qml-demo-shell/ResizeArea.qml
- demos/qml-demo-shell/ScreenConfiguration.qml
- demos/qml-demo-shell/Shell.qml
- demos/qml-demo-shell/TitleBar.qml
- demos/qml-demo-shell/UnityLogo.png
- demos/qml-demo-shell/Window.qml
- demos/qml-demo-shell/WindowBufferSized.qml
- demos/qml-demo-shell/WindowModelDebugView.qml
- demos/qml-demo-shell/qml-demo-shell.qml
- demos/qml-demo-shell/qml-demo-shell.qmlproject
- include/qtmir/miral/display_id.h
+ demos/qtmir-demo-client/CMakeLists.txt
+ demos/qtmir-demo-client/MovingRect.qml
+ demos/qtmir-demo-client/qml-demo-client.qml
+ demos/qtmir-demo-client/qtmir-demo-client.desktop.in
+ demos/qtmir-demo-shell/Button.qml
+ demos/qtmir-demo-shell/CMakeLists.txt
+ demos/qtmir-demo-shell/ResizeArea.qml
+ demos/qtmir-demo-shell/ScreenConfiguration.qml
+ demos/qtmir-demo-shell/Shell.qml
+ demos/qtmir-demo-shell/TitleBar.qml
+ demos/qtmir-demo-shell/UnityLogo.png
+ demos/qtmir-demo-shell/Window.qml
+ demos/qtmir-demo-shell/WindowBufferSized.qml
+ demos/qtmir-demo-shell/WindowModelDebugView.qml
+ demos/qtmir-demo-shell/qml-demo-shell.qml
+ demos/qtmir-demo-shell/qml-demo-shell.qmlproject
+ include/miroil/display_id.h
  include/qtmir/qtmir.h
  src/CMakeLists.txt
  src/common/timestamp.cpp
@@ -255,14 +259,14 @@ Files: CMakeLists.txt
  src/modules/QtMir/CMakeLists.txt
  src/platforms/CMakeLists.txt
  src/platforms/mirserver/CMakeLists.txt
- src/platforms/mirserver/miral/CMakeLists.txt
+ src/platforms/mirserver/miroil/CMakeLists.txt
+ src/platforms/mirserver/miroil/src/CMakeLists.txt
  src/platforms/mirserver/mirserver.json
  src/platforms/mirserver/qtmir.cpp
  src/platforms/mirserver/qtmirserver.pc.in
  src/platforms/mirserver/tracepoints.tp
  tests/CMakeLists.txt
  tests/check-requires-provides.sh
- tests/convert-to-gles.sh
  tests/framework/CMakeLists.txt
  tests/framework/mock_persistent_surface_store.h
  tests/mirserver/CMakeLists.txt
@@ -288,39 +292,59 @@ Comment:
  Assuming same license as for the majority of code files,
  assuming same copyright holders.
 
-Files: include/qtmir/miral/display_configuration_policy.h
- include/qtmir/miral/display_configuration_storage.h
- include/qtmir/miral/edid.h
- src/platforms/mirserver/eventdispatch.cpp
- src/platforms/mirserver/eventdispatch.h
- src/platforms/mirserver/miral/display_configuration_policy.cpp
- src/platforms/mirserver/miral/edid.cpp
- src/platforms/mirserver/miral/mirbuffer.cpp
- src/platforms/mirserver/miral/mirbuffer.h
- src/platforms/mirserver/miral/persist_display_config.cpp
- src/platforms/mirserver/miral/persist_display_config.h
- src/platforms/mirserver/mirserverhooks.cpp
- src/platforms/mirserver/mirserverhooks.h
- src/platforms/mirserver/openglcontextfactory.cpp
- src/platforms/mirserver/openglcontextfactory.h
+Files: include/miroil/display_configuration_policy.h
+ include/miroil/display_configuration_storage.h
+ include/miroil/edid.h
+ src/platforms/mirserver/miroil/include/miroil/compositor.h
+ src/platforms/mirserver/miroil/include/miroil/display_configuration_controller_wrapper.h
+ src/platforms/mirserver/miroil/include/miroil/display_listener_wrapper.h
+ src/platforms/mirserver/miroil/include/miroil/event_builder.h
+ src/platforms/mirserver/miroil/include/miroil/eventdispatch.h
+ src/platforms/mirserver/miroil/include/miroil/input_device.h
+ src/platforms/mirserver/miroil/include/miroil/input_device_observer.h
+ src/platforms/mirserver/miroil/include/miroil/mir_prompt_session.h
+ src/platforms/mirserver/miroil/include/miroil/mir_server_hooks.h
+ src/platforms/mirserver/miroil/include/miroil/mirbuffer.h
+ src/platforms/mirserver/miroil/include/miroil/open_gl_context.h
+ src/platforms/mirserver/miroil/include/miroil/persist_display_config.h
+ src/platforms/mirserver/miroil/include/miroil/prompt_session_listener.h
+ src/platforms/mirserver/miroil/include/miroil/prompt_session_manager.h
+ src/platforms/mirserver/miroil/include/miroil/set_compositor.h
+ src/platforms/mirserver/miroil/include/miroil/surface.h
+ src/platforms/mirserver/miroil/include/miroil/surface_observer.h
+ src/platforms/mirserver/miroil/src/compositor.cpp
+ src/platforms/mirserver/miroil/src/display_configuration_controller_wrapper.cpp
+ src/platforms/mirserver/miroil/src/display_configuration_policy.cpp
+ src/platforms/mirserver/miroil/src/display_listener_wrapper.cpp
+ src/platforms/mirserver/miroil/src/edid.cpp
+ src/platforms/mirserver/miroil/src/event_builder.cpp
+ src/platforms/mirserver/miroil/src/eventdispatch.cpp
+ src/platforms/mirserver/miroil/src/input_device.cpp
+ src/platforms/mirserver/miroil/src/input_device_observer.cpp
+ src/platforms/mirserver/miroil/src/mir_prompt_session.cpp
+ src/platforms/mirserver/miroil/src/mir_server_hooks.cpp
+ src/platforms/mirserver/miroil/src/mirbuffer.cpp
+ src/platforms/mirserver/miroil/src/open_gl_context.cpp
+ src/platforms/mirserver/miroil/src/persist_display_config.cpp
+ src/platforms/mirserver/miroil/src/prompt_session_listener.cpp
+ src/platforms/mirserver/miroil/src/prompt_session_manager.cpp
+ src/platforms/mirserver/miroil/src/set_compositor.cpp
+ src/platforms/mirserver/miroil/src/surface.cpp
  src/platforms/mirserver/promptsession.h
- src/platforms/mirserver/promptsessionmanager.cpp
- src/platforms/mirserver/promptsessionmanager.h
- src/platforms/mirserver/setqtcompositor.cpp
- src/platforms/mirserver/setqtcompositor.h
  tests/framework/fake_surface.h
  tests/framework/stub_scene_surface.h
 Copyright: 2014, 2016, Canonical Ltd.
   2016, Canonical Ltd.
   2016-2017, Canonical Ltd.
   2017, Canonical Ltd.
+  2016-2020 Canonical Ltd.
 License: GPL-3
 
 Files: demos/paths.h.in
- demos/qml-demo-client/main.cpp
- demos/qml-demo-shell/main.cpp
- demos/qml-demo-shell/pointerposition.cpp
- demos/qml-demo-shell/pointerposition.h
+ demos/qtmir-demo-client/main.cpp
+ demos/qtmir-demo-shell/main.cpp
+ demos/qtmir-demo-shell/pointerposition.cpp
+ demos/qtmir-demo-shell/pointerposition.h
  src/modules/QtMir/Application/mirsurfacelistmodel.cpp
  src/modules/QtMir/Application/mirsurfacelistmodel.h
  src/modules/QtMir/Application/timer.cpp
@@ -337,16 +361,6 @@ Files: benchmarks/common.py
 Copyright: 2015, Canonical Ltd.
   2016, Canonical Ltd.
 License: LGPL-3
-
-Files: src/modules/QtMir/Application/application_manager.cpp
- src/modules/QtMir/Application/mirsurfaceitem.cpp
- src/platforms/mirserver/qteventfeeder.cpp
- src/platforms/mirserver/wrappedsessionauthorizer.cpp
-Copyright: 2013-2016, Canonical, Ltd.
-  2013-2017, Canonical, Ltd.
-  2016, Canonical, Ltd.
-License: LGPL-3
-Comment: GENERATED FILE
 
 Files: cmake/modules/FindQt5EventDispatcherSupport.cmake
  cmake/modules/FindQt5FontDatabaseSupport.cmake
@@ -379,6 +393,11 @@ Copyright: 2015-2017, Canonical, Ltd.
   2020, UBports Foundation
 License: LGPL-3
 
+Files: src/modules/QtMir/Application/mirbuffersgtexture.cpp
+Copyright: 2013-2015, Canonical, Ltd.
+  2021, UBports Foundation
+License: GPL-3
+
 Files: cmake/modules/FindQt5PlatformSupport.cmake
 Copyright: 2014, Alex Merry <alex.merry@kde.org>
   2014, Martin Gräßlin <mgraesslin@kde.org>
@@ -386,7 +405,8 @@ License: BSD-3-clause
 
 Files: debian/*
 Copyright: 2013-2017, Canonical Ltd.
-           2020, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+           2020-2023, Marius Gripsgard <marius@ubports.com>
+           2020-2023, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
 License: GPL-2 or GPL-3 or LGPL-2.1 or LGPL-3 or BSD-3-clause
 
 License: LGPL-3

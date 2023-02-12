@@ -3,7 +3,7 @@ default:
     name: ubuntu:latest
   before_script:
     - apt-get update -yq
-    - DEBIAN_FRONTEND=noninteractive apt-get install -yq devscripts dput git-buildpackage debhelper dh-python
+    - DEBIAN_FRONTEND=noninteractive apt-get install -yq devscripts dput git-buildpackage debhelper dh-python pkg-kde-tools
     - gpg -v --import <(echo "$GPG_PRIVATE_KEY")
 
 upload-ppa:

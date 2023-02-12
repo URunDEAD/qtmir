@@ -1,7 +1,8 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-export DPKG_GENSYMBOLS_CHECK_LEVEL=4
+# Uncomment this to be more picky with non-updated .symbols files
+#export DPKG_GENSYMBOLS_CHECK_LEVEL=4
 
 include /usr/share/dpkg/default.mk
 
@@ -12,15 +13,17 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
 %:
-	dh $@
+	dh $@ --with pkgkde_symbolshelper
 
 override_dh_missing:
 	dh_missing --fail-missing
 
-FLAGS := -DWITH_CONTENTHUB=ON -DWerror=ON
+FLAGS := -DWITH_CONTENTHUB=ON -DWerror=ON -DWITH_MIR2=on
+
 # Explicitly disable building with Valgrind on architectures without it.
-valgrind_architectures := amd64 arm64 armhf i386 mips64el mipsel ppc64el s390x powerpc ppc64 x32
-ifeq ($(filter $(DEB_HOST_ARCH), $(valgrind_architectures)),)
+# If valgrind is available or not gets decided via the valgrind-if-available
+# virtual package.
+ifeq (, $(shell command -v valgrind))
 	FLAGS += -DWITH_VALGRIND=OFF
 endif
 
@@ -32,3 +35,6 @@ override_dh_install:
 	-rm -f debian/tmp/usr/lib/libgmock*.a debian/tmp/usr/lib/libgtest*.a
 	-rm -rf debian/tmp/usr/include/gmock debian/tmp/usr/include/gtest
 	dh_install
+
+get-orig-source:
+	uscan --noconf --force-download --rename --download-current-version --destdir=..
