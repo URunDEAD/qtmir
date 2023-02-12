@@ -1,0 +1,17 @@
+default:
+  image:
+    name: ubuntu:latest
+  before_script:
+    - apt-get update -yq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -yq devscripts dput git-buildpackage debhelper dh-python
+    - gpg -v --import <(echo "$GPG_PRIVATE_KEY")
+
+upload-ppa:
+  stage: deploy
+  only:
+    - lunar
+  script:
+    - gbp dch --auto -S --multimaint-merge --distribution lunar --force-distribution --ignore-branch
+    - debchange --release --distribution lunar --force-distribution ""
+    - dpkg-buildpackage -I".git" -I"build" -i"^.git|^build" -d -S
+    - dput ppa:mariogrip/butterfly-linux ../*_source.changes
