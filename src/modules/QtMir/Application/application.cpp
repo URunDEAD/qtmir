@@ -294,9 +294,12 @@ void Application::updateState()
     if ((m_sessions.isEmpty() && m_state != InternalState::Starting && m_state != InternalState::StoppedResumable)
         ||
         (singleSession && singleSession->surfaceList()->isEmpty() && singleSession->hasClosingSurfaces())) {
-        // As we might not be able to go to Closing state right now (eg, SuspendingWaitProcess),
-        // store the intent in a separate variable.
-        m_closing = true;
+        // Never allow xwayland connections to be dropped
+        if (appId() != QLatin1String("xwayland.qtmir")) {
+            // As we might not be able to go to Closing state right now (eg, SuspendingWaitProcess),
+            // store the intent in a separate variable.
+            m_closing = true;
+        }
     }
 
     bool lostAllSurfaces = singleSession && singleSession->surfaceList()->isEmpty() && singleSession->hadSurface()
