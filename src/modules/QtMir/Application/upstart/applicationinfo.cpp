@@ -49,6 +49,11 @@ QUrl ApplicationInfo::icon() const
     return QUrl::fromLocalFile(QString::fromStdString(m_info->iconPath().value()));
 }
 
+bool ApplicationInfo::showSplash() const
+{
+    return m_info->splash().show.value();
+}
+
 QString ApplicationInfo::splashTitle() const
 {
     return QString::fromStdString(m_info->splash().title.value());
