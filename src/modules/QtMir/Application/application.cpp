@@ -846,7 +846,7 @@ void Application::onSessionStopped()
                Since this is not the case, keep it around. */
             setInternalState(InternalState::StoppedResumable);
         } else {
-            /* We're not able to respawn this application because it's not managed by upstart
+            /* We're not able to respawn this application because it's not managed by lomiri-app-launch
                (probably was launched via cmd line by user) */
             setInternalState(InternalState::Stopped);
         }

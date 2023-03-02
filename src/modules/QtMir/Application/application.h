@@ -51,7 +51,7 @@ public:
     Q_DECLARE_FLAGS(Stages, Stage)
 
     enum ProcessState {
-        ProcessUnknown, // not managed by upstart, so we can't respawn that application
+        ProcessUnknown, // not managed by lomiri-app-launch, so we can't respawn that application
         ProcessRunning,
         ProcessSuspended,
         ProcessFailed, // it stopped, but because it was killed or because it crashed

@@ -309,7 +309,7 @@ Application* ApplicationManager::startApplication(const QString &inputAppId,
     }
 
     if (!m_taskController->start(appId, arguments)) {
-        qWarning() << "Upstart failed to start application with appId" << appId;
+        qWarning() << "lomiri-app-launch failed to start application with appId" << appId;
         return nullptr;
     }
 
@@ -412,12 +412,12 @@ void ApplicationManager::onProcessFailed(const QString &appId, TaskController::E
 
     Application *application = findApplicationMutexHeld(appId);
     if (!application) {
-        qWarning() << "ApplicationManager::onProcessFailed - upstart reports failure of application" << appId
+        qWarning() << "ApplicationManager::onProcessFailed - lomiri-app-launch reports failure of application" << appId
                    << "that AppManager is not managing";
         return;
     }
 
-    Q_UNUSED(error); // FIXME(greyback) upstart reports app that fully started up & crashes as failing during startup??
+    Q_UNUSED(error); // FIXME(greyback) lomiri-app-launch reports app that fully started up & crashes as failing during startup??
     application->setProcessState(Application::ProcessFailed);
 }
 
@@ -529,7 +529,7 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
     }
 
     /*
-     * Hack: Allow applications to be launched without being managed by upstart, where AppManager
+     * Hack: Allow applications to be launched without being managed by lomiri-app-launch, where AppManager
      * itself manages processes executed with a "--desktop_file_hint=/path/to/desktopFile.desktop"
      * parameter attached, or an environment variable "DESKTOP_FILE_HINT=/path/to/desktopFile.desktop".
      * This exists until all GUI applications are launched via lomiri-app-launch.
@@ -573,7 +573,7 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         auto environment = m_procInfo->environment(pid);
         if (!environment->contains("DESKTOP_FILE_HINT")) {
             qCritical() << "ApplicationManager REJECTED connection from app with pid" << pid
-                        << "as it was not launched by upstart, and no desktop_file_hint is specified";
+                        << "as it was not launched by lomiri-app-launch, and no desktop_file_hint is specified";
             return;
         }
         desktopFileName = environment->getParameter("DESKTOP_FILE_HINT");
