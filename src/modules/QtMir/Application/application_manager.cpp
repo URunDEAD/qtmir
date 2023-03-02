@@ -23,7 +23,7 @@
 #include "session.h"
 #include "sharedwakelock.h"
 #include "proc_info.h"
-#include "upstart/taskcontroller.h"
+#include "lal/taskcontroller.h"
 #include "tracepoints.h" // generated from tracepoints.tp
 #include "settings.h"
 
@@ -91,7 +91,7 @@ ApplicationManager* ApplicationManager::create()
     qRegisterMetaType<QSharedPointer<qtmir::ApplicationInfo>>("QSharedPointer<qtmir::ApplicationInfo>");
     qRegisterMetaType<pid_t>("pid_t");
 
-    QSharedPointer<TaskController> taskController(new upstart::TaskController());
+    QSharedPointer<TaskController> taskController(new lal::TaskController());
     QSharedPointer<ProcInfo> procInfo(new ProcInfo());
     QSharedPointer<SharedWakelock> sharedWakelock(new SharedWakelock);
     QSharedPointer<Settings> settings(new Settings());

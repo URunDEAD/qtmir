@@ -19,7 +19,7 @@
 
 namespace qtmir
 {
-namespace upstart
+namespace lal
 {
 
 ApplicationInfo::ApplicationInfo(const QString &appId, std::shared_ptr<lomiri::app_launch::Application::Info> info)
@@ -110,5 +110,5 @@ bool ApplicationInfo::isTouchApp() const
     return m_info->supportsLomiriLifecycle().value();
 }
 
-} // namespace upstart
+} // namespace lal
 } // namespace qtmir
