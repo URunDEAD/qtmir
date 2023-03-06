@@ -750,17 +750,11 @@ bool Application::rotatesWindowContents() const
 
 void Application::acquireWakelock() const
 {
-    if (appId() == QLatin1String("unity8-dash"))
-        return;
-
     m_sharedWakelock->acquire(this);
 }
 
 void Application::releaseWakelock() const
 {
-    if (appId() == QLatin1String("unity8-dash"))
-        return;
-
     m_sharedWakelock->release(this);
 }
 
