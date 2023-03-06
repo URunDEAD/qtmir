@@ -4,7 +4,7 @@
   <schema path="/com/canonical/qtmir/" id="com.canonical.qtmir" gettext-domain="qtmir">
     <key type="as" name="lifecycle-exempt-appids">
       <default>[
-        'com.ubuntu.music'
+        'music.ubports'
       ]</default>
       <summary>List of apps that should be excluded from the app lifecycle</summary>
     </key>
