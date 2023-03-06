@@ -25,7 +25,7 @@
 #include <QSize>
 #include <QMargins>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/Mir.h>
 
 namespace qtmir {

@@ -30,13 +30,13 @@
 #include "logging.h"
 #include "initialsurfacesizes.h"
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/MirSurfaceInterface.h>
 
 // std
 #include <csignal>
 
-namespace unityapp = lomiri::shell::application;
+namespace shellapp = lomiri::shell::application;
 
 #define DEBUG_MSG qCDebug(QTMIR_APPLICATIONS).nospace() << "Application[" << appId() <<"]::" << __func__
 #define INFO_MSG qCInfo(QTMIR_APPLICATIONS).nospace() << "Application[" << appId() <<"]::" << __func__
@@ -71,7 +71,7 @@ Application::Application(const QSharedPointer<SharedWakelock>& sharedWakelock,
 
     setStopTimer(new Timer);
 
-    connect(&m_surfaceList, &unityapp::MirSurfaceListInterface::countChanged, this, &unityapp::ApplicationInfoInterface::surfaceCountChanged);
+    connect(&m_surfaceList, &shellapp::MirSurfaceListInterface::countChanged, this, &shellapp::ApplicationInfoInterface::surfaceCountChanged);
 }
 
 Application::~Application()
@@ -892,12 +892,12 @@ void Application::setInitialSurfaceSize(const QSize &size)
     }
 }
 
-unityapp::MirSurfaceListInterface* Application::surfaceList() const
+shellapp::MirSurfaceListInterface* Application::surfaceList() const
 {
     return &m_surfaceList;
 }
 
-unityapp::MirSurfaceListInterface* Application::promptSurfaceList() const
+shellapp::MirSurfaceListInterface* Application::promptSurfaceList() const
 {
     return m_proxyPromptSurfaceList;
 }

@@ -17,7 +17,7 @@
 #ifndef QTMIR_MIRSURFACEINTERFACE_H
 #define QTMIR_MIRSURFACEINTERFACE_H
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/MirSurfaceInterface.h>
 
 #include "session_interface.h"
@@ -63,7 +63,7 @@ public:
     // end of methods called from the rendering (scene graph) thread
 
     /*
-        Defines the unityapi::MirSurfaceInterface::focused() value, which is what shell sees.
+        Defines the shellapp::MirSurfaceInterface::focused() value, which is what shell sees.
         Set centrally by MirFocusController and used for window-management purposes by shell.
      */
     virtual void setFocused(bool focus) = 0;

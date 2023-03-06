@@ -26,7 +26,7 @@
 
 #include <functional>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/Mir.h>
 
 namespace miral { class Workspace; }

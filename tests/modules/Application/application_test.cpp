@@ -272,7 +272,7 @@ TEST_F(ApplicationTests, emitsStoppedWhenRunningAppStops)
 
 /**
  * Regression test for https://bugs.launchpad.net/qtmir/+bug/1485608
- * In that case, the camera-app closes itself right after unity8 unfocus it (and thus requests it to be suspended).
+ * In that case, the camera-app closes itself right after Lomiri shell unfocuses it (and thus requests it to be suspended).
  */
 TEST_F(ApplicationTests, emitsStoppedWhenAppStopsWhileSuspending)
 {

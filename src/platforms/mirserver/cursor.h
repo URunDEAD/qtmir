@@ -21,7 +21,7 @@
 #include <QMutex>
 #include <QPointer>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/MirPlatformCursor.h>
 
 namespace qtmir {

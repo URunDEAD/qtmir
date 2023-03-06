@@ -603,11 +603,11 @@ lomiri::shell::application::MirSurfaceInterface* MirSurfaceItem::surface() const
     return m_surface;
 }
 
-void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface *unitySurface)
+void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface *lomiriShellSurface)
 {
     QMutexLocker mutexLocker(&m_mutex);
 
-    auto surface = static_cast<qtmir::MirSurfaceInterface*>(unitySurface);
+    auto surface = static_cast<qtmir::MirSurfaceInterface*>(lomiriShellSurface);
     qCDebug(QTMIR_SURFACES).nospace() << "MirSurfaceItem::setSurface surface=" << surface;
 
     if (surface == m_surface) {

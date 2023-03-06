@@ -31,7 +31,7 @@ using namespace qtmir;
 using mir::scene::MockSession;
 
 namespace ms = mir::scene;
-namespace unityapi = lomiri::shell::application;
+namespace shellapp = lomiri::shell::application;
 
 class ApplicationManagerTests : public ::testing::QtMirTest
 {
@@ -1890,7 +1890,7 @@ TEST_F(ApplicationManagerTests,focusedApplicationId)
     EXPECT_EQ(Application::InternalState::Running, app1->internalState());
 
     QSignalSpy focusedApplicationIdChangedSpy(&applicationManager,
-            &unityapi::ApplicationManagerInterface::focusedApplicationIdChanged);
+            &shellapp::ApplicationManagerInterface::focusedApplicationIdChanged);
 
     surface1.setFocused(true);
     qtApp.processEvents(); // process queued signal-slot connections
@@ -1964,7 +1964,7 @@ TEST_F(ApplicationManagerTests,surfaceFocusRequestGeneratesApplicationFocusReque
     EXPECT_EQ(Application::InternalState::Running, app->internalState());
 
     QSignalSpy focusRequestedSpy(&applicationManager,
-            &unityapi::ApplicationManagerInterface::focusRequested);
+            &shellapp::ApplicationManagerInterface::focusRequested);
 
     surface.requestFocus();
 

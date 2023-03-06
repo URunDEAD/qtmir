@@ -50,7 +50,7 @@ public:
     virtual ~FakeMirSurface();
 
     ////
-    // unity.shell.application.MirSurfaceInterface
+    // lomiri.shell.application.MirSurfaceInterface
     Mir::Type type() const override;
     QString name() const override;
     QString persistentId() const override;

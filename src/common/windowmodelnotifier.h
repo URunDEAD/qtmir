@@ -25,7 +25,7 @@
 #include <miral/window_info.h>
 #include <miral/window_management_policy.h>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/Mir.h>
 
 namespace qtmir {

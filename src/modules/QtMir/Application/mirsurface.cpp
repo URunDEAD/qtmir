@@ -53,7 +53,7 @@
 #include <limits>
 
 using namespace qtmir;
-namespace unityapi = lomiri::shell::application;
+namespace shellapp = lomiri::shell::application;
 
 #define DEBUG_MSG qCDebug(QTMIR_SURFACES).nospace() << "MirSurface[" << (void*)this << "," << appId() << "]::" << __func__
 #define INFO_MSG qCInfo(QTMIR_SURFACES).nospace() << "MirSurface[" << (void*)this << "," << appId() << "]::" << __func__
@@ -228,7 +228,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
 {
     DEBUG_MSG << "("
         << "type=" << mirSurfaceTypeToStr(m_type)
-        << ",state=" << unityapiMirStateToStr(m_state)
+        << ",state=" << lomiriShellApiMirStateToStr(m_state)
         << ",size=(" << m_size.width() << "," << m_size.height() << ")"
         << ",parentSurface=" << m_parentSurface
         << ")";
@@ -716,7 +716,7 @@ QString MirSurface::persistentId() const
 
 void MirSurface::requestState(Mir::State state)
 {
-    DEBUG_MSG << "(" << unityapiMirStateToStr(state) << ")";
+    DEBUG_MSG << "(" << lomiriShellApiMirStateToStr(state) << ")";
     m_controller->requestState(m_window, state);
 }
 
@@ -1010,7 +1010,7 @@ void MirSurface::updateState(Mir::State newState)
     if (newState == m_state) {
         return;
     }
-    DEBUG_MSG << "(" << unityapiMirStateToStr(newState) << ")";
+    DEBUG_MSG << "(" << lomiriShellApiMirStateToStr(newState) << ")";
 
     m_state = newState;
     Q_EMIT stateChanged(state());
@@ -1521,12 +1521,12 @@ QPoint MirSurface::convertLocalToDisplayCoords(const QPoint &localPos) const
     return displayPos;
 }
 
-unityapi::MirSurfaceInterface *MirSurface::parentSurface() const
+shellapp::MirSurfaceInterface *MirSurface::parentSurface() const
 {
     return m_parentSurface;
 }
 
-unityapi::MirSurfaceListInterface *MirSurface::childSurfaceList() const
+shellapp::MirSurfaceListInterface *MirSurface::childSurfaceList() const
 {
     return m_childSurfaceList;
 }

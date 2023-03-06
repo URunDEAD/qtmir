@@ -20,7 +20,7 @@
 // common
 #include "windowmodelnotifier.h"
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/SurfaceManagerInterface.h>
 
 #include <QVector>

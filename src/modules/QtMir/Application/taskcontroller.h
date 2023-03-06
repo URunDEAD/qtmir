@@ -38,7 +38,7 @@ namespace mir {
     }
 }
 
-namespace unity {
+namespace lomiri {
     namespace shell {
         namespace application {
             class MirSurfaceInterface;

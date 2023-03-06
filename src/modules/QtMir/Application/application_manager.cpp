@@ -47,7 +47,7 @@
 // std
 #include <csignal>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/MirSurfaceInterface.h>
 
 // Linux
@@ -55,7 +55,7 @@
 
 namespace ms = mir::scene;
 
-namespace unityapi = lomiri::shell::application;
+namespace shellapp = lomiri::shell::application;
 
 #define DEBUG_MSG qCDebug(QTMIR_APPLICATIONS).nospace() << "ApplicationManager::" << __func__
 
@@ -609,7 +609,7 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
 }
 
 
-unityapi::ApplicationInfoInterface *ApplicationManager::findApplicationWithSurface(unityapi::MirSurfaceInterface* surface) const
+shellapp::ApplicationInfoInterface *ApplicationManager::findApplicationWithSurface(shellapp::MirSurfaceInterface* surface) const
 {
     if (!surface)
         return nullptr;
@@ -703,7 +703,7 @@ void ApplicationManager::add(Application* application)
 
     connect(application, &Application::stateChanged, this, [this](Application::State) { onAppDataChanged(RoleState); });
     connect(application, &Application::closing, this, [this, application]() { onApplicationClosing(application); });
-    connect(application, &unityapi::ApplicationInfoInterface::focusRequested, this, [this, application]() {
+    connect(application, &shellapp::ApplicationInfoInterface::focusRequested, this, [this, application]() {
         Q_EMIT focusRequested(application->appId());
     });
 
@@ -773,7 +773,7 @@ void ApplicationManager::remove(Application *application)
     disconnect(application, &Application::focusedChanged, this, 0);
     disconnect(application, &Application::stateChanged, this, 0);
     disconnect(application, &Application::closing, this, 0);
-    disconnect(application, &unityapi::ApplicationInfoInterface::focusRequested, this, 0);
+    disconnect(application, &shellapp::ApplicationInfoInterface::focusRequested, this, 0);
 
     // don't remove (as it's already being removed) but still delete the guy.
     disconnect(application, &Application::stopped, this, 0);

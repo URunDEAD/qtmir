@@ -20,7 +20,7 @@
 #include <functional>
 #include <memory>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/ApplicationInfoInterface.h>
 
 // local

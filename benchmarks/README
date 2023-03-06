@@ -4,7 +4,7 @@ Firstly, you will need to install the qtmir-tests package. So either install the
 and install from source
 $ sudo apt-get install qtmir-tests
 
-Then you need to stop unity8 & unity-system compositor so that we can start out test in a controlled environment.
+Then you need to stop lomiri and lomiri-system compositor so that we can start the test in a controlled environment.
 $ sudo stop lightdm
 
 Next, start the test!

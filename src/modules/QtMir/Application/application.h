@@ -26,7 +26,7 @@
 #include <QSharedPointer>
 #include <QVector>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/ApplicationInfoInterface.h>
 
 #include "mirsurfacelistmodel.h"
