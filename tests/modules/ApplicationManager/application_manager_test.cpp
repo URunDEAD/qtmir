@@ -484,10 +484,11 @@ TEST_F(ApplicationManagerTests,appStartedByShell)
 }
 
 /*
- * Test that an application launched upstart (i.e. not by shell itself) creates the correct Application
- * instance and emits signals indicating the model updated
+ * Test that an application launched via lomiri-app-launch but outside the
+ * shell creates the correct Application instance and emits signals indicating
+ * the model updated
  */
-TEST_F(ApplicationManagerTests,appStartedByUpstart)
+TEST_F(ApplicationManagerTests,appStartedOutsideShell)
 {
     using namespace ::testing;
     const QString appId("testAppId");
@@ -504,7 +505,7 @@ TEST_F(ApplicationManagerTests,appStartedByUpstart)
     QSignalSpy countSpy(&applicationManager, SIGNAL(countChanged()));
     QSignalSpy focusSpy(&applicationManager, SIGNAL(focusRequested(const QString &)));
 
-    // upstart sends notification that the application was started
+    // lomiri-app-launch sends notification that the application was started
     applicationManager.onProcessStarting(appId);
 
     Application *theApp = applicationManager.findApplication(appId);
@@ -701,10 +702,10 @@ TEST_F(ApplicationManagerTests,maliitFullPathAccepted)
 }
 
 /*
- * Test that an application in the Starting state is not impacted by the upstart "Starting" message
- * for that application (i.e. the upstart message is effectively useless)
+ * Test that an application in the Starting state is not impacted by the lomiri-app-launch "starting" observer event
+ * for that application (i.e. the event is effectively useless)
  */
-TEST_F(ApplicationManagerTests,onceAppAddedToApplicationLists_upstartStartingEventIgnored)
+TEST_F(ApplicationManagerTests,onceAppAddedToApplicationLists_startingEventIgnored)
 {
     using namespace ::testing;
     const QString appId("testAppId");
@@ -718,7 +719,7 @@ TEST_F(ApplicationManagerTests,onceAppAddedToApplicationLists_upstartStartingEve
 
     QSignalSpy countSpy(&applicationManager, SIGNAL(countChanged()));
 
-    // upstart sends notification that the application was started
+    // lomiri-app-launch sends notification that the application was started
     applicationManager.onProcessStarting(appId);
 
     // check no new signals were emitted and application state unchanged
@@ -899,9 +900,9 @@ TEST_F(ApplicationManagerTests,shellStopsForegroundAppCorrectly)
 }
 
 /*
- * Test that if the foreground Running application is stopped by upstart, AppMan cleans up after it ok
+ * Test that if the foreground Running application is stopped by lomiri-app-launch, AppMan cleans up after it ok
  */
-TEST_F(ApplicationManagerTests,upstartNotifiesOfStoppingForegroundApp)
+TEST_F(ApplicationManagerTests,lomiriAppLaunchNotifiesOfStoppingForegroundApp)
 {
     using namespace ::testing;
     const QString appId("testAppId");
@@ -928,7 +929,7 @@ TEST_F(ApplicationManagerTests,upstartNotifiesOfStoppingForegroundApp)
     QSignalSpy countSpy(&applicationManager, SIGNAL(countChanged()));
 
     taskController->onSessionStopping(appInfo);
-    // Upstart notifies of stopping app
+    // lomiri-app-launch notifies of stopping app
     applicationManager.onProcessStopped(appId);
 
     EXPECT_EQ(2, countSpy.count()); //FIXME(greyback)
@@ -936,10 +937,10 @@ TEST_F(ApplicationManagerTests,upstartNotifiesOfStoppingForegroundApp)
 }
 
 /*
- * Test that if a running application is reported to have stopped unexpectedly by upstart, AppMan
+ * Test that if a running application is reported to have stopped unexpectedly by lomiri-app-launch, AppMan
  * cleans up after it ok (as was not suspended, had not lifecycle saved its state, so cannot be resumed)
  */
-TEST_F(ApplicationManagerTests,upstartNotifiesOfUnexpectedStopOfRunningApp)
+TEST_F(ApplicationManagerTests,lomiriAppLaunchNotifiesOfUnexpectedStopOfRunningApp)
 {
     using namespace ::testing;
     const QString appId("testAppId");
@@ -967,10 +968,10 @@ TEST_F(ApplicationManagerTests,upstartNotifiesOfUnexpectedStopOfRunningApp)
 
     taskController->onSessionStopping(appInfo);
 
-    // Upstart notifies of crashing / OOM killed app
+    // lomiri-app-launch notifies of crashing / OOM killed app
     applicationManager.onProcessFailed(appId, TaskController::Error::APPLICATION_CRASHED);
 
-    // Upstart finally notifies the app stopped
+    // lomiri-app-launch finally notifies the app stopped
     applicationManager.onProcessStopped(appId);
 
     EXPECT_EQ(countSpy.count(), 2); //FIXME(greyback)
@@ -978,7 +979,7 @@ TEST_F(ApplicationManagerTests,upstartNotifiesOfUnexpectedStopOfRunningApp)
 }
 
 /*
- * Test that if a background application is reported to unexpectedly stop by upstart, AppMan does not remove
+ * Test that if a background application is reported to unexpectedly stop by lomiri-app-launch, AppMan does not remove
  * it from the app lists but instead considers it Stopped, ready to be resumed. This is due to the fact the
  * app should have saved its state, so can be resumed. This situation can occur due to the OOM killer, or
  * a dodgy app crashing.
@@ -1015,12 +1016,12 @@ TEST_F(ApplicationManagerTests,unexpectedStopOfBackgroundApp)
     // Mir reports disconnection
     taskController->onSessionStopping(appInfo);
 
-    // Upstart notifies of crashing / OOM-killed app
+    // lomiri-app-launch notifies of crashing / OOM-killed app
     applicationManager.onProcessFailed(appId, TaskController::Error::APPLICATION_CRASHED);
 
     EXPECT_EQ(0, focusSpy.count());
 
-    // Upstart finally notifies the app stopped
+    // lomiri-app-launch finally notifies the app stopped
     applicationManager.onProcessStopped(appId);
 
     EXPECT_EQ(0, countSpy.count());
@@ -1028,14 +1029,10 @@ TEST_F(ApplicationManagerTests,unexpectedStopOfBackgroundApp)
 }
 
 /*
- * Test that if a background application is reported to have stopped on startup by upstart, that it
+ * Test that if a background application is reported to have stopped on startup by lomiri-app-launch, that it
  * is kept in the application model, as the app can be lifecycle resumed.
- *
- * Note that upstart reports this "stopped on startup" even for applications which are running.
- * This may be an upstart bug, or AppMan mis-understanding upstart's intentions. But need to check
- * we're doing the right thing in either case. CHECKME(greyback)!
  */
-TEST_F(ApplicationManagerTests,unexpectedStopOfBackgroundAppCheckingUpstartBug)
+TEST_F(ApplicationManagerTests,unexpectedStopOfBackgroundAppAtStartup)
 {
     using namespace ::testing;
     const QString appId("testAppId");
@@ -1067,12 +1064,12 @@ TEST_F(ApplicationManagerTests,unexpectedStopOfBackgroundAppCheckingUpstartBug)
     // Mir reports disconnection
     taskController->onSessionStopping(appInfo);
 
-    // Upstart notifies of crashing app
+    // lomiri-app-launch notifies of crashing app
     applicationManager.onProcessFailed(appId, TaskController::Error::APPLICATION_FAILED_TO_START);
 
     EXPECT_EQ(focusSpy.count(), 0);
 
-    // Upstart finally notifies the app stopped
+    // lomiri-app-launch finally notifies the app stopped
     applicationManager.onProcessStopped(appId);
 
     EXPECT_EQ(countSpy.count(), 0);
@@ -1246,9 +1243,9 @@ TEST_F(ApplicationManagerTests,mirNotifiesOfStoppingBackgroundApp)
 }
 
 /*
- * Test that when an application is stopped correctly by shell, the upstart stopping event is ignored
+ * Test that when an application is stopped correctly by shell, the lomiri-app-launch stopping event is ignored
  */
-TEST_F(ApplicationManagerTests,shellStoppedApp_upstartStoppingEventIgnored)
+TEST_F(ApplicationManagerTests,shellStoppedApp_lomiriAppLaunchStoppingEventIgnored)
 {
     using namespace ::testing;
     const QString appId("testAppId");
@@ -1277,10 +1274,10 @@ TEST_F(ApplicationManagerTests,shellStoppedApp_upstartStoppingEventIgnored)
 
     QSignalSpy countSpy(&applicationManager, SIGNAL(countChanged()));
 
-    // the mir session always ends before upstart notifies the process has stopped
+    // the mir session always ends before lomiri-app-launch notifies the process has stopped
     taskController->onSessionStopping(appInfo);
 
-    // Upstart notifies of stopping app
+    // lomiri-app-launch notifies of stopping app
     applicationManager.onProcessStopped(appId);
 
     EXPECT_EQ(0, countSpy.count());
@@ -1412,11 +1409,12 @@ TEST_F(ApplicationManagerTests,unexpectedStopOfBackgroundWebapp)
 }
 
 /*
- * Test for when a background application that has been OOM killed is relaunched by upstart.
- * AppMan will have the application in the app lists, in a Stopped state. Upstart will notify of
- * the app launching (like any normal app). Need to set the old Application instance to Starting
- * state and emit focusRequested to shell - authorizeSession will then associate new process with
- * the Application as normal.
+ * Test for when a background application that has been OOM killed is restarted afterwards.
+ * LAL will have the application in the app lists, in a Stopped state.
+ * Restarting it will notify LAL that it is starting just as during the initial
+ * launch.  Need to set the old Application instance to Starting state and emit
+ * focusRequested to shell - authorizeSession will then associate new process
+ * with the Application as normal.
  */
 TEST_F(ApplicationManagerTests,stoppedBackgroundAppRelaunchedByUpstart)
 {
@@ -1466,7 +1464,7 @@ TEST_F(ApplicationManagerTests,stoppedBackgroundAppRelaunchedByUpstart)
 
     QSignalSpy focusRequestSpy(&applicationManager, SIGNAL(focusRequested(const QString &)));
 
-    // Upstart re-launches app
+    // App is restarted
     applicationManager.onProcessStarting(appId);
 
     EXPECT_EQ(Application::Starting, app->state());
@@ -1651,7 +1649,7 @@ TEST_F(ApplicationManagerTests,DISABLED_QMLcacheDeletedOnAppCrash)
 
     // Report app crash
     taskController->onSessionStopping(appInfo);
-    // Upstart notifies of **crashing** app
+    // lomiri-app-launch notifies of **crashing** app
     applicationManager.onProcessFailed(appId, TaskController::Error::APPLICATION_FAILED_TO_START);
     applicationManager.onProcessStopped(appId);
 
@@ -1696,7 +1694,7 @@ TEST_F(ApplicationManagerTests,QMLcacheRetainedOnAppShutdown)
 
     // Report app stop
     taskController->onSessionStopping(appInfo);
-    // Upstart notifies of stopping app
+    // lomiri-app-launch notifies of stopping app
     applicationManager.onProcessStopped(appId);
 
     EXPECT_EQ(0, applicationManager.count());
@@ -1768,10 +1766,10 @@ TEST_F(ApplicationManagerTests,forceAppDeleteWhenRemovedWithMissingSurface)
 
     applicationManager.stopApplication(appId);
 
-    // the mir session always ends before upstart notifies the process has stopped
+    // the mir session always ends before lomiri-app-launch notifies the process has stopped
     taskController->onSessionStopping(appInfo);
 
-    // Upstart notifies of stopping app
+    // lomiri-app-launch notifies of stopping app
     applicationManager.onProcessStopped(appId);
 
     // DeferredDelete is special: likes to be called out specifically or it won't come out

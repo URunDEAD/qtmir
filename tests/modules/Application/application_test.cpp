@@ -587,7 +587,7 @@ TEST_F(ApplicationTests, stoppedWhileSuspendedTurnsIntoStoppeResumable)
 
     EXPECT_EQ(Application::InternalState::StoppedResumable, application->internalState());
 
-    // And later comes upstart telling us about it
+    // And later comes lomiri-app-launch telling us about it
     application->setProcessState(Application::ProcessFailed);
 
     EXPECT_EQ(Application::InternalState::StoppedResumable, application->internalState());
