@@ -60,7 +60,7 @@ Application::Application(const QSharedPointer<SharedWakelock>& sharedWakelock,
     , m_exemptFromLifecycle(false)
     , m_proxyPromptSurfaceList(new ProxySurfaceListModel(this))
 {
-    INFO_MSG << "()";
+    DEBUG_MSG << "()";
 
     // Because m_state is InternalState::Starting
     acquireWakelock();
@@ -76,7 +76,7 @@ Application::Application(const QSharedPointer<SharedWakelock>& sharedWakelock,
 
 Application::~Application()
 {
-    INFO_MSG << "()";
+    DEBUG_MSG << "()";
 
     // (ricmm) -- To be on the safe side, better wipe the application QML compile cache if it crashes on startup
     if (m_processState == Application::ProcessUnknown) {
@@ -279,7 +279,7 @@ void Application::setRequestedState(RequestedState value)
         return;
     }
 
-    INFO_MSG << "(requestedState=" << applicationStateToStr(value) << ")";
+    DEBUG_MSG << "(requestedState=" << applicationStateToStr(value) << ")";
 
     m_requestedState = value;
     Q_EMIT requestedStateChanged(m_requestedState);
@@ -449,7 +449,7 @@ bool Application::serverSideDecoration() const
 
 void Application::close()
 {
-    INFO_MSG << "()";
+    DEBUG_MSG << "()";
 
     switch (m_state) {
     case InternalState::Starting:
@@ -503,7 +503,7 @@ void Application::removeSession(SessionInterface *session)
 
 void Application::addSession(SessionInterface *newSession)
 {
-    INFO_MSG << "(session=" << newSession << ")";
+    DEBUG_MSG << "(session=" << newSession << ")";
 
     if (!newSession || m_sessions.contains(newSession))
         return;
@@ -559,7 +559,7 @@ void Application::setInternalState(Application::InternalState state)
         return;
     }
 
-    INFO_MSG << "(state=" << internalStateToStr(state) << ")";
+    DEBUG_MSG << "(state=" << internalStateToStr(state) << ")";
 
     auto oldPublicState = this->state();
     m_state = state;
@@ -654,7 +654,7 @@ void Application::setProcessState(ProcessState newProcessState)
 
 void Application::suspend()
 {
-    INFO_MSG << "()";
+    DEBUG_MSG << "()";
 
     Q_ASSERT(m_state == InternalState::Running);
     Q_ASSERT(!m_sessions.isEmpty());
@@ -674,7 +674,7 @@ void Application::suspend()
 
 void Application::resume()
 {
-    INFO_MSG << "()";
+    DEBUG_MSG << "()";
 
     if (m_state == InternalState::Suspended || m_state == InternalState::SuspendingWaitProcess) {
         Q_EMIT resumeProcessRequested();
@@ -697,7 +697,7 @@ void Application::resume()
 
 void Application::respawn()
 {
-    INFO_MSG << "()";
+    DEBUG_MSG << "()";
 
     setInternalState(InternalState::Starting);
 
@@ -706,10 +706,10 @@ void Application::respawn()
 
 void Application::stop()
 {
-    INFO_MSG << "()";
+    DEBUG_MSG << "()";
 
     if (appId() == QStringLiteral("xwayland.qtmir")) {
-        INFO_MSG << "() ignoring stop event for legacy/X11 application.";
+        DEBUG_MSG << "() ignoring stop event for legacy/X11 application.";
         return;
     }
 
@@ -730,7 +730,7 @@ void Application::setExemptFromLifecycle(bool exemptFromLifecycle)
 {
     if (m_exemptFromLifecycle != exemptFromLifecycle)
     {
-        INFO_MSG << "(" << exemptFromLifecycle << ")";
+        DEBUG_MSG << "(" << exemptFromLifecycle << ")";
         // We don't adjust current suspension state, we only care about exempt
         // status going into a suspend.
         m_exemptFromLifecycle = exemptFromLifecycle;
@@ -905,7 +905,7 @@ unityapp::MirSurfaceListInterface* Application::promptSurfaceList() const
 void Application::requestFocus()
 {
     if (m_surfaceList.rowCount() > 0) {
-        INFO_MSG << "() - Requesting focus for most recent toplevel app surface";
+        DEBUG_MSG << "() - Requesting focus for most recent toplevel app surface";
 
         for (int i = 0; i < m_surfaceList.count(); ++i) {
             auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
@@ -915,7 +915,7 @@ void Application::requestFocus()
             }
         }
     } else {
-        INFO_MSG << "() - emitting focusRequested()";
+        DEBUG_MSG << "() - emitting focusRequested()";
         Q_EMIT focusRequested();
     }
 }
