@@ -922,6 +922,11 @@ void Application::requestFocus()
 
 void Application::terminate()
 {
+    if (appId() == QStringLiteral("xwayland.qtmir")) {
+        INFO_MSG << "() ignoring terminate event for legacy/X11 application.";
+        return;
+    }
+
     for (auto session : m_sessions) {
         kill(session->pid(), SIGTERM);
     }

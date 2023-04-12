@@ -36,6 +36,7 @@ public:
     QString name() const override;
     QString comment() const override;
     QUrl icon() const override;
+    bool showSplash() const override;
     QString splashTitle() const override;
     QUrl splashImage() const override;
     bool splashShowHeader() const override;

@@ -629,6 +629,9 @@ unityapi::ApplicationInfoInterface *ApplicationManager::findApplicationWithSurfa
     if (auto app = findApplicationWithAppId(qtmirSurface))
         return app;
 
+    if (!qtmirSurface->session())
+        return nullptr;
+
     return findApplicationWithSession(qtmirSurface->session()->session());
 }
 
