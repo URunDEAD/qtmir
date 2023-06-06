@@ -450,27 +450,29 @@ QSGTexture *MirSurface::weakTexture(qintptr userId) const
     return compositorTexure ? compositorTexure->texture().toStrongRef().data() : nullptr;
 }
 
-bool MirSurface::updateTexture(qintptr userId)
+std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr userId)
 {
     QMutexLocker locker(&m_mutex);
 
     auto compositorTexure = m_textures->compositorTextureForId(userId);
-    if (!compositorTexure) return false;
+    if (!compositorTexure) return {};
 
     return updateTextureLocked(userId, compositorTexure);
 }
 
-bool MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *compositorTexture)
+std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *compositorTexture)
 {
     auto texture = qWeakPointerCast<MirBufferSGTexture, QSGTexture>(compositorTexture->texture()).lock();
-    if (!texture) return false;
+    // TODO figure out how to cache!
+    //if (!texture) return {};
 
-    if (compositorTexture->isUpToDate()) {
-        return texture->hasBuffer();
-    }
+    //if (compositorTexture->isUpToDate()) {
+    //    return {};
+    //}
 
     auto renderables = m_surface->generate_renderables((void*)userId);
 
+    std::vector<SubSurfaceTexture> subsurfaces;
     if (renderables.size() > 0 &&
             (m_surface->buffers_ready_for_compositor((void*)userId) > 0 || !texture->hasBuffer())
         ) {
@@ -487,6 +489,29 @@ bool MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *composit
         }
 
         compositorTexture->setUpToDate(true);
+
+        subsurfaces.reserve(renderables.size());
+        for (auto const& renderable : renderables)
+        {
+            auto const mirTopLeft = m_surface->top_left();
+            auto const mirStreamPosition = renderable->screen_position();
+            QRectF const relativePosition(
+                mirStreamPosition.left().as_int() - mirTopLeft.x.as_int(),
+                mirStreamPosition.top().as_int() - mirTopLeft.y.as_int(),
+                mirStreamPosition.size.width.as_int(),
+                mirStreamPosition.size.height.as_int()
+            );
+
+            QSharedPointer<MirBufferSGTexture> texture(new MirBufferSGTexture);
+            texture->freeBuffer();
+            texture->setBuffer(renderable->buffer());
+            subsurfaces.emplace_back(
+                SubSurfaceTexture{
+                    relativePosition,
+                    texture
+                });
+        }
+        m_subTextures = subsurfaces;
     }
 
     if (m_surface->buffers_ready_for_compositor((void*)userId) > 0) {
@@ -495,7 +520,7 @@ bool MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *composit
         QMetaObject::invokeMethod(&m_frameDropperTimer, "start", Qt::QueuedConnection);
     }
 
-    return texture->hasBuffer();
+    return m_subTextures;
 }
 
 bool MirSurface::numBuffersReadyForCompositor(qintptr userId)

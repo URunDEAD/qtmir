@@ -131,7 +131,7 @@ public:
     // methods called from the rendering (scene graph) thread:
     QSharedPointer<QSGTexture> texture(qintptr userId) override;
     QSGTexture *weakTexture(qintptr userId) const override;
-    bool updateTexture(qintptr userId) override;
+    std::vector<SubSurfaceTexture> updateTexture(qintptr userId) override;
     unsigned int currentFrameNumber(qintptr userId) const override;
     bool numBuffersReadyForCompositor(qintptr userId) override;
     // end of methods called from the rendering (scene graph) thread
@@ -226,10 +226,12 @@ private:
     void forgetPressedKey(quint32 nativeVirtualKey);
     void releaseAllPressedKeys();
 
-    bool updateTextureLocked(qintptr userId, CompositorTexture* compositorTexture);
+    std::vector<SubSurfaceTexture> updateTextureLocked(qintptr userId, CompositorTexture* compositorTexture);
 
     const miral::Window m_window;
     const std::shared_ptr<ExtraWindowInfo> m_extraInfo;
+    // To manage memory
+    std::vector<SubSurfaceTexture> m_subTextures;
     QString m_name;
     MirWindowType m_type;
     int m_minWidth;

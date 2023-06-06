@@ -244,8 +244,9 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     ensureTextureProvider();
 
     const qintptr userId = (qintptr)window();
+    auto subtextures = m_surface->updateTexture(userId);
 
-    if (!userId || !m_textureProvider->texture() || !m_surface->updateTexture(userId)) {
+    if (!userId || !m_textureProvider->texture() || subtextures.empty()) {
         delete oldNode;
         return nullptr;
     }
@@ -273,12 +274,75 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     auto texture = m_textureProvider->texture();
     node->setTexture(texture);
 
+    // If we have no subtextures at all, drop all other childnodes
+    if (subtextures.size() - 1 <= 0) {
+        if (node->childCount() > 0) {
+            qWarning() << " dropping all childnodes";
+            node->removeAllChildNodes();
+        }
+    } else {
+        // - 1 since first subtexture is main texture
+        bool isEqual = subtextures.size() - 1 == node->childCount();
+        if (!isEqual) {
+            qWarning() << "Not equal, recreating childnodes";
+            if (node->childCount() > 0) {
+                qWarning() << " dropping all childnodes";
+                node->removeAllChildNodes();
+            }   
+        }
+
+        // Meh, this is not great code
+        int first = 0;
+        for (auto sub : subtextures) {
+            first++;
+            // Skip first subtexture as this is the main texture
+            if (first < 2)
+                continue;
+
+            // Atempt at some caching, we only recrate the nodes if the amount of childnodes
+            // does not match subtextures, this could be better
+            QSGDefaultInternalImageNode *subnode;
+            if (isEqual) {
+                subnode = static_cast<QSGDefaultInternalImageNode*>(node->childAtIndex(first - 2));
+                subnode->markDirty(QSGNode::DirtyMaterial);
+            } else {
+        #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+                QSGRenderContext *rc = QQuickWindowPrivate::get(window())->context;
+                subnode = new QSGDefaultInternalImageNode(static_cast<QSGDefaultRenderContext *>(rc));
+        #else
+                subnode = new QSGDefaultInternalImageNode;
+        #endif
+                subnode->setMipmapFiltering(QSGTexture::None);
+                subnode->setHorizontalWrapMode(QSGTexture::ClampToEdge);
+                subnode->setVerticalWrapMode(QSGTexture::ClampToEdge);
+            }
+
+            // texture is memory managed by mirsubsufrace's shared buffer
+            subnode->setTexture(sub.texture.data());
+
+            subnode->setSubSourceRect(QRectF(0, 0, 1, 1));
+            subnode->setTargetRect(sub.extent);
+            subnode->setInnerTargetRect(sub.extent);
+            subnode->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
+            subnode->setAntialiasing(antialiasing());
+            subnode->update();
+
+            if (!isEqual)
+                node->appendChildNode(subnode);
+        }
+    }
+    
     if (m_fillMode == PadOrCrop) {
         const QSize &textureSize = texture->textureSize();
 
         QRectF targetRect;
         targetRect.setWidth(qMin(width(), static_cast<qreal>(textureSize.width())));
         targetRect.setHeight(qMin(height(), static_cast<qreal>(textureSize.height())));
+
+        // x/y from extent is offset
+        auto r = subtextures[0].extent;
+        targetRect.setX(r.x());
+        targetRect.setY(r.y());
 
         qreal u = targetRect.width() / textureSize.width();
         qreal v = targetRect.height() / textureSize.height();
@@ -291,8 +355,12 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         const QSize &textureSize = texture->textureSize();
         qWarning() << "Streethcing" << height() << textureSize.height();
         node->setSubSourceRect(QRectF(0, 0, 1, 1));
-        node->setTargetRect(QRectF(0, 0, width(), height()));
-        node->setInnerTargetRect(QRectF(0, 0, width(), height()));
+
+        auto r = subtextures[0].extent;
+        auto offset_x = r.x();
+        auto offset_y = r.y();
+        node->setTargetRect(QRectF(offset_x, offset_y, width(), height()));
+        node->setInnerTargetRect(QRectF(offset_x, offset_y, width(), height()));
     }
 
     node->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
