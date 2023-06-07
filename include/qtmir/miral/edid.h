@@ -19,6 +19,7 @@
 #ifndef MIRAL_EDID_H
 #define MIRAL_EDID_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
