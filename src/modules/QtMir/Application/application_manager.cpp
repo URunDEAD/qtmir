@@ -537,7 +537,7 @@ QSharedPointer<ApplicationInfo> ApplicationManager::tryFindApp(const pid_t pid)
 
     if (desktopFileName.isNull()) {
         auto environment = m_procInfo->environment(pid);
-        if (environment->contains("DESKTOP_FILE_HINT")) {
+        if (environment && environment->contains("DESKTOP_FILE_HINT")) {
             desktopFileName = environment->getParameter("DESKTOP_FILE_HINT");
         }
     }
