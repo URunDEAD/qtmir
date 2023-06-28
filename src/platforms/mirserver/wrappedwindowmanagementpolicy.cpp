@@ -272,7 +272,10 @@ namespace qtmir
 
     bool WindowManagementPolicy::handle_pointer_event(const MirPointerEvent *event)
     {
-        MinimalWindowManager::handle_pointer_event(event);
+        // HACK: We dont want mir to change focus, so ignore button down
+        if (mir_pointer_event_action(event) != mir_pointer_action_button_down) {
+            MinimalWindowManager::handle_pointer_event(event);
+        }
 
         d->m_eventFeeder->dispatchPointer(event);
         return true;
