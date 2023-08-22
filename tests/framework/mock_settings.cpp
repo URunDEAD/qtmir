@@ -24,7 +24,7 @@ MockSettings::MockSettings()
     using namespace ::testing;
 
     QVariantList lifecycleExemptAppIds;
-    lifecycleExemptAppIds << "com.ubuntu.music";
+    lifecycleExemptAppIds << "music.ubports";
     ON_CALL(*this, get(_))
             .WillByDefault(
                 Return(lifecycleExemptAppIds));
