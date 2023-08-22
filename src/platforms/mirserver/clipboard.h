@@ -23,7 +23,7 @@
 #include <QScopedPointer>
 
 namespace com {
-    namespace ubuntu {
+    namespace lomiri {
         namespace content {
             class Hub;
         }
@@ -59,7 +59,7 @@ private:
         SyncedClipboard // Our mimeData is in sync with what ContentHub has
     } m_clipboardState{OutdatedClipboard};
 
-    com::ubuntu::content::Hub *m_contentHub;
+    com::lomiri::content::Hub *m_contentHub;
 
     QDBusPendingCallWatcher *m_pasteReply{nullptr};
 };

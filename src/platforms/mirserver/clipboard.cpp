@@ -21,10 +21,10 @@
 #include <QSignalBlocker>
 
 // content-hub
-#include <com/ubuntu/content/hub.h>
+#include <com/lomiri/content/hub.h>
 
 // get this cumbersome nested namespace out of the way
-using namespace com::ubuntu::content;
+using namespace com::lomiri::content;
 
 using namespace qtmir;
 

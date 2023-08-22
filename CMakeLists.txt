@@ -103,7 +103,7 @@ if(WITH_VALGRIND)
 endif()
 
 if(WITH_CONTENTHUB)
-pkg_check_modules(CONTENT_HUB libcontent-hub>=0.2 REQUIRED)
+pkg_check_modules(CONTENT_HUB libcontent-hub>=1.0.0 REQUIRED)
 message(STATUS "Bulding with content-hub")
 endif()
 
