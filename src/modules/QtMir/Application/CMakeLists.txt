@@ -55,8 +55,8 @@ set(QMLMIRPLUGIN_SRC
     sharedwakelock.cpp
     surfacemanager.cpp
     taskcontroller.cpp
-    upstart/applicationinfo.cpp
-    upstart/taskcontroller.cpp
+    lal/applicationinfo.cpp
+    lal/taskcontroller.cpp
     timer.cpp
     timesource.cpp
     tracepoints.c

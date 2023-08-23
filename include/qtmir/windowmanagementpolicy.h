@@ -26,7 +26,7 @@
 #include <miral/set_window_managment_policy.h>
 #endif
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/Mir.h>
 
 using namespace mir::geometry;

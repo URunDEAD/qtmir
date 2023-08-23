@@ -27,7 +27,7 @@
 // Linux
 #include <unistd.h>
 
-// upstart
+// lomiri-app-launch
 extern "C" {
     #include "lomiri-app-launch.h"
 }
@@ -37,7 +37,7 @@ namespace ual = lomiri::app_launch;
 
 namespace qtmir
 {
-namespace upstart
+namespace lal
 {
 
 struct TaskController::Private
@@ -246,9 +246,9 @@ QSharedPointer<qtmir::ApplicationInfo> TaskController::getInfoForApp(const QStri
     }
 
     QString shortAppId = toShortAppIdIfPossible(QString::fromStdString(std::string(app->appId())));
-    auto appInfo = new qtmir::upstart::ApplicationInfo(shortAppId, app->info());
+    auto appInfo = new qtmir::lal::ApplicationInfo(shortAppId, app->info());
     return QSharedPointer<qtmir::ApplicationInfo>(appInfo);
 }
 
-} // namespace upstart
+} // namespace lal
 } // namespace qtmir

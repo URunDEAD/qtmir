@@ -29,7 +29,7 @@
 #include "sessionmap_interface.h"
 #include "taskcontroller.h"
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/ApplicationManagerInterface.h>
 
 namespace mir {
@@ -40,7 +40,7 @@ namespace mir {
     }
 }
 
-namespace unity {
+namespace lomiri {
     namespace shell {
         namespace application {
             class MirSurfaceInterface;

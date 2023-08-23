@@ -19,7 +19,7 @@
 
 #include <mir_toolkit/event.h>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/ApplicationInfoInterface.h>
 #include <lomiri/shell/application/Mir.h>
 
@@ -372,7 +372,7 @@ const char *qtCursorShapeToStr(Qt::CursorShape shape)
     }
 }
 
-const char *unityapiMirStateToStr(int state)
+const char *lomiriShellApiMirStateToStr(int state)
 {
     switch (state) {
     case Mir::UnknownState:

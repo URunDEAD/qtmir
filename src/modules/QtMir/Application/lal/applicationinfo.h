@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef UPSTART_APPLICATION_INFO_H
-#define UPSTART_APPLICATION_INFO_H
+#ifndef LAL_APPLICATION_INFO_H
+#define LAL_APPLICATION_INFO_H
 
 #include "../applicationinfo.h"
 
@@ -24,7 +24,7 @@
 
 namespace qtmir
 {
-namespace upstart
+namespace lal
 {
 
 class ApplicationInfo : public qtmir::ApplicationInfo
@@ -52,7 +52,7 @@ private:
     std::shared_ptr<lomiri::app_launch::Application::Info> m_info;
 };
 
-} // namespace upstart
+} // namespace lal
 } // namespace qtmir
 
-#endif // UPSTART_APPLICATION_INFO_H
+#endif // LAL_APPLICATION_INFO_H

@@ -23,7 +23,7 @@
 #include <QDebug>
 #include <QDebugStateSaver>
 
-namespace unityapp = lomiri::shell::application;
+namespace shellapp = lomiri::shell::application;
 using namespace qtmir;
 
 MirSurfaceListModel::MirSurfaceListModel(QObject *parent) :
@@ -48,7 +48,7 @@ QVariant MirSurfaceListModel::data(const QModelIndex& index, int role) const
 
     if (role == SurfaceRole) {
         MirSurfaceInterface *surface = m_surfaceList.at(index.row());
-        return QVariant::fromValue(static_cast<unityapp::MirSurfaceInterface*>(surface));
+        return QVariant::fromValue(static_cast<shellapp::MirSurfaceInterface*>(surface));
     } else {
         return QVariant();
     }
@@ -122,7 +122,7 @@ void MirSurfaceListModel::moveSurface(int from, int to)
     }
 }
 
-unityapp::MirSurfaceInterface *MirSurfaceListModel::get(int index)
+shellapp::MirSurfaceInterface *MirSurfaceListModel::get(int index)
 {
     if (index >=0 && index < m_surfaceList.count()) {
         return m_surfaceList[index];
@@ -131,7 +131,7 @@ unityapp::MirSurfaceInterface *MirSurfaceListModel::get(int index)
     }
 }
 
-const unityapp::MirSurfaceInterface *MirSurfaceListModel::get(int index) const
+const shellapp::MirSurfaceInterface *MirSurfaceListModel::get(int index) const
 {
     if (index >=0 && index < m_surfaceList.count()) {
         return m_surfaceList.at(index);
@@ -254,16 +254,16 @@ void ProxySurfaceListModel::setSourceList(MirSurfaceListModel *sourceList)
                              const QModelIndex & /*destination*/, int /*row*/)
                             {this->endMoveRows();});
         connect(m_sourceList, &QObject::destroyed, this, [this]() { this->setSourceList(nullptr); });
-        connect(m_sourceList, &unityapp::MirSurfaceListInterface::countChanged,
-                this, &unityapp::MirSurfaceListInterface::countChanged);
-        connect(m_sourceList, &unityapp::MirSurfaceListInterface::firstChanged,
-                this, &unityapp::MirSurfaceListInterface::firstChanged);
+        connect(m_sourceList, &shellapp::MirSurfaceListInterface::countChanged,
+                this, &shellapp::MirSurfaceListInterface::countChanged);
+        connect(m_sourceList, &shellapp::MirSurfaceListInterface::firstChanged,
+                this, &shellapp::MirSurfaceListInterface::firstChanged);
     }
 
     endResetModel();
 }
 
-unityapp::MirSurfaceInterface *ProxySurfaceListModel::get(int index)
+shellapp::MirSurfaceInterface *ProxySurfaceListModel::get(int index)
 {
     if (!m_sourceList) {
         return nullptr;
@@ -272,7 +272,7 @@ unityapp::MirSurfaceInterface *ProxySurfaceListModel::get(int index)
     return m_sourceList->get(index);
 }
 
-const unityapp::MirSurfaceInterface *ProxySurfaceListModel::get(int index) const
+const shellapp::MirSurfaceInterface *ProxySurfaceListModel::get(int index) const
 {
     if (!m_sourceList) {
         return nullptr;
@@ -299,9 +299,9 @@ QVariant ProxySurfaceListModel::data(const QModelIndex& index, int role) const
     return m_sourceList->data(index, role);
 }
 
-QDebug operator<<(QDebug dbg, const unityapp::MirSurfaceListInterface &surfaceListConst)
+QDebug operator<<(QDebug dbg, const shellapp::MirSurfaceListInterface &surfaceListConst)
 {
-    auto surfaceList = const_cast<unityapp::MirSurfaceListInterface*>(&surfaceListConst);
+    auto surfaceList = const_cast<shellapp::MirSurfaceListInterface*>(&surfaceListConst);
 
     QDebugStateSaver saver(dbg);
     dbg.nospace();

@@ -30,13 +30,13 @@
 #include "logging.h"
 #include "initialsurfacesizes.h"
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/MirSurfaceInterface.h>
 
 // std
 #include <csignal>
 
-namespace unityapp = lomiri::shell::application;
+namespace shellapp = lomiri::shell::application;
 
 #define DEBUG_MSG qCDebug(QTMIR_APPLICATIONS).nospace() << "Application[" << appId() <<"]::" << __func__
 #define INFO_MSG qCInfo(QTMIR_APPLICATIONS).nospace() << "Application[" << appId() <<"]::" << __func__
@@ -71,7 +71,7 @@ Application::Application(const QSharedPointer<SharedWakelock>& sharedWakelock,
 
     setStopTimer(new Timer);
 
-    connect(&m_surfaceList, &unityapp::MirSurfaceListInterface::countChanged, this, &unityapp::ApplicationInfoInterface::surfaceCountChanged);
+    connect(&m_surfaceList, &shellapp::MirSurfaceListInterface::countChanged, this, &shellapp::ApplicationInfoInterface::surfaceCountChanged);
 }
 
 Application::~Application()
@@ -750,17 +750,11 @@ bool Application::rotatesWindowContents() const
 
 void Application::acquireWakelock() const
 {
-    if (appId() == QLatin1String("unity8-dash"))
-        return;
-
     m_sharedWakelock->acquire(this);
 }
 
 void Application::releaseWakelock() const
 {
-    if (appId() == QLatin1String("unity8-dash"))
-        return;
-
     m_sharedWakelock->release(this);
 }
 
@@ -846,7 +840,7 @@ void Application::onSessionStopped()
                Since this is not the case, keep it around. */
             setInternalState(InternalState::StoppedResumable);
         } else {
-            /* We're not able to respawn this application because it's not managed by upstart
+            /* We're not able to respawn this application because it's not managed by lomiri-app-launch
                (probably was launched via cmd line by user) */
             setInternalState(InternalState::Stopped);
         }
@@ -892,12 +886,12 @@ void Application::setInitialSurfaceSize(const QSize &size)
     }
 }
 
-unityapp::MirSurfaceListInterface* Application::surfaceList() const
+shellapp::MirSurfaceListInterface* Application::surfaceList() const
 {
     return &m_surfaceList;
 }
 
-unityapp::MirSurfaceListInterface* Application::promptSurfaceList() const
+shellapp::MirSurfaceListInterface* Application::promptSurfaceList() const
 {
     return m_proxyPromptSurfaceList;
 }

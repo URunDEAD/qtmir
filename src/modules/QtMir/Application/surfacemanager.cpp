@@ -37,7 +37,7 @@ Q_LOGGING_CATEGORY(QTMIR_SURFACEMANAGER, "qtmir.surfacemanager", QtInfoMsg)
 #define WARNING_MSG qCWarning(QTMIR_SURFACEMANAGER).nospace().noquote() << __func__
 
 using namespace qtmir;
-namespace unityapi = lomiri::shell::application;
+namespace shellapp = lomiri::shell::application;
 
 SurfaceManager *SurfaceManager::instance()
 {
@@ -213,7 +213,7 @@ MirSurface *SurfaceManager::surfaceFor(const miral::Window &window) const
 
 QVector<lomiri::shell::application::MirSurfaceInterface *> SurfaceManager::surfacesFor(const std::vector<miral::Window> &windows) const
 {
-    QVector<unityapi::MirSurfaceInterface*> surfaces;
+    QVector<shellapp::MirSurfaceInterface*> surfaces;
     for (size_t i = 0; i < windows.size(); i++) {
         auto mirSurface = surfaceFor(windows[i]);
         if (mirSurface) {
@@ -235,14 +235,14 @@ miral::Window SurfaceManager::windowFor(MirSurface *surface) const
     return miral::Window();
 }
 
-void SurfaceManager::raise(unityapi::MirSurfaceInterface *surface)
+void SurfaceManager::raise(shellapp::MirSurfaceInterface *surface)
 {
     DEBUG_MSG << "(" << surface << ")";
     auto qtmirSurface = static_cast<qtmir::MirSurface*>(surface);
     m_windowController->raise(qtmirSurface ? qtmirSurface->window() : miral::Window());
 }
 
-void SurfaceManager::activate(unityapi::MirSurfaceInterface *surface)
+void SurfaceManager::activate(shellapp::MirSurfaceInterface *surface)
 {
     auto qtmirSurface = static_cast<MirSurface*>(surface);
     m_windowController->activate(qtmirSurface ? qtmirSurface->window() : miral::Window());

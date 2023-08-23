@@ -58,10 +58,10 @@ Files: demos/qml-demo-shell/screens.cpp
  src/modules/QtMir/Application/surfacemanager.h
  src/modules/QtMir/Application/taskcontroller.cpp
  src/modules/QtMir/Application/taskcontroller.h
- src/modules/QtMir/Application/upstart/applicationinfo.cpp
- src/modules/QtMir/Application/upstart/applicationinfo.h
- src/modules/QtMir/Application/upstart/taskcontroller.cpp
- src/modules/QtMir/Application/upstart/taskcontroller.h
+ src/modules/QtMir/Application/lal/applicationinfo.cpp
+ src/modules/QtMir/Application/lal/applicationinfo.h
+ src/modules/QtMir/Application/lal/taskcontroller.cpp
+ src/modules/QtMir/Application/lal/taskcontroller.h
  src/modules/QtMir/Application/windowmodel.cpp
  src/modules/QtMir/Application/windowmodel.h
  src/platforms/mirserver/clipboard.cpp

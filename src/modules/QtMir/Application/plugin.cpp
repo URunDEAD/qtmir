@@ -55,13 +55,13 @@ QObject* surfaceManagerSingleton(QQmlEngine* /*engine*/, QJSEngine* /*scriptEngi
 }
 } // anonymous namespace
 
-class UnityApplicationPlugin : public QQmlExtensionPlugin {
+class QtMirApplicationPlugin : public QQmlExtensionPlugin {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface/1.0")
 
     virtual void registerTypes(const char* uri)
     {
-        qCDebug(QTMIR_APPLICATIONS) << "UnityApplicationPlugin::registerTypes - this=" << this << "uri=" << uri;
+        qCDebug(QTMIR_APPLICATIONS) << "QtMirApplicationPlugin::registerTypes - this=" << this << "uri=" << uri;
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMir.Application"));
 
         qRegisterMetaType<qtmir::ApplicationManager*>("ApplicationManager*"); //need for queueing signals

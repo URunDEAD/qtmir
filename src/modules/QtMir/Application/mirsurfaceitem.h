@@ -23,7 +23,7 @@
 #include <QMutex>
 #include <QTimer>
 
-// Unity API
+// Lomiri Shell API
 #include <lomiri/shell/application/MirSurfaceItemInterface.h>
 
 #include "mirsurfaceinterface.h"

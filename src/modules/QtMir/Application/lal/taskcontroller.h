@@ -15,14 +15,14 @@
  *
  */
 
-#ifndef QTMIR_UPSTART_TASK_CONTROLLER_H
-#define QTMIR_UPSTART_TASK_CONTROLLER_H
+#ifndef QTMIR_LAL_TASK_CONTROLLER_H
+#define QTMIR_LAL_TASK_CONTROLLER_H
 
 #include "../taskcontroller.h"
 
 namespace qtmir
 {
-namespace upstart
+namespace lal
 {
 
 class TaskController : public qtmir::TaskController
@@ -46,7 +46,7 @@ private:
     QScopedPointer<Private> impl;
 };
 
-} // namespace upstart
+} // namespace lal
 } // namespace qtmir
 
-#endif // QTMIR_UPSTART_TASK_CONTROLLER_H
+#endif // QTMIR_LAL_TASK_CONTROLLER_H

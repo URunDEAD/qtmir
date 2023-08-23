@@ -197,50 +197,6 @@ TEST_F(ApplicationTests, checkRespawnAcquiresWakeLock)
     EXPECT_TRUE(sharedWakelock.enabled());
 }
 
-TEST_F(ApplicationTests, checkDashDoesNotImpactWakeLock)
-{
-    using namespace ::testing;
-
-    EXPECT_CALL(sharedWakelock, acquire(_)).Times(0);
-    EXPECT_CALL(sharedWakelock, release(_)).Times(0);
-
-    auto applicationInfo = QSharedPointer<FakeApplicationInfo>::create();
-    applicationInfo->m_appId = QString("unity8-dash");
-
-    QScopedPointer<Application> application(new Application(
-                QSharedPointer<MockSharedWakelock>(&sharedWakelock, [](MockSharedWakelock *){}),
-                applicationInfo));
-
-    application->setProcessState(Application::ProcessRunning);
-
-    FakeSession *session = new FakeSession;
-
-    application->addSession(session);
-
-    ASSERT_EQ(Application::InternalState::Starting, application->internalState());
-
-    session->setState(SessionInterface::Running);
-
-    ASSERT_EQ(Application::InternalState::Running, application->internalState());
-
-    application->setRequestedState(Application::RequestedSuspended);
-
-    ASSERT_EQ(SessionInterface::Suspending, session->state());
-    ASSERT_EQ(Application::InternalState::SuspendingWaitSession, application->internalState());
-
-    session->setState(SessionInterface::Suspended);
-
-    ASSERT_EQ(Application::InternalState::SuspendingWaitProcess, application->internalState());
-
-    application->setProcessState(Application::ProcessSuspended);
-
-    ASSERT_EQ(Application::InternalState::Suspended, application->internalState());
-
-    application->setRequestedState(Application::RequestedRunning);
-
-    ASSERT_EQ(Application::InternalState::Running, application->internalState());
-}
-
 TEST_F(ApplicationTests, emitsStoppedWhenRunningAppStops)
 {
     using namespace ::testing;
@@ -272,7 +228,7 @@ TEST_F(ApplicationTests, emitsStoppedWhenRunningAppStops)
 
 /**
  * Regression test for https://bugs.launchpad.net/qtmir/+bug/1485608
- * In that case, the camera-app closes itself right after unity8 unfocus it (and thus requests it to be suspended).
+ * In that case, the camera-app closes itself right after Lomiri shell unfocuses it (and thus requests it to be suspended).
  */
 TEST_F(ApplicationTests, emitsStoppedWhenAppStopsWhileSuspending)
 {
@@ -587,7 +543,7 @@ TEST_F(ApplicationTests, stoppedWhileSuspendedTurnsIntoStoppeResumable)
 
     EXPECT_EQ(Application::InternalState::StoppedResumable, application->internalState());
 
-    // And later comes upstart telling us about it
+    // And later comes lomiri-app-launch telling us about it
     application->setProcessState(Application::ProcessFailed);
 
     EXPECT_EQ(Application::InternalState::StoppedResumable, application->internalState());
