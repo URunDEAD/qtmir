@@ -123,11 +123,61 @@ namespace qtmir
             }
         }
 
+        bool hasInitialSize = false;
         if (!requestParameters.parent().is_set() || requestParameters.parent().value().lock().get() == nullptr) {
             QSize initialSize = InitialSurfaceSizes::get(appPid);
 
             if (initialSize.isValid() && surfaceType == mir_surface_type_normal) {
                 parameters.size() = toMirSize(initialSize);
+                hasInitialSize = true;
+            }
+        }
+
+        if (!hasInitialSize &&
+                requestParameters.state().is_set() &&
+                d->m_confinementRegions.size() >= 1)
+        {
+            // Set size of windows in certain state immediately so that apps
+            // can start rendering correctly right away. We have to do this
+            // because MirAL (apparently) don't have an idea on various
+            // UIs drawn using Qt.
+            // FIXME: this sort of duplicates Lomiri's work...
+
+            // FIXME: currently only the first region exists. If other
+            // regions are start getting used, figure out which region
+            // to use.
+            auto confinementRegion = d->m_confinementRegions[0];
+
+            switch (requestParameters.state().value()) {
+            case mir_window_state_maximized:
+                parameters.size() = toMirSize(confinementRegion.size());
+                hasInitialSize = true;
+                break;
+            case mir_window_state_vertmaximized:
+                // Set height to full area. Retain width if set, or
+                // set it to half the area's width.
+                parameters.size() = Size {
+                    requestParameters.size().is_set()
+                        ? requestParameters.size().value().width
+                        : Width { confinementRegion.width() / 2 },
+                    Height { confinementRegion.height() },
+                };
+                hasInitialSize = true;
+                break;
+            case mir_window_state_horizmaximized:
+                // Set width to full area. Retain height if set, or
+                // set it to half the area's height.
+                parameters.size() = Size {
+                    Width { confinementRegion.width() },
+                    requestParameters.size().is_set()
+                        ? requestParameters.size().value().height
+                        : Height { confinementRegion.height() / 2 }
+                };
+                hasInitialSize = true;
+                break;
+            default:
+                // TODO: maybe other window states?
+                break;
             }
         }
 
