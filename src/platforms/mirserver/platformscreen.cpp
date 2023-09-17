@@ -124,7 +124,9 @@ QString displayTypeToString(qtmir::OutputTypes type)
     case Type::HDMIB:         return QStringLiteral("HDMI-B");
     case Type::TV:            return QStringLiteral("TV");
     case Type::EDP:           return QStringLiteral("EDP");
+    case Type::Virtual:       return QStringLiteral("Virtual");
     case Type::DSI:           return QStringLiteral("DSI");
+    case Type::DPI:           return QStringLiteral("DPI");
     case Type::Unknown:
     default:
         return QStringLiteral("Unknown");

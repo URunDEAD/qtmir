@@ -40,7 +40,9 @@ enum OutputTypes {
     HDMIB,
     TV,
     EDP,
-    DSI
+    Virtual,
+    DSI,
+    DPI
 };
 
 enum FormFactor {
