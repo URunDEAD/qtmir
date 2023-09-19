@@ -74,7 +74,7 @@ void DisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
     // to a phone/tablet. We don't have a reliable way to distinguish a phone/tablet display
     // from a laptop display as yet.
     //
-    // Best we can do currently is guess that LVDS panel implies a phone/tablet
+    // Best we can do currently is guess that LVDS or DSI panel implies a phone/tablet
     bool phoneDetected = false;
     int screenCount = 0;
     conf.for_each_output(
@@ -83,7 +83,7 @@ void DisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
             if (output.connected) {
                 screenCount++;
 
-                if (output.type == mg::DisplayConfigurationOutputType::lvds) {
+                if (output.type == mg::DisplayConfigurationOutputType::lvds || output.type == mg::DisplayConfigurationOutputType::dsi) {
                     phoneDetected = true;
                 }
             }
@@ -100,7 +100,7 @@ void DisplayConfigurationPolicy::apply_to(mg::DisplayConfiguration& conf)
             nextTopLeftPosition += output.modes[output.current_mode_index].size.width.as_int();
 
             if (phoneDetected) {
-                if (screenCount == 1 || output.type == mg::DisplayConfigurationOutputType::lvds) {
+                if (screenCount == 1 || output.type == mg::DisplayConfigurationOutputType::lvds || output.type == mg::DisplayConfigurationOutputType::dsi) {
                     output.form_factor = mir_form_factor_phone;
                     output.scale = d->m_defaultScale;
                 } else { // screenCount > 1 && output.type != lvds
