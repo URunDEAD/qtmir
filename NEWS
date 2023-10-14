@@ -1,5 +1,49 @@
+Overview of changes in qtmir 0.7.2
+
+  - Simplify and cleanup mirbuffer to align with upstream mir.
+  - mirserver: Fix compositor start crashes.
+  - mirserver: Remove animation driver start & stop operations.
+  - mirserver: Don't flush window system events on screen hide
+  - mirserver: Wrap WrappedWindowManagementPolicy::requestState in a
+    try-catch.
+  - mirserver: Send Mouse events asynchronously as well.
+  - Application: Add sub for serverSideDecoration.
+  - Application: Add sub for showSplash.
+  - Bump required lomiri-api version and bump qtmir patch version.
+  - src: platforms: mirserver: Enable MirAL's X11 support.
+  - QtMir: Application: Special case Application handling for XWayland.
+  - cmake: debian: Ship Xwayland desktop launcher & icon.
+  - platforms: mirserver: Set X11's DISPLAY environment variable.
+  - MirSurface: Take appId from associated windowInfo.
+  - ApplicationManager: Match surfaces by appId first & avoid Waydroid
+    teardown.
+  - ApplicationManager: Remove Waydroid's special treatment during
+    teardown.
+  - QtMir/Application: Never drop xwayland connections by closing
+    windows.
+  - Adjust log levels.
+  - move isReady declaration to Lomiri api.
+  - QtMir/Application: Implement showSplash() method.
+  - QtMir/Application: nullptr check for finding applications by
+    session.
+  - QtMir/Application: Avoid terminate for Xwayland.
+  - data: Disable Xwayland splash screen.
+  - Add missing headers for GCC13.
+  - Rename com.ubuntu.music to music.ubports.
+  - mirserver: re-enable support for content-hub-based clipboard.
+  - WMPolicy: set initial size for new window with certain state.
+  - Rename qtmir::upstart namespace to qtmir::lal.
+  - Remove obsolete upstart hack.
+  - Correct comments and log messages referring to upstart.
+  - Remove references to upstart and correct comments in unit tests.
+  - Replace references to Unity with Lomiri.
+  - Rename QML plugin based onits import path.
+  - Remove special casing for unity8-dash.
+  - add support for DSI as an internal display option.
+  - correct enum with Virtual and DPI.
+
 Overview of changes in qtmir 0.7.1
-  
+
   * WrappedWindowManagementPolicy: fix activating null window
   * Fix FTBFS on never gcc
   * WindowManagementPolicy: allow only maliit-server to be an input method

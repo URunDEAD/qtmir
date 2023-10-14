@@ -1,6 +1,265 @@
+2023-10-15 Mike Gabriel
+
+        * Release 0.7.2 (HEAD -> main, tag: 0.7.2)
+
+2023-09-19 Ratchanan Srirattanamet
+
+        * Merge branch 'main' into 'main' (c0609982)
+
+2023-09-17 Oren Klopfer
+
+        * correct enum with Virtual and DPI (6e036f14)
+
+2023-09-16 Oren Klopfer
+
+        * add support for DSI as an internal display option (a89d5716)
+
+2023-08-23 Ratchanan Srirattanamet
+
+        * Merge branch 'personal/gberh/upstart-removal' into 'main'
+          (2072bcd2)
+
+2023-03-06 Guido Berhoerster
+
+        * Remove special casing for unity8-dash (6eae60f2)
+
+2023-06-12 Guido Berhoerster
+
+        * Rename QML plugin based onits import path (a9abfd7d)
+
+2023-03-06 Guido Berhoerster
+
+        * Replace references to Unity with Lomiri (bd495f4d)
+        * Remove references to upstart and correct comments in unit tests
+          (21768e68)
+
+2023-03-02 Guido Berhoerster
+
+        * Correct comments and log messages referring to upstart (9e5456a4)
+        * Remove obsolete upstart hack (32dec1b2)
+        * Rename qtmir::upstart namespace to qtmir::lal (4f56b364)
+
+2023-08-23 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/waydroid-initial-size' into
+          'main' (1bc6d838)
+
+2023-06-16 Ratchanan Srirattanamet
+
+        * WMPolicy: set initial size for new window with certain state
+          (ae85986a)
+
+2023-08-22 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/content-hub' into 'main'
+          (bbbeaf48)
+
+2023-07-03 Ratchanan Srirattanamet
+
+        * mirserver: re-enable support for content-hub-based clipboard
+          (5e8f8548)
+          Fixes:
+          https://gitlab.com/ubports/porting/reference-device-ports/android9/volla-phone/volla-yggdrasil/-/issues/12
+
+2023-08-22 Ratchanan Srirattanamet
+
+        * Merge branch
+          'personal/sunweaver/fix-music-app-in-exempt-lifecycle-appids'
+          into 'main' (747b360c)
+
+2023-03-06 Guido Berhoerster
+
+        * Rename com.ubuntu.music to music.ubports (893fc4fe)
+
+2023-06-08 Mike Gabriel
+
+        * Merge branch 'headers' into 'main' (8291ea2a)
+
+2023-06-07 Luca Weiss
+
+        * Add missing headers for GCC13 (838a57d3)
+
+2023-04-28 Marius Gripsgard
+
+        * Merge branch 'personal/fredldotme/noxwaylandsplash' into 'main'
+          (9342b292)
+
+2023-04-28 Alfred Neumayer
+
+        * data: Disable Xwayland splash screen (79012543)
+
+2023-04-12 Marius Gripsgard
+
+        * Merge branch 'personal/fredldotme/hidesplashonlibertine' into
+          'main' (cf694105)
+
+2023-03-22 Alfred Neumayer
+
+        * QtMir/Application: Avoid terminate for Xwayland (13526441)
+        * QtMir/Application: nullptr check for finding applications by
+          session (b76b60f1)
+
+2023-02-27 Alfred Neumayer
+
+        * QtMir/Application: Implement showSplash() method (635c42ce)
+
+2023-04-07 Marius Gripsgard
+
+        * Merge branch 'ubports/focal_-_lomiri-readyprop' into 'main'
+          (5d75714e)
+
+2023-04-07 Lionel Duboeuf
+
+        * move isReady declaration to Lomiri api (a7c16529)
+
+2023-03-15 Mike Gabriel
+
+        * Merge branch 'personal/gberh/loglevels' into 'main' (89de5c9c)
+
+2023-03-15 Guido Berhoerster
+
+        * Adjust log levels (730ed1d9)
+
+2023-02-21 Mike Gabriel
+
+        * Merge branch 'personal/peat-psuwit/revert-crop-center' into 'main'
+          (5cc2ffb4)
+
+2023-02-22 Ratchanan Srirattanamet
+
+        * Revert "mirsurfaceitem: Center cropped textures" (e73a59dc)
+
+2023-02-14 Mike Gabriel
+
+        * Merge branch 'personal/fredldotme/xwaylandusable' into 'main'
+          (4040c316)
+
+2023-02-12 Alfred Neumayer
+
+        * QtMir/Application: Never drop xwayland connections by closing
+          windows (e8f6c420)
+
+2023-01-30 Mike Gabriel
+
+        * Merge branch 'personal/mariogrip/waydroidmore' into 'main'
+          (9595a021)
+
+2023-01-29 Alfred Neumayer
+
+        * Revert "ApplicationManager: Always allow Waydroid connections"
+          (cb8f861f)
+
+2022-06-20 Alfred Neumayer
+
+        * ApplicationManager: Remove Waydroid's special treatment during
+          teardown (46256c42)
+
+2022-06-17 Alfred Neumayer
+
+        * ApplicationManager: Match surfaces by appId first & avoid Waydroid
+          teardown (7386e13f)
+        * ApplicationManager: Always allow Waydroid connections (cf863c77)
+        * MirSurface: Take appId from associated windowInfo (20672ad2)
+
+2023-01-29 Mike Gabriel
+
+        * Merge branch 'personal/fredldotme/passx11display' into 'main'
+          (84302d85)
+
+2023-01-29 Alfred Neumayer
+
+        * platforms: mirserver: Set X11's DISPLAY environment variable
+          (4bdb2e5f)
+
+2023-01-29 Mike Gabriel
+
+        * Merge branch 'personal/mariogrip/x11yay' into 'main' (b0ed4c04)
+
+2022-12-12 Alfred Neumayer
+
+        * cmake: debian: Ship Xwayland desktop launcher & icon (5aeb8348)
+        * QtMir: Application: Special case Application handling for XWayland
+          (22b4018b)
+        * src: platforms: mirserver: Enable MirAL's X11 support (bad984d9)
+
+2023-01-20 Mike Gabriel
+
+        * Merge branch 'personal/mariogrip/stubapi' into 'main' (fc8a4852)
+
+2023-01-20 Marius Gripsgard
+
+        * Bump required lomiri-api version and bump qtmir patch version
+          (5d4e0b72)
+        * Application: Add sub for showSplash (2d50084d)
+        * Application: Add sub for serverSideDecoration (9d39a618)
+
+2023-01-18 Mike Gabriel
+
+        * Merge branch 'personal/fredldotme/lomirilockups' into 'main'
+          (c39c5456)
+
+2023-01-15 Alfred Neumayer
+
+        * mirserver: Send Mouse events asynchronously as well (ebf50a14)
+
+2023-01-15 Mike Gabriel
+
+        * Merge branch 'personal/mariogrip/fix-cropped-texturs' into 'main'
+          (c7670f8c)
+
+2023-01-15 Marius Gripsgard
+
+        * mirsurfaceitem: Center cropped textures (5ead2261)
+
+2023-01-11 Marius Gripsgard
+
+        * Merge branch 'personal/fredldotme/compositorcrash' into 'main'
+          (b8793f94)
+
+2023-01-11 Alfred Neumayer
+
+        * mirserver: Wrap WrappedWindowManagementPolicy::requestState in a
+          try-catch (953b5a56)
+        * mirserver: Don't flush window system events on screen hide
+          (67afc5da)
+        * mirserver: Remove animation driver start & stop operations
+          (118d7434)
+
+2023-01-10 Alfred Neumayer
+
+        * mirserver: Fix compositor start crashes (b9c36b57)
+
+2023-01-10 Mike Gabriel
+
+        * Merge branch 'personal/mariogrip/mirbuffercleanup' into 'main'
+          (4a58092f)
+
+2023-01-04 Marius Gripsgard
+
+        * Simplify and cleanup mirbuffer to align with upstream mir
+          (6437b085)
+
+2023-01-08 Mike Gabriel
+
+        * Merge branch 'fix-phone-osk' into 'main' (73ae03b0)
+
+2023-01-08 Jami Kettunen
+
+        * Revert "mirserver: Detect internal tablet screens as such"
+          (22302f3a)
+
+2023-01-07 Mike Gabriel
+
+        * Merge branch 'personal/fredldotme/qtmirtabletscreens' into 'main'
+          (df47a630)
+
+2023-01-07 Alfred Neumayer
+
+        * mirserver: Detect internal tablet screens as such (85b0e6b6)
+
 2023-01-02 Marius Gripsgard
 
-        * Release 0.7.1 (HEAD -> main, tag: 0.7.1)
+        * Release 0.7.1 (11c4988c) (tag: 0.7.1)
 
 2022-12-18 Marius Gripsgard
 
