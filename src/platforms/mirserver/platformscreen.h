@@ -40,7 +40,7 @@
 
 class OrientationSensor;
 namespace mir {
-    namespace graphics { class DisplayBuffer; class DisplaySyncGroup; class DisplayConfigurationOutput; }
+    namespace graphics { class DisplaySink; class DisplaySyncGroup; class DisplayConfigurationOutput; }
     namespace renderer { namespace gl { class RenderTarget; }}
 }
 
@@ -118,7 +118,7 @@ protected:
     void removeWindow(ScreenPlatformWindow *window);
 
     void setMirDisplayConfiguration(const mir::graphics::DisplayConfigurationOutput &, bool notify = true);
-    void setMirDisplayBuffer(mir::graphics::DisplayBuffer *, mir::graphics::DisplaySyncGroup *);
+    void setMirDisplaySink(mir::graphics::DisplaySink *, mir::graphics::DisplaySyncGroup *);
     void swapBuffers();
     void makeCurrent();
     void doneCurrent();

@@ -24,7 +24,7 @@
 // Mir
 #include "mir/geometry/size.h"
 #include "mir/graphics/buffer.h"
-#include "mir/graphics/display_buffer.h"
+#include "mir/graphics/display_sink.h"
 #include "mir/graphics/display.h"
 #include <mir/graphics/display_configuration.h>
 #include <mir/renderer/gl/render_target.h>
@@ -54,13 +54,13 @@ bool isLittleEndian() {
     return *c == 1;
 }
 static mir::renderer::gl::RenderTarget *as_render_target(
-    mir::graphics::DisplayBuffer *displayBuffer)
+    mir::graphics::DisplaySink *displaySink)
 {
     auto const render_target =
         dynamic_cast<mir::renderer::gl::RenderTarget*>(
-            displayBuffer->native_display_buffer());
+            displaySink->native_display_buffer()); // FIXME update for Mir 2.16
     if (!render_target)
-        throw std::logic_error("DisplayBuffer does not support GL rendering");
+        throw std::logic_error("DisplaySink does not support GL rendering");
 
     return render_target;
 }
@@ -459,11 +459,11 @@ void PlatformScreen::removeWindow(ScreenPlatformWindow *window)
     }
 }
 
-void PlatformScreen::setMirDisplayBuffer(mir::graphics::DisplayBuffer *buffer, mir::graphics::DisplaySyncGroup *group)
+void PlatformScreen::setMirDisplaySink(mir::graphics::DisplaySink *sink, mir::graphics::DisplaySyncGroup *group)
 {
-    DEBUG_MSG_SCREENS << "(renderTarget=" << as_render_target(buffer) << ", displayGroup=" << group << ")";
+    DEBUG_MSG_SCREENS << "(renderTarget=" << as_render_target(sink) << ", displayGroup=" << group << ")";
     // This operation should only be performed while rendering is stopped
-    m_renderTarget = as_render_target(buffer);
+    m_renderTarget = as_render_target(sink);
     m_displayGroup = group;
 }
 

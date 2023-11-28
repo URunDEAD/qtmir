@@ -25,7 +25,7 @@
 
 // Mir
 #include <mir/graphics/display.h>
-#include <mir/graphics/display_buffer.h>
+#include <mir/graphics/display_sink.h>
 #include <mir/graphics/display_configuration.h>
 #include <miroil/display_listener_wrapper.h>
 
@@ -180,19 +180,19 @@ void ScreensModel::updateInternal()
         haltRenderer();
     }
 
-    // Match up the new Mir DisplayBuffers with each Screen
-    // Do this first so that the buffers are valid before we announce to Qt.
+    // Match up the new Mir DisplaySinks with each Screen
+    // Do this first so that the sinks are valid before we announce to Qt.
     display->for_each_display_sync_group([&](mg::DisplaySyncGroup &group) {
-        group.for_each_display_buffer([&](mg::DisplayBuffer &buffer) {
-            // only way to match Screen to a DisplayBuffer is by matching the geometry
-            QRect dbGeom(buffer.view_area().top_left.x.as_int(),
-                         buffer.view_area().top_left.y.as_int(),
-                         buffer.view_area().size.width.as_int(),
-                         buffer.view_area().size.height.as_int());
+        group.for_each_display_sink([&](mg::DisplaySink &sink) {
+            // only way to match Screen to a DisplaSink is by matching the geometry
+            QRect dbGeom(sink.view_area().top_left.x.as_int(),
+                         sink.view_area().top_left.y.as_int(),
+                         sink.view_area().size.width.as_int(),
+                         sink.view_area().size.height.as_int());
 
             Q_FOREACH (auto screen, m_screenList) {
                 if (dbGeom == screen->geometry()) {
-                    screen->setMirDisplayBuffer(&buffer, &group);
+                    screen->setMirDisplaySink(&sink, &group);
                     break;
                 }
             }
