@@ -219,7 +219,7 @@ set_target_properties(qtmirserver
 )
 
 set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
-set(INCLUDEDIR "${CMAKE_INSTALL_PREFIX}/include/${INCLUDE_NAME}")
+set(INCLUDEDIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${INCLUDE_NAME}")
 if(WITH_MIR2)
     set(QTMIRSERVER_PCREQUIRES "miral >= 3.0")
 else()
@@ -281,4 +281,4 @@ PRIVATE
     Qt5::Qml
 )
 
-install(TARGETS qpa-mirserver LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/qt5/plugins/platforms")
+install(TARGETS qpa-mirserver LIBRARY DESTINATION "${QPA_PLUGIN_INSTALL_DIR}")
