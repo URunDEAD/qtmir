@@ -225,7 +225,7 @@ set_target_properties(qtmirserver
 )
 
 set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
-set(INCLUDEDIR "${CMAKE_INSTALL_PREFIX}/include/qtmir")
+set(INCLUDEDIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/qtmir")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/qtmirserver.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/qtmirserver.pc
@@ -285,4 +285,4 @@ PRIVATE
     Qt5::Qml
 )
 
-install(TARGETS qpa-mirserver LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/qt5/plugins/platforms")
+install(TARGETS qpa-mirserver LIBRARY DESTINATION "${QPA_PLUGIN_INSTALL_DIR}")

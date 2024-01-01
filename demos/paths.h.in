@@ -26,13 +26,13 @@
 
 inline bool isRunningInstalled() {
     static bool installed = (QFile::symLinkTarget(QStringLiteral("/proc/self/exe")).startsWith(
-                             QDir(("@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@")).canonicalPath()));
+                             QDir(("@CMAKE_INSTALL_FULL_BINDIR@")).canonicalPath()));
     return installed;
 }
 
 inline QString qmlDirectory() {
     if (isRunningInstalled()) {
-        return QString("@CMAKE_INSTALL_PREFIX@/@QTMIR_DATA_DIR@/");
+        return QString("@QTMIR_DATA_DIR@/");
     } else {
         return QString("@CMAKE_SOURCE_DIR@/demos/");
     }
@@ -48,7 +48,7 @@ inline QString qmlPluginDirectory() {
 
 inline QString qpaPluginDirectory() {
     if (isRunningInstalled()) {
-        return QString("@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/qt5/plugins/platforms/");
+        return QString("@QPA_PLUGIN_INSTALL_DIR@/");
     } else {
         return QString("@CMAKE_BINARY_DIR@/src/platforms/mirserver/");
     }
