@@ -141,6 +141,12 @@ namespace qtmir
                 parameters.size() = toMirSize(initialSize);
                 hasInitialSize = true;
             }
+
+            auto surfaceName = requestParameters.name().is_set() ? requestParameters.name().value() : "";
+
+            if (surfaceName == "maliit-server") {
+                parameters.type() = mir_window_type_inputmethod;
+            }
         }
 
         if (!hasInitialSize &&
