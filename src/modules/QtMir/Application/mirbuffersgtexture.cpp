@@ -71,7 +71,12 @@ public:
 
     void updateTextureId() override
     {
-        auto f = QOpenGLContext::currentContext()->functions();
+        auto cc = QOpenGLContext::currentContext();
+        if (!cc) {
+            return; // No context, no texture
+        }
+
+        auto f = cc->functions();
 
         GLint current_binding;
         f->glGetIntegerv(GL_TEXTURE_BINDING_2D, &current_binding);
@@ -99,14 +104,27 @@ public:
 
     void updateTextureId() override
     {
-        auto f = QOpenGLContext::currentContext()->functions();
-        if (!m_textureId)
+        auto cc = QOpenGLContext::currentContext();
+        if (!cc) {
+            return; // No context, no texture
+        }
+
+        auto f = cc->functions();
+
+        if (!m_textureId) {
             f->glGenTextures(1, &m_textureId);
+        }
     }
 
     void bindTexture() override
     {
-        auto f = QOpenGLContext::currentContext()->functions();
+        auto cc = QOpenGLContext::currentContext();
+        if (!cc) {
+            return; // No context, no texture
+        }
+
+        auto f = cc->functions();
+
         f->glBindTexture(GL_TEXTURE_2D, m_textureId);
 
         m_texSourceBuf->bind();
@@ -132,8 +150,9 @@ MirGlBuffer::MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer) :
 
 MirGlBuffer::~MirGlBuffer()
 {
-    if (m_textureId) {
-        auto f = QOpenGLContext::currentContext()->functions();
+    auto cc = QOpenGLContext::currentContext();
+    if (m_textureId && cc) {
+        auto f = cc->functions();
         f->glDeleteTextures(1, &m_textureId);
     }
 }
