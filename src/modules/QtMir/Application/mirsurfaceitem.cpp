@@ -251,9 +251,9 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         return nullptr;
     }
 
-    if (m_surface->numBuffersReadyForCompositor(userId) > 0) {
+    /*if (m_surface->numBuffersReadyForCompositor(userId) > 0) {
         QTimer::singleShot(0, this, &MirSurfaceItem::update);
-    }
+    }*/
 
     QSGDefaultInternalImageNode *node = static_cast<QSGDefaultInternalImageNode*>(oldNode);
     if (!node) {
@@ -278,7 +278,11 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     if (subtextures.size() - 1 <= 0) {
         if (node->childCount() > 0) {
             qWarning() << " dropping all childnodes";
-            node->removeAllChildNodes();
+            while (node->lastChild()) {
+                QSGNode* lastChild = node->lastChild();
+                node->removeChildNode(lastChild);
+                delete lastChild;
+            }
         }
     } else {
         // - 1 since first subtexture is main texture
@@ -287,8 +291,12 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
             qWarning() << "Not equal, recreating childnodes";
             if (node->childCount() > 0) {
                 qWarning() << " dropping all childnodes";
-                node->removeAllChildNodes();
-            }   
+                while (node->lastChild()) {
+                    QSGNode* lastChild = node->lastChild();
+                    node->removeChildNode(lastChild);
+                    delete lastChild;
+                }
+            }
         }
 
         // Meh, this is not great code
