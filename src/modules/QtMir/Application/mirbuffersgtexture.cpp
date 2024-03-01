@@ -39,6 +39,7 @@ public:
     void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
     void freeBuffer();
     bool hasBuffer() const;
+    int comparisonKey() const;
 
     int textureId();
     QSize textureSize() const;
@@ -56,7 +57,7 @@ protected:
 
 private:
     bool m_needsUpdate;
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
     int m_width;
     int m_height;
 };
@@ -79,7 +80,7 @@ public:
         auto cc = QOpenGLContext::currentContext();
         if (!cc)
             return; // No context, no texture
-        
+
         auto f = cc->functions();
 
         GLint current_binding;
@@ -141,7 +142,7 @@ private:
 
 MirGlBuffer::MirGlBuffer(const std::shared_ptr<miroil::GLBuffer>& buffer) :
     m_mirBuffer(buffer)
-    , m_textureId(0)
+    , m_textureId(-1)
     , m_needsUpdate(true)
 {
     mg::Size size = m_mirBuffer->size();
@@ -198,6 +199,12 @@ bool MirGlBuffer::hasBuffer() const
         return false;
 
     return !m_mirBuffer->empty();
+}
+
+int MirGlBuffer::comparisonKey() const
+{
+    QMutexLocker locker(&m_mutex);
+    return m_textureId;
 }
 
 int MirGlBuffer::textureId()
@@ -275,23 +282,41 @@ bool MirBufferSGTexture::hasBuffer() const
     return m_mirBuffer->hasBuffer();
 }
 
+int MirBufferSGTexture::comparisonKey() const
+{
+    if (!m_mirBuffer)
+        return -1;
+
+    return m_mirBuffer->comparisonKey();
+}
+
 int MirBufferSGTexture::textureId() const
 {
+    if (!m_mirBuffer)
+        return -1;
+
     return m_mirBuffer->textureId();
 }
 
 QSize MirBufferSGTexture::textureSize() const
 {
+    if (!m_mirBuffer)
+        return QSize();
     return m_mirBuffer->textureSize();
 }
 
 bool MirBufferSGTexture::hasAlphaChannel() const
 {
+    if (!m_mirBuffer)
+        return false;
     return m_mirBuffer->hasAlphaChannel();
 }
 
 void MirBufferSGTexture::bind()
 {
+     if (!m_mirBuffer)
+        return;
+
     m_mirBuffer->bind();
     updateBindOptions(true/* force */);
 }

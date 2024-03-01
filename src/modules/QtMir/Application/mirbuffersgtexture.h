@@ -34,6 +34,7 @@ public:
     void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
     void freeBuffer();
     bool hasBuffer() const;
+    int comparisonKey() const;
 
     int textureId() const override;
     QSize textureSize() const override;
