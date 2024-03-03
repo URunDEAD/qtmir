@@ -96,7 +96,7 @@ public:
     void attrib_changed(mir::scene::Surface const*, MirWindowAttrib, int) override;
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(1, 6, 0)
     void content_resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override;
-    void window_resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override { qWarning("Window resized to");}
+    void window_resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override;
 #else
     void resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override;
 #endif
@@ -1417,6 +1417,15 @@ void MirSurface::SurfaceObserverImpl::resized_to(mir::scene::Surface const*, mir
 {
     Q_EMIT resized(QSize(size.width.as_int(), size.height.as_int()));
 }
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(1, 6, 0)
+void MirSurface::SurfaceObserverImpl::window_resized_to(mir::scene::Surface const*, mir::geometry::Size const& size)
+{
+    const auto newSize = QSize(size.width.as_int(), size.height.as_int());
+    qInfo() << "Resizing window to: " << newSize;
+    Q_EMIT resized(newSize);
+}
+#endif
 
 void MirSurface::SurfaceObserverImpl::hidden_set_to(mir::scene::Surface const*, bool hide)
 {
