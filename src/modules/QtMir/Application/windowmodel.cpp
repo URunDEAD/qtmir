@@ -71,7 +71,15 @@ void WindowModel::onWindowAdded(const NewWindow &window)
 
     const int index = m_windowModel.count();
     beginInsertRows(QModelIndex(), index, index);
-    m_windowModel.append(new MirSurface(window, m_windowController));
+
+    auto mirSurface = new MirSurface(window, m_windowController);
+    connect(mirSurface, &MirSurface::isBeingDisplayedChanged, this, [=](){
+        if (mirSurface->isBeingDisplayed())
+            return;
+        onWindowRemoved(window.windowInfo);
+    });
+
+    m_windowModel.append(mirSurface);
     endInsertRows();
     Q_EMIT countChanged();
 }

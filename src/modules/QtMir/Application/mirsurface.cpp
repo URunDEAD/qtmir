@@ -111,7 +111,7 @@ public:
 //    void reception_mode_set_to(mir::scene::Surface const*, mir::input::InputReceptionMode) override {}
     void cursor_image_set_to(mir::scene::Surface const*, mir::graphics::CursorImage const&) override;
     void orientation_set_to(mir::scene::Surface const*, MirOrientation) override {}
-    void client_surface_close_requested(mir::scene::Surface const*) override {}
+    void client_surface_close_requested(mir::scene::Surface const*) override;
     void keymap_changed(mir::scene::Surface const*, MirInputDeviceId, std::string const&, std::string const&,
                         std::string const&, std::string const&) override {}
     void renamed(mir::scene::Surface const*, char const * name) override;
@@ -137,7 +137,7 @@ public:
 #else
     void attrib_changed(MirWindowAttrib, int) override;
     void resized_to(mir::geometry::Size const&) override;
-    void moved_to(mir::geometry::Point const&) override {}
+    void moved_to(mir::geometry::Point const&) override {};
     void hidden_set_to(bool) override;
 
     // Get new frame notifications from Mir, called from a Mir thread.
@@ -148,7 +148,7 @@ public:
     void reception_mode_set_to(mir::input::InputReceptionMode) override {}
     void cursor_image_set_to(mir::graphics::CursorImage const&) override;
     void orientation_set_to(MirOrientation) override {}
-    void client_surface_close_requested() override {}
+    void client_surface_close_requested() override;
     void keymap_changed(MirInputDeviceId, std::string const&, std::string const&,
                         std::string const&, std::string const&) override {}
     void renamed(char const * name) override;
@@ -249,6 +249,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     connect(m_surfaceObserver.get(), &SurfaceObserver::nameChanged, this, &MirSurface::onNameChanged);
     connect(m_surfaceObserver.get(), &SurfaceObserver::cursorChanged, this, &MirSurface::setCursor);
     connect(m_surfaceObserver.get(), &SurfaceObserver::hiddenChanged, this, &MirSurface::updateVisible);
+    connect(m_surfaceObserver.get(), &SurfaceObserver::closeRequested, this, &MirSurface::closeRequested);
     connect(m_surfaceObserver.get(), &SurfaceObserver::minimumWidthChanged, this, &MirSurface::onMinimumWidthChanged);
     connect(m_surfaceObserver.get(), &SurfaceObserver::minimumHeightChanged, this, &MirSurface::onMinimumHeightChanged);
     connect(m_surfaceObserver.get(), &SurfaceObserver::maximumWidthChanged, this, &MirSurface::onMaximumWidthChanged);
@@ -264,6 +265,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
         m_size = size;
         QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
     });
+
     m_surfaceObserver->setListener(this);
 
     connect(session, &SessionInterface::stateChanged, this, [this]() {
@@ -463,12 +465,11 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
 std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *compositorTexture)
 {
     auto texture = qWeakPointerCast<MirBufferSGTexture, QSGTexture>(compositorTexture->texture()).lock();
-    // TODO figure out how to cache!
-    //if (!texture) return {};
+    if (!texture) return {};
 
-    //if (compositorTexture->isUpToDate()) {
-    //    return {};
-    //}
+    if (compositorTexture->isUpToDate()) {
+        return m_subTextures;
+    }
 
     auto renderables = m_surface->generate_renderables((void*)userId);
 
@@ -502,13 +503,13 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTextureLocked(qintp
                 mirStreamPosition.size.height.as_int()
             );
 
-            QSharedPointer<MirBufferSGTexture> texture(new MirBufferSGTexture);
-            texture->freeBuffer();
-            texture->setBuffer(renderable->buffer());
+            QSharedPointer<MirBufferSGTexture> subtexture(new MirBufferSGTexture);
+            subtexture->freeBuffer();
+            subtexture->setBuffer(renderable->buffer());
             subsurfaces.emplace_back(
                 SubSurfaceTexture{
                     relativePosition,
-                    texture
+                    subtexture
                 });
         }
         m_subTextures = subsurfaces;
@@ -627,7 +628,7 @@ void MirSurface::updateVisible()
 
 void MirSurface::close()
 {
-    if (m_closingState != NotClosing) {
+    if (m_closingState == Closing) {
         return;
     }
 
@@ -649,6 +650,14 @@ void MirSurface::forceClose()
     if (m_window) {
         m_controller->forceClose(m_window);
     }
+}
+
+void MirSurface::teardown()
+{
+    for (const auto& id : m_views.keys()) {
+        unregisterView(id);
+    }
+    deleteLater();
 }
 
 void MirSurface::resize(int width, int height)
@@ -1166,10 +1175,11 @@ void MirSurface::onCloseTimedOut()
                 // to kill the app.
                 // ref https://github.com/ubports/ubuntu-touch/issues/1417
                 WARNING_MSG << "(), app with ID " << app->appId() << " has " <<
-                    "ignored request to close a window. Terminating the " <<
-                    "application. This could be a bug in the application.";
-                app->terminate();
-            }
+                    "ignored request to close a window. Tearing down window. " <<
+                    "This could be a bug in the application.";
+                //app->terminate();
+                teardown();
+            } // TODO: Investigate phone/desktop split
         } else {
             // Weird zombie surface. Removing it may still cause problems later
             // since this should almost never occur.
@@ -1178,14 +1188,8 @@ void MirSurface::onCloseTimedOut()
             m_controller->forceClose(m_window);
         }
     } else {
-        // In case this is a weird combie process, just try to remove the application it was related to
-        Application *app = static_cast<Application*>(m_session->application());
-        if (app) {
-            WARNING_MSG << "(), app with ID " << app->appId() << " has " <<
-                    "ignored request to close a window. Maybe it is dead already?" <<
-                    "Terminating the application anyway.";
-            app->terminate();
-        }
+        WARNING_MSG << "Surface not live anymore, tearing down.";
+        teardown();
     }
 }
 
@@ -1423,6 +1427,11 @@ void MirSurface::SurfaceObserverImpl::cursor_image_set_to(mir::scene::Surface co
 {
     QCursor qcursor = createQCursorFromMirCursorImage(cursorImage);
     Q_EMIT cursorChanged(qcursor);
+}
+
+void MirSurface::SurfaceObserverImpl::client_surface_close_requested(mir::scene::Surface const*)
+{
+    Q_EMIT closeRequested();
 }
 
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(0, 27, 0)

@@ -220,6 +220,7 @@ private:
     QPoint convertDisplayToLocalCoords(const QPoint &displayPos) const;
     QPoint convertLocalToDisplayCoords(const QPoint &localPos) const;
     void updatePosition();
+    void teardown();
 
     // Handling of missing key release events from Qt
     bool isKeyPressed(quint32 nativeVirtualKey) const;

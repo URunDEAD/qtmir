@@ -124,6 +124,7 @@ Q_SIGNALS:
     void framesPosted();
     void isBeingDisplayedChanged();
     void frameDropped();
+    void closeRequested();
 };
 
 } // namespace qtmir

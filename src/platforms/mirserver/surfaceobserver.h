@@ -68,6 +68,8 @@ Q_SIGNALS:
     void shellChromeChanged(MirShellChrome);
     void inputBoundsChanged(const QRect &rect);
     void confinesMousePointerChanged(bool);
+
+    void closeRequested();
 };
 
 #endif
