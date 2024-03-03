@@ -619,7 +619,7 @@ void MirSurface::updateVisible()
 
 void MirSurface::close()
 {
-    if (m_closingState != NotClosing) {
+    if (m_closingState == Closing) {
         return;
     }
 
