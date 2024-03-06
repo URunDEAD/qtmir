@@ -24,6 +24,7 @@
 
 // Qt
 #include <QCursor>
+#include <QMutex>
 #include <QPoint>
 #include <QSharedPointer>
 #include <QTouchEvent>
@@ -112,6 +113,8 @@ public:
     virtual bool inputAreaContains(const QPoint &) const = 0;
 
     virtual void requestFocus() = 0;
+
+    virtual QMutex* textureMutex() = 0;
 
 public Q_SLOTS:
     virtual void onCompositorSwappedBuffers() = 0;

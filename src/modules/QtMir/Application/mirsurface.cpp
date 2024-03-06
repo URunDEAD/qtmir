@@ -100,7 +100,7 @@ public:
 #else
     void resized_to(mir::scene::Surface const*, mir::geometry::Size const&) override;
 #endif
-    void moved_to(mir::scene::Surface const*, mir::geometry::Point const&) override {}
+    void moved_to(mir::scene::Surface const*, mir::geometry::Point const&) override;
     void hidden_set_to(mir::scene::Surface const*, bool) override;
 
     // Get new frame notifications from Mir, called from a Mir thread.
@@ -264,6 +264,9 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     connect(m_surfaceObserver.get(), &SurfaceObserver::resized, this, [&](QSize const &size){
         m_size = size;
         QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
+    });
+    connect(m_surfaceObserver.get(), &SurfaceObserver::positionChanged, this, [=](const QPoint& pos){
+        this->setPosition(pos);
     });
 
     m_surfaceObserver->setListener(this);
@@ -454,16 +457,9 @@ QSGTexture *MirSurface::weakTexture(qintptr userId) const
 
 std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr userId)
 {
-    QMutexLocker locker(&m_mutex);
+    auto compositorTexture = m_textures->compositorTextureForId(userId);
+    if (!compositorTexture) return {};
 
-    auto compositorTexure = m_textures->compositorTextureForId(userId);
-    if (!compositorTexure) return {};
-
-    return updateTextureLocked(userId, compositorTexure);
-}
-
-std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *compositorTexture)
-{
     auto texture = qWeakPointerCast<MirBufferSGTexture, QSGTexture>(compositorTexture->texture()).lock();
     if (!texture) return {};
 
@@ -526,7 +522,6 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTextureLocked(qintp
 
 bool MirSurface::numBuffersReadyForCompositor(qintptr userId)
 {
-    QMutexLocker locker(&m_mutex);
     return m_surface->buffers_ready_for_compositor((void*)userId);
 }
 
@@ -949,7 +944,6 @@ void MirSurface::updateExposure()
 
 unsigned int MirSurface::currentFrameNumber(qintptr userId) const
 {
-    QMutexLocker locker(&m_mutex);
     auto compositorTexure = m_textures->compositorTextureForId(userId);
     return compositorTexure ? compositorTexure->currentFrame() : 0;
 }
@@ -1119,6 +1113,11 @@ bool MirSurface::focused() const
 QRect MirSurface::inputBounds() const
 {
     return m_inputBounds;
+}
+
+QMutex* MirSurface::textureMutex()
+{
+    return &m_mutex;
 }
 
 bool MirSurface::confinesMousePointer() const
@@ -1424,6 +1423,12 @@ void MirSurface::SurfaceObserverImpl::window_resized_to(mir::scene::Surface cons
     const auto newSize = QSize(size.width.as_int(), size.height.as_int());
     qInfo() << "Resizing window to: " << newSize;
     Q_EMIT resized(newSize);
+}
+
+void MirSurface::SurfaceObserverImpl::moved_to(mir::scene::Surface const*, mir::geometry::Point const& point)
+{
+    const auto qPoint = qtmir::toQPoint(point);
+    Q_EMIT positionChanged(qPoint);
 }
 #endif
 

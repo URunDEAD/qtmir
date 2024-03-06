@@ -183,6 +183,7 @@ public:
     void setCloseTimer(AbstractTimer *timer);
     std::shared_ptr<SurfaceObserver> surfaceObserver() const;
     void setTextureProvider(CompositorTextureProvider *textureProvider);
+    QMutex* textureMutex() override;
 
 public Q_SLOTS:
     ////
@@ -226,8 +227,6 @@ private:
     bool isKeyPressed(quint32 nativeVirtualKey) const;
     void forgetPressedKey(quint32 nativeVirtualKey);
     void releaseAllPressedKeys();
-
-    std::vector<SubSurfaceTexture> updateTextureLocked(qintptr userId, CompositorTexture* compositorTexture);
 
     const miral::Window m_window;
     const std::shared_ptr<ExtraWindowInfo> m_extraInfo;

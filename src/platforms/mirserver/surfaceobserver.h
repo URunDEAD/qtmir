@@ -70,6 +70,7 @@ Q_SIGNALS:
     void confinesMousePointerChanged(bool);
 
     void closeRequested();
+    void positionChanged(const QPoint& point);
 };
 
 #endif

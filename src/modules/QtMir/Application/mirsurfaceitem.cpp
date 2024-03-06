@@ -242,6 +242,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     }
 
     ensureTextureProvider();
+    QMutexLocker textureMutexLocker(m_surface->textureMutex());
 
     const qintptr userId = (qintptr)window();
     auto subtextures = m_surface->updateTexture(userId);
@@ -251,9 +252,9 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         return nullptr;
     }
 
-    /*if (m_surface->numBuffersReadyForCompositor(userId) > 0) {
+    if (m_surface->numBuffersReadyForCompositor(userId) > 0) {
         QTimer::singleShot(0, this, &MirSurfaceItem::update);
-    }*/
+    }
 
     QSGDefaultInternalImageNode *node = static_cast<QSGDefaultInternalImageNode*>(oldNode);
     if (!node) {
