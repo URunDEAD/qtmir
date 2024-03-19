@@ -127,7 +127,7 @@ TaskController::TaskController()
     };
 
     impl->failureCallback = [](const gchar * appId, LomiriAppLaunchAppFailed failureType, gpointer userData) {
-        TaskController::Error error;
+        TaskController::Error error = TaskController::Error::APPLICATION_NO_ERROR;
         switch(failureType)
         {
         case LOMIRI_APP_LAUNCH_APP_FAILED_CRASH: error = TaskController::Error::APPLICATION_CRASHED;                    break;

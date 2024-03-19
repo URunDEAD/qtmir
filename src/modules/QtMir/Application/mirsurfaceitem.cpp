@@ -556,7 +556,7 @@ void MirSurfaceItem::invalidateSceneGraph()
 
 void MirSurfaceItem::TouchEvent::updateTouchPointStatesAndType()
 {
-    touchPointStates = 0;
+    touchPointStates = Qt::TouchPointStates();
     for (int i = 0; i < touchPoints.count(); ++i) {
         touchPointStates |= touchPoints.at(i).state();
     }
