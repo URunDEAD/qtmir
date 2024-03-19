@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(qtmir)
 
@@ -78,10 +78,10 @@ find_package(Qt5Test 5.9 REQUIRED)
 
 find_package(Threads REQUIRED)
 
-pkg_check_modules(MIRSERVER mirserver>=0.26 REQUIRED)
-pkg_check_modules(MIRCLIENT mirclient>=0.26 REQUIRED)
-pkg_check_modules(MIRRENDERERGLDEV mir-renderer-gl-dev>=0.26 REQUIRED)
-pkg_check_modules(MIRAL miral>=1.1.0 REQUIRED)
+pkg_check_modules(MIRSERVER mir1server>=0.26 REQUIRED)
+pkg_check_modules(MIRCLIENT mir1client>=0.26 REQUIRED)
+pkg_check_modules(MIRRENDERERGLDEV mir1-renderer-gl-dev>=0.26 REQUIRED)
+pkg_check_modules(MIRAL mir1al>=1.1.0 REQUIRED)
 
 pkg_check_modules(XKBCOMMON xkbcommon REQUIRED)
 pkg_check_modules(GLIB glib-2.0 REQUIRED)
