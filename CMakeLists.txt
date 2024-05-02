@@ -66,6 +66,7 @@ add_custom_target(cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2
 
 option(WITH_CONTENTHUB "Build with content-hub" OFF)
 option(WITH_VALGRIND "Build with Valgrind detection" ON)
+option(WITH_MIR2 "Build with Mir 2.x (not yet possible, must be OFF)" OFF)
 
 include(FindPkgConfig)
 find_package(Qt5Core 5.9 REQUIRED)
@@ -75,13 +76,28 @@ find_package(Qt5Qml 5.9 REQUIRED)
 find_package(Qt5Quick 5.9 REQUIRED)
 find_package(Qt5Sensors 5.9 REQUIRED)
 find_package(Qt5Test 5.9 REQUIRED)
+# TODO: when we support Qt 6, set QT_VERSION_MAJOR accordingly.
+set(QT_VERSION_MAJOR 5)
 
 find_package(Threads REQUIRED)
 
-pkg_check_modules(MIRSERVER mir1server>=0.26 REQUIRED)
-pkg_check_modules(MIRCLIENT mir1client>=0.26 REQUIRED)
-pkg_check_modules(MIRRENDERERGLDEV mir1-renderer-gl-dev>=0.26 REQUIRED)
-pkg_check_modules(MIRAL mir1al>=1.1.0 REQUIRED)
+if(WITH_MIR2)
+    message(FATAL_ERROR "Building with Mir 2 is not yet supported, but this option is added to ensure consistency with WIP patch.")
+    # But when Mir 2 is supported, package lookup will look like this:
+    pkg_check_modules(MIRSERVER mirserver>=2.0 REQUIRED)
+    pkg_check_modules(MIRRENDERERGLDEV mir-renderer-gl-dev>=2.0 REQUIRED)
+    pkg_check_modules(MIRAL miral>=3.0 REQUIRED)
+    # Mir 2-specific
+    pkg_check_modules(MIROIL miroil>=2.0 REQUIRED)
+
+    set(MIR_VERSION_MAJOR 2)
+else()
+    pkg_check_modules(MIRSERVER mir1server>=0.26 REQUIRED)
+    pkg_check_modules(MIRRENDERERGLDEV mir1-renderer-gl-dev>=0.26 REQUIRED)
+    pkg_check_modules(MIRAL mir1al>=1.1.0 REQUIRED)
+
+    set(MIR_VERSION_MAJOR 1)
+endif()
 
 pkg_check_modules(XKBCOMMON xkbcommon REQUIRED)
 pkg_check_modules(GLIB glib-2.0 REQUIRED)
