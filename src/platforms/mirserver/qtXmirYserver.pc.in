@@ -4,6 +4,7 @@ includedir=@INCLUDEDIR@
 Name: @QTMIRSERVER_SONAME@
 Description: QtMir server library
 Version: @QTMIR_VERSION@
-Requires: miral >= 1.1
+Requires: @QTMIRSERVER_PCREQUIRES@
+Conflicts: @QTMIRSERVER_PCCONFLICTS@
 Libs: -L${libdir} -l@QTMIRSERVER_SONAME@
 Cflags: -I${includedir}

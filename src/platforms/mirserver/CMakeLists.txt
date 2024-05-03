@@ -214,6 +214,12 @@ set_target_properties(qtmirserver
 
 set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
 set(INCLUDEDIR "${CMAKE_INSTALL_PREFIX}/include/${INCLUDE_NAME}")
+if(WITH_MIR2)
+    set(QTMIRSERVER_PCREQUIRES "miral >= 3.0")
+else()
+    set(QTMIRSERVER_PCREQUIRES "${MIRAL_MODULE_NAME} >= 1.1")
+    set(QTMIRSERVER_PCCONFLICTS "miral >= 3.0")
+endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/qtXmirYserver.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/${QTMIRSERVER_SONAME}.pc
