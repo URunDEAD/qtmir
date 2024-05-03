@@ -92,9 +92,9 @@ if(WITH_MIR2)
 
     set(MIR_VERSION_MAJOR 2)
 else()
-    pkg_check_modules(MIRSERVER mir1server>=0.26 REQUIRED)
-    pkg_check_modules(MIRRENDERERGLDEV mir1-renderer-gl-dev>=0.26 REQUIRED)
-    pkg_check_modules(MIRAL mir1al>=1.1.0 REQUIRED)
+    pkg_search_module(MIRSERVER REQUIRED mir1server>=0.26 mirserver>=0.26)
+    pkg_search_module(MIRRENDERERGLDEV REQUIRED mir1-renderer-gl-dev>=0.26 mir-renderer-gl-dev>=0.26)
+    pkg_search_module(MIRAL REQUIRED mir1al>=1.1.0 miral>=1.1.0)
 
     set(MIR_VERSION_MAJOR 1)
 endif()
