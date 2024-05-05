@@ -17,6 +17,7 @@
 // local
 #include "platformscreen.h"
 #include "logging.h"
+#include "mirglconfig.h"
 #include "nativeinterface.h"
 #include "screensmodel.h"
 #include "orientationsensor.h"
@@ -27,10 +28,11 @@
 #include "mir/graphics/display_sink.h"
 #include "mir/graphics/display.h"
 #include <mir/graphics/display_configuration.h>
-#include <mir/renderer/gl/render_target.h>
+#include "mir/renderer/gl/gl_surface.h"
 
 // Qt
 #include <QGuiApplication>
+#include <mir/graphics/platform.h>
 #include <qpa/qwindowsysteminterface.h>
 #include <QtMath>
 
@@ -52,17 +54,6 @@ bool isLittleEndian() {
     unsigned int i = 1;
     char *c = (char*)&i;
     return *c == 1;
-}
-static mir::renderer::gl::RenderTarget *as_render_target(
-    mir::graphics::DisplaySink *displaySink)
-{
-    auto const render_target =
-        dynamic_cast<mir::renderer::gl::RenderTarget*>(
-            displaySink->native_display_buffer()); // FIXME update for Mir 2.16
-    if (!render_target)
-        throw std::logic_error("DisplaySink does not support GL rendering");
-
-    return render_target;
 }
 
 enum QImage::Format qImageFormatFromMirPixelFormat(MirPixelFormat mirPixelFormat) {
@@ -158,7 +149,7 @@ PlatformScreen::PlatformScreen(const mir::graphics::DisplayConfigurationOutput &
     , m_formFactor(qtmir::FormFactorUnknown)
     , m_sensorEnabled(false)
     , m_isActive(false)
-    , m_renderTarget(nullptr)
+    , m_outputSurface(nullptr)
     , m_displayGroup(nullptr)
 {
     // Hack to make signals work
@@ -459,17 +450,18 @@ void PlatformScreen::removeWindow(ScreenPlatformWindow *window)
     }
 }
 
-void PlatformScreen::setMirDisplaySink(mir::graphics::DisplaySink *sink, mir::graphics::DisplaySyncGroup *group)
+void PlatformScreen::setMirDisplaySink(mir::graphics::GLRenderingProvider &glProvider, mir::graphics::DisplaySink *sink, mir::graphics::DisplaySyncGroup *group)
 {
-    DEBUG_MSG_SCREENS << "(renderTarget=" << as_render_target(sink) << ", displayGroup=" << group << ")";
+    m_outputSurface = glProvider.surface_for_sink(*sink, MirGLConfig{});
+    DEBUG_MSG_SCREENS << "(outputSurface=" << m_outputSurface.get() << ", outputSink=" << sink <<  ", displayGroup=" << group << ")";
     // This operation should only be performed while rendering is stopped
-    m_renderTarget = as_render_target(sink);
+    m_displaySink = sink;
     m_displayGroup = group;
 }
 
 void PlatformScreen::swapBuffers()
 {
-    m_renderTarget->swap_buffers();
+    auto fb = m_outputSurface->commit();
 
     /* FIXME this exposes a QtMir architecture problem, as Screen is supposed to wrap a mg::DisplayBuffer.
      * We use Qt's multithreaded renderer, where each Screen is rendered to relatively independently, and
@@ -482,17 +474,18 @@ void PlatformScreen::swapBuffers()
      *
      * Integrating the Qt Scenegraph renderer as a Mir renderer should solve this issue.
      */
+    m_displaySink->set_next_image(std::move(fb));
     m_displayGroup->post();
 }
 
 void PlatformScreen::makeCurrent()
 {
-    m_renderTarget->make_current();
+    m_outputSurface->make_current();
 }
 
 void PlatformScreen::doneCurrent()
 {
-    m_renderTarget->release_current();
+    m_outputSurface->release_current();
 }
 
 bool PlatformScreen::internalDisplay() const

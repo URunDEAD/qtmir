@@ -32,10 +32,9 @@ class QtKwinServerDecoration : public KwinServerDecoration
 public:
     using KwinServerDecoration::KwinServerDecoration;
 
-    QtKwinServerDecoration(struct wl_resource* resource, struct wl_resource* surface, qtmir::WindowModelNotifier &windowModel) :
+    QtKwinServerDecoration(struct wl_resource* resource, struct wl_resource* /*surface*/, qtmir::WindowModelNotifier &windowModel) :
         KwinServerDecoration(resource, Version<1>{}),
-        m_windowModel(windowModel),
-        surface(surface)
+        m_windowModel(windowModel)
     {
         send_mode_event(Mode::Server);
     };
@@ -49,7 +48,6 @@ public:
     };
 private:
     qtmir::WindowModelNotifier &m_windowModel;
-    struct wl_resource* surface;
 };
 
 class QtKwinServerDecorationManager : public KwinServerDecorationManager

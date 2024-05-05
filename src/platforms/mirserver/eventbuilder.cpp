@@ -122,7 +122,6 @@ mir::EventUPtr EventBuilder::makeMirEvent(QInputEvent *qtEvent, int x, int y, Mi
     float relativeX = 0.;
     float relativeY = 0.;
     MirInputDeviceId deviceId = 0;
-    std::vector<uint8_t> cookie{};
 
     // Timestamp will be zero in case of synthetic events. Particularly synthetic QHoverEvents caused
     // by item movement under a stationary mouse pointer.
@@ -132,13 +131,12 @@ mir::EventUPtr EventBuilder::makeMirEvent(QInputEvent *qtEvent, int x, int y, Mi
             relativeX = eventInfo->relative_x;
             relativeY = eventInfo->relative_y;
             deviceId = eventInfo->device_id;
-            cookie = eventInfo->cookie;
         } else {
             qCWarning(QTMIR_MIR_INPUT) << "EventBuilder::makeMirEvent didn't find EventInfo with timestamp" << qtEvent->timestamp();
         }
     }
 
-    return make_pointer_event(deviceId, timestamp, cookie, modifiers, action,
+    return make_pointer_event(deviceId, timestamp, modifiers, action,
                       buttons, x, y, 0 /*hscroll*/, 0 /*vscroll*/, relativeX, relativeY);
 }
 
@@ -149,7 +147,6 @@ mir::EventUPtr EventBuilder::makeMirEvent(QWheelEvent *qtEvent)
     auto buttons = getMirButtonsFromQt(qtEvent->buttons());
 
     MirInputDeviceId deviceId = 0;
-    std::vector<uint8_t> cookie{};
 
     QPointF mirScroll(qtEvent->angleDelta());
     // QWheelEvent::DefaultDeltasPerStep = 120 but not defined on vivid
@@ -159,13 +156,12 @@ mir::EventUPtr EventBuilder::makeMirEvent(QWheelEvent *qtEvent)
         auto eventInfo = find_info(qtEvent->timestamp());
         if (eventInfo) {
             deviceId = eventInfo->device_id;
-            cookie = eventInfo->cookie;
         } else {
             qCWarning(QTMIR_MIR_INPUT) << "EventBuilder::makeMirEvent didn't find EventInfo with timestamp" << qtEvent->timestamp();
         }
     }
 
-    return make_pointer_event(deviceId, timestamp, cookie, modifiers, mir_pointer_action_motion,
+    return make_pointer_event(deviceId, timestamp, modifiers, mir_pointer_action_motion,
                       buttons, qtEvent->x(), qtEvent->y(),
                       mirScroll.x(), mirScroll.y(),
                       0, 0);
@@ -188,20 +184,18 @@ mir::EventUPtr EventBuilder::makeMirEvent(QKeyEvent *qtEvent)
     if (qtEvent->isAutoRepeat())
         action = mir_keyboard_action_repeat;
     MirInputDeviceId deviceId = 0;
-    std::vector<uint8_t> cookie{};
 
     if (qtEvent->timestamp() != 0) {
         auto eventInfo = find_info(qtEvent->timestamp());
         if (eventInfo) {
             deviceId = eventInfo->device_id;
-            cookie = eventInfo->cookie;
         } else {
             qCWarning(QTMIR_MIR_INPUT) << "EventBuilder::makeMirEvent didn't find EventInfo with timestamp" << qtEvent->timestamp();
         }
     }
 
     return make_key_event(deviceId, uncompressTimestamp<qtmir::Timestamp>(qtmir::Timestamp(qtEvent->timestamp())),
-                          cookie, action, qtEvent->nativeVirtualKey(),
+                          action, qtEvent->nativeVirtualKey(),
                           qtEvent->nativeScanCode(),
                           qtEvent->nativeModifiers());
 }
@@ -212,13 +206,11 @@ mir::EventUPtr EventBuilder::makeMirEvent(Qt::KeyboardModifiers qmods,
                             ulong qtTimestamp)
 {
     MirInputDeviceId deviceId = 0;
-    std::vector<uint8_t> cookie{};
 
     if (qtTimestamp != 0) {
         auto eventInfo = find_info(qtTimestamp);
         if (eventInfo) {
             deviceId = eventInfo->device_id;
-            cookie = eventInfo->cookie;
         } else {
             qCWarning(QTMIR_MIR_INPUT) << "EventBuilder::makeMirEvent didn't find EventInfo with timestamp" << qtTimestamp;
         }
@@ -226,7 +218,7 @@ mir::EventUPtr EventBuilder::makeMirEvent(Qt::KeyboardModifiers qmods,
 
     auto modifiers = getMirModifiersFromQt(qmods);
     auto ev = make_touch_event(deviceId, uncompressTimestamp<qtmir::Timestamp>(qtmir::Timestamp(qtTimestamp)),
-                               cookie, modifiers);
+                               modifiers);
 
     for (int i = 0; i < qtTouchPoints.count(); ++i) {
         auto touchPoint = qtTouchPoints.at(i);

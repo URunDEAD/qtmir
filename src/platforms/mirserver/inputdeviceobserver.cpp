@@ -54,7 +54,7 @@ void MirInputDeviceObserver::applyKeymap()
 void MirInputDeviceObserver::applyKeymap(miroil::InputDevice device)
 {
     if (!m_keymap.isEmpty()) {
-        const QStringList stringList = m_keymap.split('+', QString::SkipEmptyParts);
+        const QStringList stringList = m_keymap.split('+', Qt::SkipEmptyParts);
 
         const QString &layout = stringList.at(0);
         QString variant;

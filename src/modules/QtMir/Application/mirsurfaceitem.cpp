@@ -635,7 +635,7 @@ void MirSurfaceItem::invalidateSceneGraph()
 
 void MirSurfaceItem::TouchEvent::updateTouchPointStatesAndType()
 {
-    touchPointStates = 0;
+    touchPointStates = Qt::TouchPointStates{};
     for (int i = 0; i < touchPoints.count(); ++i) {
         touchPointStates |= touchPoints.at(i).state();
     }
@@ -714,7 +714,7 @@ void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface 
         connect(m_surface, &MirSurfaceInterface::cursorChanged, this, &MirSurfaceItem::setCursor);
         connect(m_surface, &MirSurfaceInterface::shellChromeChanged, this, &MirSurfaceItem::shellChromeChanged);
         // Prevent compositor frame swapping to cause a crash due to invalid access
-        connect(m_surface, &QObject::destroyed, this, [=](QObject*){
+        connect(m_surface, &QObject::destroyed, this, [this](QObject*){
             setSurface(nullptr);
         }, Qt::DirectConnection);
 

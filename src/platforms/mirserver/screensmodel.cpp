@@ -27,6 +27,7 @@
 #include <mir/graphics/display.h>
 #include <mir/graphics/display_sink.h>
 #include <mir/graphics/display_configuration.h>
+#include <mir/graphics/platform.h>
 #include <miroil/display_listener_wrapper.h>
 
 // Qt
@@ -42,7 +43,7 @@ namespace mg = mir::graphics;
 
 #define DEBUG_MSG qCDebug(QTMIR_SCREENS).nospace() << "ScreensModel[" << this <<"]::" << __func__
 
-ScreensModel::ScreensModel(QObject *parent)
+ScreensModel::ScreensModel([[maybe_unused]]QObject *parent)
     : //MirDisplayConfigurationObserver(parent)
     m_compositing(false)
     , m_orientationSensor(std::make_shared<OrientationSensor>(this))
@@ -53,10 +54,12 @@ ScreensModel::ScreensModel(QObject *parent)
 // init only after MirServer has initialized - runs on MirServerThread!!!
 void ScreensModel::init(
     const std::shared_ptr<mir::graphics::Display>& display,
+    std::shared_ptr<mir::graphics::GLRenderingProvider> glProvider,
     const std::shared_ptr<QtCompositor>& compositor,
     const std::shared_ptr<miroil::DisplayListenerWrapper>& displayListener)
 {
     m_display = display;
+    m_glProvider = std::move(glProvider);
     m_compositor = compositor;
     m_displayListener = displayListener;
 
@@ -184,7 +187,7 @@ void ScreensModel::updateInternal()
     // Do this first so that the sinks are valid before we announce to Qt.
     display->for_each_display_sync_group([&](mg::DisplaySyncGroup &group) {
         group.for_each_display_sink([&](mg::DisplaySink &sink) {
-            // only way to match Screen to a DisplaSink is by matching the geometry
+            // only way to match Screen to a DisplaySink is by matching the geometry
             QRect dbGeom(sink.view_area().top_left.x.as_int(),
                          sink.view_area().top_left.y.as_int(),
                          sink.view_area().size.width.as_int(),
@@ -192,7 +195,7 @@ void ScreensModel::updateInternal()
 
             Q_FOREACH (auto screen, m_screenList) {
                 if (dbGeom == screen->geometry()) {
-                    screen->setMirDisplaySink(&sink, &group);
+                    screen->setMirDisplaySink(*m_glProvider, &sink, &group);
                     break;
                 }
             }

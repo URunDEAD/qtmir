@@ -11,6 +11,7 @@
 
 #include "mir/log.h"
 #include "mir/wayland/protocol_error.h"
+#include "mir/wayland/client.h"
 
 namespace mir
 {

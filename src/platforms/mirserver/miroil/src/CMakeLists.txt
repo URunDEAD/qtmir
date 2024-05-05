@@ -1,7 +1,6 @@
 add_library(miroil OBJECT
     compositor.cpp ${MIROIL_INCLUDE_DIRS}/miroil/compositor.h
     edid.cpp ${qtmir_include}/miroil/edid.h
-    mirbuffer.cpp ${MIROIL_INCLUDE_DIRS}/miroil/mirbuffer.h
     persist_display_config.cpp ${MIROIL_INCLUDE_DIRS}/miroil/persist_display_config.h
     display_configuration_policy.cpp ${qtmir_include}/miroil/display_configuration_policy.h
     display_configuration_controller_wrapper.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_controller_wrapper.h

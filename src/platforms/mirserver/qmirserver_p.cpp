@@ -32,6 +32,7 @@
 #include "wayland/xdgdecorationV1.h"
 #include "wayland/kwinserverdecoration.h"
 
+#include <mir/graphics/platform.h>
 #include <miroil/prompt_session_manager.h>
 #include <miroil/persist_display_config.h>
 #include <miroil/set_compositor.h>
@@ -43,6 +44,8 @@
 #include <miral/x11_support.h>
 #include <miral/keymap.h>
 #include <miral/wayland_extensions.h>
+
+#include <miral/lambda_as_function.h>
 
 // Qt
 #include <QCoreApplication>
@@ -167,7 +170,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
     );
     
 
-    miral::AddInitCallback addInitCallback{[&, this]
+    miral::AddInitCallback addInitCallback{[]
     {
         qCDebug(QTMIR_MIR_MESSAGES) << "MirServer created";
         qCDebug(QTMIR_MIR_MESSAGES) << "Command line arguments passed to Qt:" << QCoreApplication::arguments();
@@ -184,7 +187,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
     waylandExtensions.add_extension(qtmir::qtXdgDecorationManagerV1Extension());
     waylandExtensions.add_extension(qtmir::qtKwinServerDecorationManagerExtension(m_windowModelNotifier));
 
-    runner.set_exception_handler([this]
+    runner.set_exception_handler([]
     {
         try {
             throw;
@@ -241,7 +244,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             addInitCallback,
             miroil::SetCompositor(
                 // Create the the QtCompositor 
-                    [this]()
+                    []()
                     -> std::shared_ptr<miroil::Compositor>
                 {
                     std::shared_ptr<miroil::Compositor> result = std::make_shared<QtCompositor>();
@@ -250,13 +253,13 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                 ,
                 // Initialization called by mir when the new compositor is setup up              
                     [this](const std::shared_ptr<mir::graphics::Display>& display,
+                           const std::vector<std::shared_ptr<mir::graphics::GLRenderingProvider>> render_providers,
                            const std::shared_ptr<miroil::Compositor> & compositor,
                            const std::shared_ptr<mir::compositor::DisplayListener>& displayListener)
                 {
-                    
                     std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
                     
-                    this->screensModel->init(display, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+                    this->screensModel->init(display, render_providers.front(), qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
                 }
             ),
             setTerminator,

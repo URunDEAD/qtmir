@@ -24,6 +24,7 @@
 
 // Mir
 #include "mir/int_wrapper.h"
+#include <mir/graphics/platform.h>
 #include <miroil/display_listener_wrapper.h>
 
 // std
@@ -82,6 +83,7 @@ public:
     // called by MirServer
     void init(
         const std::shared_ptr<mir::graphics::Display>& display,
+        std::shared_ptr<mir::graphics::GLRenderingProvider> glProvider,
         const std::shared_ptr<QtCompositor>& compositor,
         const std::shared_ptr<miroil::DisplayListenerWrapper> & displayListener);
     void terminate();
@@ -103,6 +105,7 @@ private:
     std::weak_ptr<mir::graphics::Display> m_display;
     std::shared_ptr<QtCompositor> m_compositor;
     std::shared_ptr<miroil::DisplayListenerWrapper> m_displayListener;
+    std::shared_ptr<mir::graphics::GLRenderingProvider> m_glProvider;
     QList<PlatformScreen*> m_screenList;
     bool m_compositing;
     std::shared_ptr<OrientationSensor> m_orientationSensor;
