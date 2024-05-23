@@ -29,7 +29,7 @@ QSharedPointer<QMirServer> mirServer;
 
 void init(std::initializer_list<std::function<void(QMirServer&)>> const& options)
 {
-    setenv("QT_QPA_PLATFORM", "mirserver", 1 /* overwrite */);
+    setenv("QT_QPA_PLATFORM", QPA_MIRSERVER_NAME, 1 /* overwrite */);
 
     mirServer = QMirServer::create();
     for (auto& option : options) {

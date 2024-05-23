@@ -1,5 +1,7 @@
 set(DEMO_SHELL qtmir-demo-shell)
 
+add_definitions(-DQPA_MIRSERVER_NAME=\"${QPA_MIRSERVER_NAME}\")
+
 include_directories(
     SYSTEM
 

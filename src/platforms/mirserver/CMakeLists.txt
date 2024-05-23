@@ -6,7 +6,13 @@ include(UseLttngGenTp)
 
 set(INCLUDE_NAME "qtmir-qt${QT_VERSION_MAJOR}-mir${MIR_VERSION_MAJOR}")
 set(QTMIRSERVER_SONAME "qt${QT_VERSION_MAJOR}mir${MIR_VERSION_MAJOR}server")
-set(QPA_MIRSERVER_SONAME "qpa-mir${MIR_VERSION_MAJOR}server")
+set(QPA_MIRSERVER_NAME "mir${MIR_VERSION_MAJOR}server")
+set(QPA_MIRSERVER_SONAME "qpa-${QPA_MIRSERVER_NAME}")
+
+# Used by src/modules and demos/ directories.
+set(QPA_MIRSERVER_NAME "${QPA_MIRSERVER_NAME}" PARENT_SCOPE)
+
+add_definitions(-DQPA_MIRSERVER_NAME=\"${QPA_MIRSERVER_NAME}\")
 
 if(WITH_MIR2)
     # TODO: read MirOil and MirAL's SOVERSION, and take that into our SOVERSION.
@@ -242,6 +248,7 @@ install(
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
+configure_file(mirserver.json.in mirserver.json)
 
 add_library(qpa-mirserver SHARED
     mirserverintegration.cpp

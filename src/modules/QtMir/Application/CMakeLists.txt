@@ -1,5 +1,7 @@
 include(UseLttngGenTp)
 
+add_definitions(-DQPA_MIRSERVER_NAME=\"${QPA_MIRSERVER_NAME}\")
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src/platforms/mirserver
