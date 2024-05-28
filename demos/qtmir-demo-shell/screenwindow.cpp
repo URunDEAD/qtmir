@@ -23,8 +23,8 @@
 ScreenWindow::ScreenWindow(QQuickWindow *parent)
     : QQuickWindow(parent)
 {
-    if (qGuiApp->platformName() != QLatin1String("mirserver")) {
-        qCritical("Not using 'mirserver' QPA plugin. Using ScreenWindow may produce unknown results.");
+    if (qGuiApp->platformName() != QLatin1String(QPA_MIRSERVER_NAME)) {
+        qCritical("Not using '" QPA_MIRSERVER_NAME "' QPA plugin. Using ScreenWindow may produce unknown results.");
     }
 }
 

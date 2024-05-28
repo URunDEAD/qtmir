@@ -122,7 +122,7 @@ QPoint ScreenAdaptor::position() const
 
 QQmlListProperty<qtmir::ScreenMode> ScreenAdaptor::availableModes()
 {
-    return QQmlListProperty<qtmir::ScreenMode>(this, m_modes);
+    return QQmlListProperty<qtmir::ScreenMode>(this, &m_modes);
 }
 
 uint ScreenAdaptor::currentModeIndex() const

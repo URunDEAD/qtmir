@@ -4,7 +4,23 @@
 include(FindQt5PlatformSupport)
 include(UseLttngGenTp)
 
-set(QTMIRSERVER_ABI 1)
+set(INCLUDE_NAME "qtmir-qt${QT_VERSION_MAJOR}-mir${MIR_VERSION_MAJOR}")
+set(QTMIRSERVER_SONAME "qt${QT_VERSION_MAJOR}mir${MIR_VERSION_MAJOR}server")
+set(QPA_MIRSERVER_NAME "mir${MIR_VERSION_MAJOR}server")
+set(QPA_MIRSERVER_SONAME "qpa-${QPA_MIRSERVER_NAME}")
+
+# Used by src/modules and demos/ directories.
+set(QPA_MIRSERVER_NAME "${QPA_MIRSERVER_NAME}" PARENT_SCOPE)
+
+add_definitions(-DQPA_MIRSERVER_NAME=\"${QPA_MIRSERVER_NAME}\")
+
+if(WITH_MIR2)
+    # TODO: read MirOil and MirAL's SOVERSION, and take that into our SOVERSION.
+    set(QTMIRSERVER_ABI 1)
+else()
+    # We don't expect to ever bump ABI again.
+    set(QTMIRSERVER_ABI 1)
+endif()
 
 add_subdirectory(miral)
 
@@ -198,14 +214,21 @@ target_link_libraries(qtmirserver
 
 set_target_properties(qtmirserver
   PROPERTIES
+  OUTPUT_NAME ${QTMIRSERVER_SONAME}
   SOVERSION ${QTMIRSERVER_ABI}
 )
 
 set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
-set(INCLUDEDIR "${CMAKE_INSTALL_PREFIX}/include/qtmir")
+set(INCLUDEDIR "${CMAKE_INSTALL_PREFIX}/include/${INCLUDE_NAME}")
+if(WITH_MIR2)
+    set(QTMIRSERVER_PCREQUIRES "miral >= 3.0")
+else()
+    set(QTMIRSERVER_PCREQUIRES "${MIRAL_MODULE_NAME} >= 1.1")
+    set(QTMIRSERVER_PCCONFLICTS "miral >= 3.0")
+endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/qtmirserver.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/qtmirserver.pc
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/qtXmirYserver.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${QTMIRSERVER_SONAME}.pc
     @ONLY
 )
 
@@ -217,19 +240,24 @@ install(
 
 install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/include/qtmir
-  DESTINATION "include/qtmir"
+  DESTINATION ${INCLUDEDIR}
 )
 
 install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/qtmirserver.pc
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${QTMIRSERVER_SONAME}.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
+configure_file(mirserver.json.in mirserver.json)
 
 add_library(qpa-mirserver SHARED
     mirserverintegration.cpp
     plugin.cpp
 )
+
+set_target_properties(qpa-mirserver
+  PROPERTIES
+  OUTPUT_NAME ${QPA_MIRSERVER_SONAME})
 
 target_link_libraries(qpa-mirserver
 PRIVATE

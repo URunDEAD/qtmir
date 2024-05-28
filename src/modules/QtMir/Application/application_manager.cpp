@@ -83,7 +83,7 @@ ApplicationManager* ApplicationManager::create()
     NativeInterface *nativeInterface = dynamic_cast<NativeInterface*>(QGuiApplication::platformNativeInterface());
 
     if (!nativeInterface) {
-        qCritical() << "ERROR: QtMir.Application QML plugin requires use of the 'mirserver' QPA plugin";
+        qCritical() << "ERROR: QtMir.Application QML plugin requires use of the '" QPA_MIRSERVER_NAME "' QPA plugin";
         QGuiApplication::quit();
         return nullptr;
     }

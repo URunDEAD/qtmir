@@ -55,7 +55,7 @@ SurfaceManager::SurfaceManager()
     auto nativeInterface = dynamic_cast<NativeInterface*>(QGuiApplication::platformNativeInterface());
 
     if (!nativeInterface) {
-        qFatal("ERROR: QtMir.Application QML plugin requires use of the 'mirserver' QPA plugin");
+        qFatal("ERROR: QtMir.Application QML plugin requires use of the '" QPA_MIRSERVER_NAME "' QPA plugin");
     }
 
     m_sessionMap = ApplicationManager::singleton();

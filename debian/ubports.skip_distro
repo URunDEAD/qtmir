@@ -1,0 +1,4 @@
+# Our devel-debian doesn't have Mir 1 packaged, thus code in this branch won't
+# build. See personal/mariogrip/desktop-development branch for WIP branch
+# working with Mir 2.
+devel-debian

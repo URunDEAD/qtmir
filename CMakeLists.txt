@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(qtmir)
 
@@ -66,6 +66,7 @@ add_custom_target(cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2
 
 option(WITH_CONTENTHUB "Build with content-hub" OFF)
 option(WITH_VALGRIND "Build with Valgrind detection" ON)
+option(WITH_MIR2 "Build with Mir 2.x (not yet possible, must be OFF)" OFF)
 
 include(FindPkgConfig)
 find_package(Qt5Core 5.9 REQUIRED)
@@ -75,13 +76,28 @@ find_package(Qt5Qml 5.9 REQUIRED)
 find_package(Qt5Quick 5.9 REQUIRED)
 find_package(Qt5Sensors 5.9 REQUIRED)
 find_package(Qt5Test 5.9 REQUIRED)
+# TODO: when we support Qt 6, set QT_VERSION_MAJOR accordingly.
+set(QT_VERSION_MAJOR 5)
 
 find_package(Threads REQUIRED)
 
-pkg_check_modules(MIRSERVER mirserver>=0.26 REQUIRED)
-pkg_check_modules(MIRCLIENT mirclient>=0.26 REQUIRED)
-pkg_check_modules(MIRRENDERERGLDEV mir-renderer-gl-dev>=0.26 REQUIRED)
-pkg_check_modules(MIRAL miral>=1.1.0 REQUIRED)
+if(WITH_MIR2)
+    message(FATAL_ERROR "Building with Mir 2 is not yet supported, but this option is added to ensure consistency with WIP patch.")
+    # But when Mir 2 is supported, package lookup will look like this:
+    pkg_check_modules(MIRSERVER mirserver>=2.0 REQUIRED)
+    pkg_check_modules(MIRRENDERERGLDEV mir-renderer-gl-dev>=2.0 REQUIRED)
+    pkg_check_modules(MIRAL miral>=3.0 REQUIRED)
+    # Mir 2-specific
+    pkg_check_modules(MIROIL miroil>=2.0 REQUIRED)
+
+    set(MIR_VERSION_MAJOR 2)
+else()
+    pkg_search_module(MIRSERVER REQUIRED mir1server>=0.26 mirserver>=0.26)
+    pkg_search_module(MIRRENDERERGLDEV REQUIRED mir1-renderer-gl-dev>=0.26 mir-renderer-gl-dev>=0.26)
+    pkg_search_module(MIRAL REQUIRED mir1al>=1.1.0 miral>=1.1.0)
+
+    set(MIR_VERSION_MAJOR 1)
+endif()
 
 pkg_check_modules(XKBCOMMON xkbcommon REQUIRED)
 pkg_check_modules(GLIB glib-2.0 REQUIRED)
@@ -103,7 +119,7 @@ if(WITH_VALGRIND)
 endif()
 
 if(WITH_CONTENTHUB)
-pkg_check_modules(CONTENT_HUB libcontent-hub>=1.0.0 REQUIRED)
+pkg_check_modules(CONTENT_HUB liblomiri-content-hub>=1.0.0 REQUIRED)
 message(STATUS "Bulding with content-hub")
 endif()
 

@@ -32,7 +32,7 @@ WindowModel::WindowModel()
     auto nativeInterface = dynamic_cast<NativeInterface*>(QGuiApplication::platformNativeInterface());
 
     if (!nativeInterface) {
-        qFatal("ERROR: QtMir.Application QML plugin requires use of the 'mirserver' QPA plugin");
+        qFatal("ERROR: QtMir.Application QML plugin requires use of the '" QPA_MIRSERVER_NAME "' QPA plugin");
     }
 
     m_windowController = static_cast<WindowControllerInterface*>(nativeInterface->nativeResourceForIntegration("WindowController"));

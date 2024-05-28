@@ -30,7 +30,7 @@ def perform_test():
     nested = Server(executable=shutil.which("qtmir-demo-shell"),
                     host=host,
                     reports=["input","client-input-receiver"],
-                    env={"QT_QPA_PLATFORM": "mirserver", "QML_NO_TOUCH_COMPRESSION": "1"})
+                    env={"QT_QPA_PLATFORM": "mir1server", "QML_NO_TOUCH_COMPRESSION": "1"})
     client = Client(executable=shutil.which("qtmir-demo-client"),
                     server=nested,
                     reports=["input","client-input-receiver"],

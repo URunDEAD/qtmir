@@ -6,16 +6,16 @@ Build-Depends: cmake,
                cmake-extras (>= 1.6~),
                debhelper-compat (= 12),
                googletest (>= 1.10.0),
-               libcontent-hub-dev (>= 1.0.0),
+               liblomiri-content-hub-dev (>= 1.0.0),
                libfontconfig1-dev,
                libgles2-mesa-dev,
                libglib2.0-dev,
                libgsettings-qt-dev,
                libgtest-dev,
                liblttng-ust-dev,
-               libmiral-dev (>= 1.2),
-               libmircommon-dev (>= 0.26.0),
-               libmirserver-dev (>= 0.26.0),
+               libmir1al-dev (>= 1.2),
+               libmir1common-dev (>= 0.26.0),
+               libmir1server-dev (>= 0.26.0),
                libmtdev-dev,
                libprocess-cpp-dev,
                libqt5sensors5-dev,
@@ -27,8 +27,8 @@ Build-Depends: cmake,
                liblomiri-url-dispatcher-dev,
                libxkbcommon-dev,
                libxrender-dev,
-               mir-renderer-gl-dev (>= 0.26.0),
-               mirtest-dev (>= 0.26.0),
+               mir1-renderer-gl-dev (>= 0.26.0),
+               mir1test-dev (>= 0.26.0),
                pkg-config,
 # lttng-gen-ts needs python3, but doesn't depend on it itself: bug 1359147
                python3:any,
@@ -47,46 +47,26 @@ Standards-Version: 4.5.1
 Rules-Requires-Root: no
 Homepage: https://github.com/ubports/qtmir
 
-Package: qtmir
+Package: qtmir-qt5-mir1
 Architecture: linux-any
 Multi-Arch: same
-Breaks: qtmir-android (<< 0.7.0~),
-        qtmir-desktop (<< 0.7.0~),
-Replaces: qtmir-android (<< 0.7.0~),
-          qtmir-desktop (<< 0.7.0~),
 Depends: ${misc:Depends},
          ${shlibs:Depends},
 Description: Qt platform abstraction (QPA) plugin for a Mir server
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
  a Mir server. It also exposes some internal Mir functionality.
+ .
+ This package provides the QPA which is compatible with Qt 5 and Mir 1.
 
-Package: qtmir-android
-Architecture: armhf arm64
-Multi-Arch: same
-Depends: qtmir, ${misc:Depends},
-Priority: optional
-Section: oldlibs
-Description: transitional package
-  This is a transitional package. It can safely be removed.
-
-Package: qtmir-desktop
-Architecture: linux-any
-Multi-Arch: same
-Depends: qtmir, ${misc:Depends},
-Priority: optional
-Section: oldlibs
-Description: transitional package
-  This is a transitional package. It can safely be removed.
-
-Package: libqtmirserver-dev
+Package: libqt5mir1server-dev
 Section: libdevel
 Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
-Depends: qtmir (= ${binary:Version}),
+Depends: qtmir-qt5-mir1 (= ${binary:Version}),
          ${misc:Depends},
-         libmiral-dev (>= 1.3.0),
+         libmir1al-dev (>= 1.3.0),
 Description: Developer files for QtMir server API
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
@@ -94,7 +74,7 @@ Description: Developer files for QtMir server API
  .
  This package contains the library headers for developers.
 
-Package: libqtmirserver1
+Package: libqt5mir1server1
 Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
@@ -107,11 +87,11 @@ Description: QtMir server API shared library
  .
  Contains the shared library containing QtMir server API.
 
-Package: qml-module-qtmir
+Package: qml-module-qtmir0.1
 Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends},
-Depends: qtmir (= ${binary:Version}),
+Depends: qtmir-qt5-mir1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Provides: lomiri-application-impl,
@@ -138,8 +118,8 @@ Depends: littler,
          python3-evdev,
          python3-mir-perf-framework,
          qml-module-lomiri-components,
-         qml-module-qtmir,
-         qtmir (= ${binary:Version}),
+         qml-module-qtmir0.1,
+         qtmir-qt5-mir1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Recommends: autopilot-qt5,

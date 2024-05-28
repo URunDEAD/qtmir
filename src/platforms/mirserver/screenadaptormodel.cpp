@@ -30,8 +30,8 @@
 ScreenAdaptorModel::ScreenAdaptorModel(QObject *parent)
     : qtmir::Screens(parent)
 {
-    if (qGuiApp->platformName() != QLatin1String("mirserver")) {
-        qFatal("Can't use the ScreenAdaptorModel model without using 'mirserver' QPA plugin.");
+    if (qGuiApp->platformName() != QLatin1String(QPA_MIRSERVER_NAME)) {
+        qFatal("Can't use the ScreenAdaptorModel model without using '" QPA_MIRSERVER_NAME "' QPA plugin.");
     }
 
     connect(qGuiApp, &QGuiApplication::screenAdded, this, &ScreenAdaptorModel::onScreenAdded);

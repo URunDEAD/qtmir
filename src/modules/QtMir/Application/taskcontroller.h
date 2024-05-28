@@ -62,6 +62,7 @@ class TaskController : public QObject
 public:
     enum class Error
     {
+        APPLICATION_NO_ERROR,
         APPLICATION_CRASHED,
         APPLICATION_FAILED_TO_START
     };
