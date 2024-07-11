@@ -135,6 +135,10 @@ public:
         f->glBindTexture(GL_TEXTURE_2D, m_textureId);
 
         m_texSourceBuf->bind();
+
+        // Fix for lp:1583088 - For non-GL clients, Mir uploads the client pixel buffer to a GL texture.
+        // But as it does so, it changes some GL state and neglects to restore it, which breaks Qt's rendering.
+        f->glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // 4 is the default which Qt uses
     }
 
 private:
