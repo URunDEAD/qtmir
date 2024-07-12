@@ -165,7 +165,7 @@ string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_lower)
 if(cmake_build_type_lower MATCHES relwithdebinfo) # workaround for http://public.kitware.com/Bug/view.php?id=14696
     add_definitions(-DQT_NO_DEBUG)
 endif()
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "release" OR "${CMAKE_BUILD_TYPE}" STREQUAL "relwithdebinfo")
+if ("${cmake_build_type_lower}" STREQUAL "release" OR "${cmake_build_type_lower}" STREQUAL "relwithdebinfo")
     option(Werror "Treat warnings as errors" ON)
 else()
     option(Werror "Treat warnings as errors" OFF)
