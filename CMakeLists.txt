@@ -150,8 +150,9 @@ endif()
 get_target_property(Qt5Gui_QPA_Plugin_Path Qt5::Gui IMPORTED_LOCATION_PLATFORMS)
 
 # Set QML module install path
-set(QML_MODULE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/qt5/qml")
-set(QTMIR_DATA_DIR ${CMAKE_INSTALL_DATADIR}/qtmir)
+set(QML_MODULE_INSTALL_DIR "${CMAKE_INSTALL_FULL_LIBDIR}/qt5/qml")
+set(QTMIR_DATA_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qtmir)
+set(QPA_PLUGIN_INSTALL_DIR "${CMAKE_INSTALL_FULL_LIBDIR}/qt5/plugins/platforms")
 
 
 # Customisations for the build type
