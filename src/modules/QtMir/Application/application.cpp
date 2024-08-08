@@ -36,6 +36,9 @@
 // std
 #include <csignal>
 
+// Linux
+#include <unistd.h>
+
 namespace shellapp = lomiri::shell::application;
 
 #define DEBUG_MSG qCDebug(QTMIR_APPLICATIONS).nospace() << "Application[" << appId() <<"]::" << __func__
