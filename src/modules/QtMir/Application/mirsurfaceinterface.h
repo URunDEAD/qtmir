@@ -22,6 +22,9 @@
 
 #include "session_interface.h"
 
+// mir
+#include <mir/version.h>
+
 // Qt
 #include <QCursor>
 #include <QPoint>
@@ -48,8 +51,10 @@ public:
 
     virtual void setLive(bool value) = 0;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     virtual void stopFrameDropper() = 0;
     virtual void startFrameDropper() = 0;
+#endif
 
     virtual bool isBeingDisplayed() const = 0;
 
