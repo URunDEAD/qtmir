@@ -81,6 +81,19 @@ qint64 msecsSinceReference()
     return elapsedTimer.msecsSinceReference();
 }
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+// Mir creates a new buffer for every frame
+bool renderableBufferChanged(const MirSurfaceInterface::SubSurfaceTextures &slots,
+                             const mir::graphics::RenderableList &renderables)
+{
+    for (size_t i = 0; i < renderables.size() && i < slots.size(); i++) {
+        auto texture = qSharedPointerDynamicCast<MirBufferSGTexture>(slots[i].texture);
+        if (texture && texture->buffer() != renderables[i]->buffer()) return true;
+    }
+    return false;
+}
+#endif
+
 } // namespace {
 
 class MirSurface::SurfaceObserverImpl : public SurfaceObserver, public miroil::SurfaceObserver
@@ -483,7 +496,11 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
     auto renderables = m_surface->generate_renderables((void*)userId);
 
     if (renderables.size() > 0 &&
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
             (m_surface->buffers_ready_for_compositor((void*)userId) > 0
+#else
+            (renderableBufferChanged(output.slots, renderables)
+#endif
              || !primaryTexture() || !primaryTexture()->hasBuffer()
              // a subsurface appearing or disappearing must refresh even without a new buffer
              || output.slots.size() != renderables.size())
@@ -546,11 +563,13 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
     return primary && primary->hasBuffer();
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 bool MirSurface::numBuffersReadyForCompositor(qintptr userId)
 {
     QMutexLocker locker(&m_mutex);
     return m_surface->buffers_ready_for_compositor((void*)userId);
 }
+#endif
 
 void MirSurface::setFocused(bool value)
 {

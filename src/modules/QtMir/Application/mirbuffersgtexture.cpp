@@ -359,6 +359,11 @@ bool MirBufferSGTexture::hasBuffer() const
     return m_mirBuffer && m_mirTexture;
 }
 
+std::shared_ptr<mir::graphics::Buffer> MirBufferSGTexture::buffer() const
+{
+    return m_mirBuffer;
+}
+
 int MirBufferSGTexture::textureId() const
 {
     return m_mirTexture->tex_id();

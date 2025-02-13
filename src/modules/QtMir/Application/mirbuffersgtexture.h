@@ -54,6 +54,7 @@ public:
     virtual void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
 #else
     virtual void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer, mir::graphics::GLRenderingProvider& glProvider);
+    virtual std::shared_ptr<mir::graphics::Buffer> buffer() const;
 #endif
     virtual void freeBuffer();
     virtual bool hasBuffer() const;
