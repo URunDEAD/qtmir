@@ -90,9 +90,11 @@ QString mirSurfaceAttribAndValueToString(MirWindowAttrib attrib, int value)
         str = QStringLiteral("state=%1").arg(mirSurfaceStateToStr(value));
         break;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
     case mir_window_attrib_swapinterval:
         str = QStringLiteral("swapinterval=%1").arg(value);
         break;
+#endif
 
     case mir_window_attrib_focus:
         str = QStringLiteral("focus=%1").arg(mirSurfaceFocusStateToStr(value));
