@@ -339,6 +339,12 @@ void Session::doResume()
         }
 #endif
         // TODO: Investigate surface suspension for Wayland
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
+        for (int i = 0; i < m_surfaceList.count(); ++i) {
+            auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
+            surface->startFrameDropper();
+        }
+#endif
     }
 
     miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_resumed);

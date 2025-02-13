@@ -136,7 +136,9 @@ public:
     QSGTexture *weakTexture(qintptr userId) const override;
     std::vector<SubSurfaceTexture> updateTexture(qintptr userId) override;
     unsigned int currentFrameNumber(qintptr userId) const override;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     bool numBuffersReadyForCompositor(qintptr userId) override;
+#endif
     // end of methods called from the rendering (scene graph) thread
 
     void setFocused(bool focus) override;

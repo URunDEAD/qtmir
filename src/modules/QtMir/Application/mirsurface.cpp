@@ -476,9 +476,13 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
     auto renderables = m_surface->generate_renderables((void*)userId);
 
     std::vector<SubSurfaceTexture> subsurfaces;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    if (renderables.size() > 0) {
+#else
     if (renderables.size() > 0 &&
             (m_surface->buffers_ready_for_compositor((void*)userId) > 0 || !texture->hasBuffer())
         ) {
+#endif
         // Avoid holding two buffers for the compositor at the same time. Thus free the current
         // before acquiring the next
         texture->freeBuffer();
@@ -528,10 +532,12 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
     return m_subTextures;
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 bool MirSurface::numBuffersReadyForCompositor(qintptr userId)
 {
     return m_surface->buffers_ready_for_compositor((void*)userId);
 }
+#endif
 
 void MirSurface::onCompositorSwappedBuffers()
 {

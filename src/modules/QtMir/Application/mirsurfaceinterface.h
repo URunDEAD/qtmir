@@ -70,7 +70,9 @@ public:
     virtual std::vector<SubSurfaceTexture> updateTexture(qintptr userId) = 0;
 
     virtual unsigned int currentFrameNumber(qintptr userId) const = 0;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     virtual bool numBuffersReadyForCompositor(qintptr userId) = 0;
+#endif
     // end of methods called from the rendering (scene graph) thread
 
     /*
