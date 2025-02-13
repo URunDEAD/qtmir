@@ -17,6 +17,7 @@
 
 #include "compositortextureprovider.h"
 #include "mirsurface.h"
+#include "mirbuffersgtexture.h"
 #include "mirsurfacelistmodel.h"
 #include "session_interface.h"
 #include "surfacemanager.h"

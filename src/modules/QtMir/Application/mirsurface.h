@@ -32,7 +32,6 @@
 #include <QVector>
 #include <QKeyEvent>
 
-#include "mirbuffersgtexture.h"
 #include "windowcontrollerinterface.h"
 #include "windowmodelnotifier.h"
 
