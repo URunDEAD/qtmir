@@ -278,6 +278,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
         }
     });
 
+#if MIR_SERVER_VERSION < MIR_SERVER_VERSION(2, 20, 0)
     connect(&m_frameDropperTimer, &QTimer::timeout,
             this, &MirSurface::dropPendingBuffer);
     // Rationale behind the frame dropper and its interval value:
@@ -294,6 +295,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     // in practice rarely happen.
     m_frameDropperTimer.setInterval(200);
     m_frameDropperTimer.setSingleShot(false);
+#endif
 
     QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);
 
@@ -320,8 +322,10 @@ MirSurface::~MirSurface()
 
 void MirSurface::onFramesPostedObserved()
 {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     // restart the frame dropper so that items have enough time to render the next frame.
     m_frameDropperTimer.start();
+#endif
 
     Q_EMIT framesPosted();
 }
@@ -373,6 +377,7 @@ Mir::Type MirSurface::type() const
     }
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 void MirSurface::dropPendingBuffer()
 {
     QMutexLocker locker(&m_mutex);
@@ -441,6 +446,7 @@ void MirSurface::startFrameDropper()
         m_frameDropperTimer.start();
     }
 }
+#endif
 
 QSharedPointer<QSGTexture> MirSurface::texture(qintptr userId)
 {
@@ -511,11 +517,13 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
         m_subTextures = subsurfaces;
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     if (m_surface->buffers_ready_for_compositor((void*)userId) > 0) {
         // restart the frame dropper to give MirSurfaceItems enough time to render the next frame.
         // queued since the timer lives in a different thread
         QMetaObject::invokeMethod(&m_frameDropperTimer, "start", Qt::QueuedConnection);
     }
+#endif
 
     return m_subTextures;
 }

@@ -109,10 +109,17 @@ void Session::doSuspend()
     if (m_surfaceList.count() == 0) {
         DEBUG_MSG << " no surface to call stopFrameDropper() on!";
     } else {
+        /* TODO: Investigate surface suspension for Wayland clients
+         *
+         * This might already happen with frame events only being triggered
+         * on buffer consumption, or we may need to do something else
+         */
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         for (int i = 0; i < m_surfaceList.count(); ++i) {
             auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
             surface->stopFrameDropper();
         }
+#endif
     }
     setState(Suspended);
 }
@@ -325,10 +332,13 @@ void Session::resume()
 void Session::doResume()
 {
     if (m_state == Suspended) {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         for (int i = 0; i < m_surfaceList.count(); ++i) {
             auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
             surface->startFrameDropper();
         }
+#endif
+        // TODO: Investigate surface suspension for Wayland
     }
 
     miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_resumed);
@@ -366,12 +376,14 @@ void Session::stop()
 
         stopPromptSessions();
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         {
             for (int i = 0; i < m_surfaceList.count(); ++i) {
                 auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
                 surface->stopFrameDropper();
             }
         }
+#endif
 
         foreachChildSession([](SessionInterface* session) {
             session->stop();

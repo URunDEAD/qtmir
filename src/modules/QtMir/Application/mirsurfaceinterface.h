@@ -29,6 +29,8 @@
 #include <QSharedPointer>
 #include <QTouchEvent>
 
+#include <mir/version.h>
+
 class QHoverEvent;
 class QMouseEvent;
 class QKeyEvent;
@@ -46,8 +48,10 @@ public:
 
     virtual void setLive(bool value) = 0;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     virtual void stopFrameDropper() = 0;
     virtual void startFrameDropper() = 0;
+#endif
 
     virtual bool isBeingDisplayed() const = 0;
 

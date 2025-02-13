@@ -37,6 +37,7 @@
 #include "windowmodelnotifier.h"
 
 // mir
+#include <mir/version.h>
 #include <mir_toolkit/common.h>
 #include <mir_toolkit/mir_input_device_types.h>
 #include <miroil/surface.h>
@@ -119,8 +120,10 @@ public:
 
     bool isReady() const override { return m_ready; }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     void stopFrameDropper() override;
     void startFrameDropper() override;
+#endif
 
     bool isBeingDisplayed() const override;
 
@@ -196,7 +199,9 @@ public Q_SLOTS:
     void setShellChrome(Mir::ShellChrome shellChrome) override;
 
 private Q_SLOTS:
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     void dropPendingBuffer();
+#endif
     void onAttributeChanged(const MirWindowAttrib, const int);
     void onFramesPostedObserved();
     void emitSizeChanged();
@@ -248,7 +253,9 @@ private:
     //FIXME -  have to save the state as Mir has no getter for it (bug:1357429)
     Mir::OrientationAngle m_orientationAngle;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     QTimer m_frameDropperTimer;
+#endif
 
     mutable QMutex m_mutex;
 
