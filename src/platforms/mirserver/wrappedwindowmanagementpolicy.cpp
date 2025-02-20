@@ -317,6 +317,8 @@ namespace qtmir
         getExtraInfo(windowInfo)->state = toQtState(windowInfo.state());
 
         Q_EMIT d->m_windowModel.windowAdded(NewWindow{windowInfo});
+
+        MinimalWindowManager::advise_new_window(windowInfo);
     }
 
     void WindowManagementPolicy::advise_focus_lost(const miral::WindowInfo &windowInfo)
