@@ -1603,11 +1603,13 @@ void MirSurface::releaseAllPressedKeys()
     for (auto &pressedKey : m_pressedKeys) {
         auto deltaMs = (ulong)(msecsSinceReference() - pressedKey.msecsSinceReference);
         ulong timestamp = pressedKey.timestamp + deltaMs;
-        std::vector<uint8_t> cookie{};
 
         auto ev = EventBuilder::instance()->make_key_event(pressedKey.deviceId,
                 uncompressTimestamp<qtmir::Timestamp>(qtmir::Timestamp(timestamp)),
-                cookie, mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
+                std::vector<uint8_t>{},
+#endif
+                mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
                 mir_input_event_modifier_none);
 
         auto ev1 = reinterpret_cast<MirKeyboardEvent const*>(ev.get());
