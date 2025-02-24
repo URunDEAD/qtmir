@@ -201,6 +201,9 @@ public:
 
 MirSurface::MirSurface(NewWindow newWindowInfo,
         WindowControllerInterface* controller,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+        mir::graphics::GLRenderingProvider& glProvider,
+#endif
         SessionInterface *session,
         MirSurface *parentSurface)
     : MirSurfaceInterface()
@@ -217,6 +220,9 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     , m_surface(std::make_shared<miroil::Surface>(newWindowInfo.surface))
     , m_session(session)
     , m_controller(controller)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    , m_glProvider(glProvider)
+#endif
     , m_orientationAngle(Mir::Angle0)
     , m_visible(newWindowInfo.windowInfo.is_visible())
     , m_live(true)
@@ -507,7 +513,11 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
             // Avoid holding two buffers for the compositor at the same time. Thus
             // free the current before acquiring the next
             texture->freeBuffer();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
             texture->setBuffer(renderables[i]->buffer());
+#else
+            texture->setBuffer(renderables[i]->buffer(), m_glProvider);
+#endif
             slot.extent = extentOf(renderables[i]->screen_position());
 
             if (i == 0) {

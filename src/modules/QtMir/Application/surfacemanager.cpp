@@ -22,11 +22,17 @@
 
 // mirserver
 #include "nativeinterface.h"
+#include <mir/version.h>
 
 // common
 #include <debughelpers.h>
 #include <mirqtconversion.h>
 #include <workspacecontrollerinterface.h>
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+#include <mir/graphics/platform.h>
+#include <qpa/qplatformnativeinterface.h>
+#endif
 
 // Qt
 #include <QGuiApplication>
@@ -48,7 +54,26 @@ SurfaceManager *SurfaceManager::instance()
     return instance;
 }
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+namespace
+{
+auto gl_provider_from_native_interface(QPlatformNativeInterface* interface)
+    -> mir::graphics::GLRenderingProvider*
+{
+    auto nativeInterface = dynamic_cast<NativeInterface*>(interface);
+    if (!nativeInterface) {
+        qFatal("ERROR: QtMir.Application QML plugin requires use of the '" QPA_MIRSERVER_NAME "' QPA plugin");
+    }
+
+    return static_cast<mir::graphics::GLRenderingProvider*>(nativeInterface->nativeResourceForIntegration("GLRenderingProvider"));
+}
+}
+#endif
+
 SurfaceManager::SurfaceManager()
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    : m_glProvider{gl_provider_from_native_interface(QGuiApplication::platformNativeInterface())}
+#endif
 {
     DEBUG_MSG << "()";
 
@@ -71,6 +96,9 @@ SurfaceManager::SurfaceManager(WindowControllerInterface *windowController,
                                SessionMapInterface *sessionMap)
     : m_windowController(windowController)
     , m_sessionMap(sessionMap)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    , m_glProvider{nullptr}
+#endif
 {
     DEBUG_MSG << "()";
     connectToWindowModelNotifier(windowModel);
@@ -160,7 +188,18 @@ void SurfaceManager::onWindowAdded(const NewWindow &window)
     SessionInterface* session = m_sessionMap->findSession(mirSession.get());
 
     const auto parentSurface = surfaceFor(windowInfo.parent());
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    if (!m_glProvider) {
+        m_glProvider = gl_provider_from_native_interface(QGuiApplication::platformNativeInterface());
+    }
+    if (!m_glProvider) {
+        qWarning("SurfaceManager: GLRenderingProvider not yet available, dropping window");
+        return;
+    }
+    const auto surface = new MirSurface(window, m_windowController, *m_glProvider, session, parentSurface);
+#else
     const auto surface = new MirSurface(window, m_windowController, session, parentSurface);
+#endif
     rememberMirSurface(surface);
 
     connect(surface, &MirSurface::isBeingDisplayedChanged, this, [this, surface]() {

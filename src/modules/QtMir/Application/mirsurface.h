@@ -40,6 +40,9 @@
 
 // mir
 #include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 19, 0)
+#include <mir/graphics/platform.h>
+#endif
 #include <mir_toolkit/common.h>
 #include <miroil/surface.h>
 
@@ -57,10 +60,18 @@ class MirSurface : public MirSurfaceInterface
     Q_OBJECT
 
 public:
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 19, 0)
     MirSurface(qtmir::NewWindow windowInfo,
                WindowControllerInterface *controller,
                SessionInterface *session = nullptr,
                MirSurface *parentSurface = nullptr);
+#else
+    MirSurface(qtmir::NewWindow windowInfo,
+               WindowControllerInterface *controller,
+               mir::graphics::GLRenderingProvider& glProvider,
+               SessionInterface *session = nullptr,
+               MirSurface *parentSurface = nullptr);
+#endif
     virtual ~MirSurface();
 
     ////
@@ -255,6 +266,9 @@ private:
     const std::shared_ptr<miroil::Surface> m_surface; // keep copy of the Surface for lifecycle
     QPointer<SessionInterface> m_session;
     WindowControllerInterface *const m_controller;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 19, 0)
+    mir::graphics::GLRenderingProvider& m_glProvider;
+#endif
 
     //FIXME -  have to save the state as Mir has no getter for it (bug:1357429)
     Mir::OrientationAngle m_orientationAngle;
