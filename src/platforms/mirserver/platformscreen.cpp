@@ -17,7 +17,6 @@
 // local
 #include "platformscreen.h"
 #include "logging.h"
-#include "mirglconfig.h"
 #include "nativeinterface.h"
 #include "screensmodel.h"
 #include "orientationsensor.h"
@@ -25,14 +24,25 @@
 // Mir
 #include "mir/geometry/size.h"
 #include "mir/graphics/buffer.h"
-#include "mir/graphics/display_sink.h"
 #include "mir/graphics/display.h"
 #include <mir/graphics/display_configuration.h>
-#include "mir/renderer/gl/gl_surface.h"
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+#include "mirglconfig.h"
+
+#include <mir/graphics/platform.h>
+#include <mir/renderer/gl/gl_surface.h>
+#include <mir/graphics/display_sink.h>
+
+#else
+
+#include <mir/graphics/display_buffer.h>
+#include <mir/renderer/gl/render_target.h>
+
+#endif
 
 // Qt
 #include <QGuiApplication>
-#include <mir/graphics/platform.h>
 #include <qpa/qwindowsysteminterface.h>
 #include <QtMath>
 
@@ -55,6 +65,20 @@ bool isLittleEndian() {
     char *c = (char*)&i;
     return *c == 1;
 }
+
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
+static mir::renderer::gl::RenderTarget *as_render_target(
+    mir::graphics::DisplayBuffer *displayBuffer)
+{
+    auto const render_target =
+        dynamic_cast<mir::renderer::gl::RenderTarget*>(
+            displayBuffer->native_display_buffer());
+    if (!render_target)
+        throw std::logic_error("DisplayBuffer does not support GL rendering");
+
+    return render_target;
+}
+#endif
 
 enum QImage::Format qImageFormatFromMirPixelFormat(MirPixelFormat mirPixelFormat) {
     switch (mirPixelFormat) {
@@ -149,7 +173,11 @@ PlatformScreen::PlatformScreen(const mir::graphics::DisplayConfigurationOutput &
     , m_formFactor(qtmir::FormFactorUnknown)
     , m_sensorEnabled(false)
     , m_isActive(false)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
     , m_outputSurface(nullptr)
+#else
+    , m_renderTarget(nullptr)
+#endif
     , m_displayGroup(nullptr)
 {
     // Hack to make signals work
@@ -450,6 +478,7 @@ void PlatformScreen::removeWindow(ScreenPlatformWindow *window)
     }
 }
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
 void PlatformScreen::setMirDisplaySink(mir::graphics::GLRenderingProvider &glProvider, mir::graphics::DisplaySink *sink, mir::graphics::DisplaySyncGroup *group)
 {
     m_outputSurface = glProvider.surface_for_sink(*sink, MirGLConfig{});
@@ -458,10 +487,24 @@ void PlatformScreen::setMirDisplaySink(mir::graphics::GLRenderingProvider &glPro
     m_displaySink = sink;
     m_displayGroup = group;
 }
+#else
+void PlatformScreen::setMirDisplayBuffer(mir::graphics::DisplayBuffer *buffer, mir::graphics::DisplaySyncGroup *group)
+{
+    DEBUG_MSG_SCREENS << "(renderTarget=" << as_render_target(buffer) << ", displayGroup=" << group << ")";
+
+    // This operation should only be performed while rendering is stopped
+    m_renderTarget = as_render_target(buffer);
+    m_displayGroup = group;
+}
+#endif
 
 void PlatformScreen::swapBuffers()
 {
-    auto fb = m_outputSurface->commit();
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_displaySink->set_next_image(m_outputSurface->commit());
+#else
+    m_renderTarget->swap_buffers();
+#endif
 
     /* FIXME this exposes a QtMir architecture problem, as Screen is supposed to wrap a mg::DisplayBuffer.
      * We use Qt's multithreaded renderer, where each Screen is rendered to relatively independently, and
@@ -474,18 +517,25 @@ void PlatformScreen::swapBuffers()
      *
      * Integrating the Qt Scenegraph renderer as a Mir renderer should solve this issue.
      */
-    m_displaySink->set_next_image(std::move(fb));
     m_displayGroup->post();
 }
 
 void PlatformScreen::makeCurrent()
 {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
     m_outputSurface->make_current();
+#else
+    m_renderTarget->make_current();
+#endif
 }
 
 void PlatformScreen::doneCurrent()
 {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
     m_outputSurface->release_current();
+#else
+    m_renderTarget->release_current();
+#endif
 }
 
 bool PlatformScreen::internalDisplay() const

@@ -204,6 +204,9 @@ public:
 
 MirSurface::MirSurface(NewWindow newWindowInfo,
         WindowControllerInterface* controller,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+        mir::graphics::GLRenderingProvider& glProvider,
+#endif
         SessionInterface *session,
         MirSurface *parentSurface)
     : MirSurfaceInterface()
@@ -220,6 +223,9 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     , m_surface(std::make_shared<miroil::Surface>(newWindowInfo.surface))
     , m_session(session)
     , m_controller(controller)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    , m_glProvider(glProvider)
+#endif
     , m_orientationAngle(Mir::Angle0)
     , m_textures(new CompositorTextureProvider)
     , m_visible(newWindowInfo.windowInfo.is_visible())
@@ -266,7 +272,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
         m_size = size;
         QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
     });
-    connect(m_surfaceObserver.get(), &SurfaceObserver::positionChanged, this, [=](const QPoint& pos){
+    connect(m_surfaceObserver.get(), &SurfaceObserver::positionChanged, this, [=, this](const QPoint& pos){
         this->setPosition(pos);
     });
 
@@ -279,7 +285,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
         }
     });
 
-#if MIR_SERVER_VERSION < MIR_SERVER_VERSION(2, 20, 0)
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     connect(&m_frameDropperTimer, &QTimer::timeout,
             this, &MirSurface::dropPendingBuffer);
     // Rationale behind the frame dropper and its interval value:
@@ -487,7 +493,11 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
         // Avoid holding two buffers for the compositor at the same time. Thus free the current
         // before acquiring the next
         texture->freeBuffer();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         texture->setBuffer(renderables[0]->buffer());
+#else
+        texture->setBuffer(renderables[0]->buffer(), m_glProvider);
+#endif
         compositorTexture->incrementFrame();
 
         if (texture->textureSize() != m_size) {
@@ -512,7 +522,11 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
 
             QSharedPointer<MirBufferSGTexture> subtexture(new MirBufferSGTexture);
             subtexture->freeBuffer();
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+            texture->setBuffer(renderable->buffer(), m_glProvider);
+#else
             subtexture->setBuffer(renderable->buffer());
+#endif
             subsurfaces.emplace_back(
                 SubSurfaceTexture{
                     relativePosition,
@@ -1335,7 +1349,7 @@ MirSurface::SurfaceObserverImpl::SurfaceObserverImpl()
 {
     // mir cursor names, used by the mir protocol
     // Cursor names are from CSS3: https://www.w3.org/TR/css-ui-3/#propdef-cursor
-    
+
     m_cursorNameToShape["default"] = Qt::ArrowCursor;
     m_cursorNameToShape["crosshair"] = Qt::CrossCursor;
     m_cursorNameToShape["wait"] =  Qt::WaitCursor;
@@ -1587,7 +1601,7 @@ QPoint MirSurface::convertLocalToDisplayCoords(const QPoint &localPos) const
 
     if (m_surface->parent()) {
         miroil::Surface parent(m_surface->parent());
-        
+
         auto parentPos = parent.top_left();
         displayPos.rx() += parentPos.x.as_int();
         displayPos.ry() += parentPos.y.as_int();

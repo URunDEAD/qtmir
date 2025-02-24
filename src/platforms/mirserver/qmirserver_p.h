@@ -48,6 +48,11 @@
 #include <miroil/prompt_session_manager.h>
 #include <miroil/open_gl_context.h>
 
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+#include <mir/graphics/platform.h>
+#endif
+
 class MirServerThread;
 class QOpenGLContext;
 class QMirServer;
@@ -66,6 +71,9 @@ public:
     const std::shared_ptr<ScreensModel> screensModel{new ScreensModel()};
     QSharedPointer<ScreensController> screensController;
     std::shared_ptr<QtEventFeeder> eventFeeder{new QtEventFeeder()};
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    std::shared_ptr<mir::graphics::GLRenderingProvider> renderingProvider;
+#endif
     MirServerThread *serverThread;
 
     QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;

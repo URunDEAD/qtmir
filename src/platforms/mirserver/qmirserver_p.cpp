@@ -123,13 +123,19 @@ bool MirServerThread::waitForMirStartup()
 QPlatformOpenGLContext *QMirServerPrivate::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
     QSurfaceFormat            format     = context->format();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     mir::graphics::Display  * mirDisplay = m_mirServerHooks.the_mir_display().get();
+#endif
     mir::graphics::GLConfig * gl_config  = m_openGLContext.the_open_gl_config().get();
     
     if (!gl_config)
         throw std::logic_error("No gl config available. Server not running?");
-    
+
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     return new MirOpenGLContext(*mirDisplay, *gl_config, format);
+#else
+    return new MirOpenGLContext(format, *gl_config);
+#endif
 }
 
 std::shared_ptr<miroil::PromptSessionManager> QMirServerPrivate::promptSessionManager() const
@@ -253,13 +259,20 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                 ,
                 // Initialization called by mir when the new compositor is setup up              
                     [this](const std::shared_ptr<mir::graphics::Display>& display,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
                            const std::vector<std::shared_ptr<mir::graphics::GLRenderingProvider>> render_providers,
+#endif
                            const std::shared_ptr<miroil::Compositor> & compositor,
                            const std::shared_ptr<mir::compositor::DisplayListener>& displayListener)
                 {
                     std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
                     
-                    this->screensModel->init(display, render_providers.front(), qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+                    this->renderingProvider = render_providers.front();
+                    this->screensModel->init(display, renderingProvider, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+#else
+                    this->screensModel->init(display, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+#endif
                 }
             ),
             setTerminator,

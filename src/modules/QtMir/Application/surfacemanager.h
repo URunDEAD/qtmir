@@ -28,7 +28,16 @@
 
 #include <boost/bimap.hpp>
 
+#include <mir/version.h>
+
 Q_DECLARE_LOGGING_CATEGORY(QTMIR_SURFACEMANAGER)
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+namespace mir::graphics
+{
+class GLRenderingProvider;
+}
+#endif
 
 namespace qtmir {
 
@@ -77,6 +86,9 @@ private:
     WindowControllerInterface *m_windowController;
     WorkspaceControllerInterface *m_workspaceController;
     SessionMapInterface *m_sessionMap;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 19, 0)
+    mir::graphics::GLRenderingProvider* const m_glProvider;
+#endif
 
     friend class Workspace;
     using swbimap_t = boost::bimap<MirSurface*, miral::Window>;

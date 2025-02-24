@@ -21,12 +21,13 @@
 #include <QObject>
 #include <QScopedPointer>
 #include <QTimer>
-#include <mir/graphics/platform.h>
 #include <qpa/qplatformscreen.h>
 #include <QtSensors/QOrientationReading>
 
 // Mir
+#include <mir/version.h>
 #include <mir_toolkit/common.h>
+#include <mir/graphics/platform.h>
 
 // Miroil
 #include <miroil/display_configuration_storage.h>
@@ -42,8 +43,13 @@
 class OrientationSensor;
 namespace mir {
     namespace graphics {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
         class DisplaySink; class DisplaySyncGroup; class DisplayConfigurationOutput;
         namespace gl { class OutputSurface; }
+#else
+    namespace graphics { class DisplayBuffer; class DisplaySyncGroup; class DisplayConfigurationOutput; }
+    namespace renderer { namespace gl { class RenderTarget; }}
+#endif
     }
 }
 
@@ -121,7 +127,11 @@ protected:
     void removeWindow(ScreenPlatformWindow *window);
 
     void setMirDisplayConfiguration(const mir::graphics::DisplayConfigurationOutput &, bool notify = true);
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
     void setMirDisplaySink(mir::graphics::GLRenderingProvider &, mir::graphics::DisplaySink *, mir::graphics::DisplaySyncGroup *);
+#else
+    void setMirDisplayBuffer(mir::graphics::DisplayBuffer *, mir::graphics::DisplaySyncGroup *);
+#endif
     void swapBuffers();
     void makeCurrent();
     void doneCurrent();
@@ -143,8 +153,12 @@ private:
     QList<PlatformScreen::Mode> m_availableModes;
     bool m_isActive;
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
     std::unique_ptr<mir::graphics::gl::OutputSurface> m_outputSurface;
     mir::graphics::DisplaySink *m_displaySink;
+#else
+    mir::renderer::gl::RenderTarget *m_renderTarget;
+#endif
     mir::graphics::DisplaySyncGroup *m_displayGroup;
     miroil::DisplayId m_displayId;
     qtmir::OutputTypes m_type;

@@ -25,6 +25,11 @@
 #include <QGuiApplication>
 #include <QDebug>
 
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+#include <mir/graphics/platform.h>
+#endif
+
 using namespace qtmir;
 
 WindowModel::WindowModel()
@@ -36,6 +41,9 @@ WindowModel::WindowModel()
     }
 
     m_windowController = static_cast<WindowControllerInterface*>(nativeInterface->nativeResourceForIntegration("WindowController"));
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_glProvider = static_cast<mir::graphics::GLRenderingProvider*>(nativeInterface->nativeResourceForIntegration("GLRenderingProvider"));
+#endif
 
     auto windowModel = static_cast<WindowModelNotifier*>(nativeInterface->nativeResourceForIntegration("WindowModelNotifier"));
     connectToWindowModelNotifier(windowModel);
@@ -72,8 +80,12 @@ void WindowModel::onWindowAdded(const NewWindow &window)
     const int index = m_windowModel.count();
     beginInsertRows(QModelIndex(), index, index);
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    auto mirSurface = new MirSurface(window, m_windowController, *m_glProvider);
+#else
     auto mirSurface = new MirSurface(window, m_windowController);
-    connect(mirSurface, &MirSurface::isBeingDisplayedChanged, this, [=](){
+#endif
+    connect(mirSurface, &MirSurface::isBeingDisplayedChanged, this, [=, this](){
         if (mirSurface->isBeingDisplayed())
             return;
         onWindowRemoved(window.windowInfo);
@@ -105,7 +117,11 @@ void WindowModel::addInputMethodWindow(const NewWindow &window)
         qDebug("Multiple Input Method Surfaces created, removing the old one!");
         delete m_inputMethodSurface;
     }
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_inputMethodSurface = new MirSurface(window, m_windowController, *m_glProvider);
+#else
     m_inputMethodSurface = new MirSurface(window, m_windowController);
+#endif
     Q_EMIT inputMethodSurfaceChanged(m_inputMethodSurface);
 }
 
