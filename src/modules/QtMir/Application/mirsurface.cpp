@@ -1639,6 +1639,9 @@ void MirSurface::releaseAllPressedKeys()
         ulong timestamp = pressedKey.timestamp + deltaMs;
         auto ev = EventBuilder::instance()->make_key_event(pressedKey.deviceId,
                 uncompressTimestamp<qtmir::Timestamp>(qtmir::Timestamp(timestamp)),
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
+                std::vector<uint8_t>{},
+#endif
                 mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
                 mir_input_event_modifier_none);
 
