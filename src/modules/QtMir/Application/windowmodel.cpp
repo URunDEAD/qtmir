@@ -104,6 +104,11 @@ void WindowModel::onWindowRemoved(const miral::WindowInfo &windowInfo)
     }
 
     const int index = findIndexOf(windowInfo.window());
+    if (index == -1)
+    {
+        qWarning("Duplicate onWindowRemoved event received");
+        return;
+    }
 
     beginRemoveRows(QModelIndex(), index, index);
     m_windowModel.takeAt(index);
