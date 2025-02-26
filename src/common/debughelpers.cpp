@@ -317,7 +317,11 @@ QString mirKeyboardEventToString(MirKeyboardEvent const* event)
 {
     MirKeyboardAction keyboardAction = mir_keyboard_event_action(event);
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 15, 0)
+    xkb_keysym_t keyCode = mir_keyboard_event_key_code(event);
+#else
     xkb_keysym_t keyCode = mir_keyboard_event_keysym(event);
+#endif
 
     MirInputEventModifiers modifiers = mir_keyboard_event_modifiers(event);
 

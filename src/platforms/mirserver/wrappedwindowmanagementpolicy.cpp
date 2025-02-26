@@ -458,6 +458,13 @@ namespace qtmir
         return toMirRectangle(geom.marginsRemoved(windowMargins));
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 15, 0)
+    void WindowManagementPolicy::handle_request_drag_and_drop(miral::WindowInfo &window_info)
+    {
+        MinimalWindowManager::handle_request_drag_and_drop(window_info);
+    }
+#endif
+
     void WindowManagementPolicy::handle_request_move(miral::WindowInfo &window_info,
                                                     const MirInputEvent *input_event)
     {
@@ -790,6 +797,13 @@ void WrappedWindowManagementPolicy::set_window_margins(MirWindowType windowType,
 
     // TODO: update window positions/sizes to respect new margins.
 }
+
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 15, 0)
+void WrappedWindowManagementPolicy::handle_request_drag_and_drop(miral::WindowInfo &window_info)
+{
+    m_wrapper->handle_request_drag_and_drop(window_info);
+}
+#endif
 
 void WrappedWindowManagementPolicy::handle_request_move(miral::WindowInfo &window_info,
                                                 const MirInputEvent *input_event)
