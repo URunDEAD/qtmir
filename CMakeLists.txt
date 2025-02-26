@@ -64,7 +64,7 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-z,defs")
 add_custom_target(cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2
                                        ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/tests)
 
-option(WITH_CONTENTHUB "Build with content-hub" OFF)
+option(WITH_CONTENTHUB "Build with lomiri-content-hub" OFF)
 option(WITH_VALGRIND "Build with Valgrind detection" ON)
 option(WITH_MIR2 "Build with mir 2.x" OFF)
 
@@ -111,8 +111,8 @@ if(WITH_VALGRIND)
 endif()
 
 if(WITH_CONTENTHUB)
-pkg_check_modules(CONTENT_HUB libcontent-hub>=1.0.0 REQUIRED)
-message(STATUS "Bulding with content-hub")
+pkg_check_modules(CONTENT_HUB liblomiri-content-hub>=1.0.0 REQUIRED)
+message(STATUS "Bulding with lomiri-content-hub")
 endif()
 
 include_directories(SYSTEM ${APPLICATION_API_INCLUDE_DIRS})
