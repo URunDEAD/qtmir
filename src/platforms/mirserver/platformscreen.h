@@ -28,9 +28,25 @@
 #include <mir/version.h>
 #include <mir_toolkit/common.h>
 #include <mir/graphics/platform.h>
+#include <mir/graphics/display_configuration.h>
 
 // Miroil
 #include <miroil/display_configuration_storage.h>
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+
+#include <mir/renderer/gl/gl_surface.h>
+#include <mir/graphics/display_sink.h>
+
+#else
+
+#include <mir/graphics/display.h>
+#include <mir/graphics/display_buffer.h>
+#include <mir/renderer/gl/render_target.h>
+
+#include <miroil/mirbuffer.h>
+
+#endif
 
 // local
 #include "qtmir/types.h"
