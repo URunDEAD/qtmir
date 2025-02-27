@@ -252,9 +252,11 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         return nullptr;
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     if (m_surface->numBuffersReadyForCompositor(userId) > 0) {
         QTimer::singleShot(0, this, &MirSurfaceItem::update);
     }
+#endif
 
     QSGDefaultInternalImageNode *node = static_cast<QSGDefaultInternalImageNode*>(oldNode);
     if (!node) {
@@ -635,7 +637,7 @@ void MirSurfaceItem::invalidateSceneGraph()
 
 void MirSurfaceItem::TouchEvent::updateTouchPointStatesAndType()
 {
-    touchPointStates = 0;
+    touchPointStates = Qt::TouchPointStates{};
     for (int i = 0; i < touchPoints.count(); ++i) {
         touchPointStates |= touchPoints.at(i).state();
     }
@@ -714,7 +716,7 @@ void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface 
         connect(m_surface, &MirSurfaceInterface::cursorChanged, this, &MirSurfaceItem::setCursor);
         connect(m_surface, &MirSurfaceInterface::shellChromeChanged, this, &MirSurfaceItem::shellChromeChanged);
         // Prevent compositor frame swapping to cause a crash due to invalid access
-        connect(m_surface, &QObject::destroyed, this, [=](QObject*){
+        connect(m_surface, &QObject::destroyed, this, [this](QObject*){
             setSurface(nullptr);
         }, Qt::DirectConnection);
 

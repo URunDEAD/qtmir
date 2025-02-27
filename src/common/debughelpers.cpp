@@ -96,9 +96,11 @@ QString mirSurfaceAttribAndValueToString(MirWindowAttrib attrib, int value)
         str = QStringLiteral("state=%1").arg(mirSurfaceStateToStr(value));
         break;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
     case mir_window_attrib_swapinterval:
         str = QStringLiteral("swapinterval=%1").arg(value);
         break;
+#endif
 
     case mir_window_attrib_focus:
         str = QStringLiteral("focus=%1").arg(mirSurfaceFocusStateToStr(value));
@@ -315,7 +317,7 @@ QString mirKeyboardEventToString(MirKeyboardEvent const* event)
 {
     MirKeyboardAction keyboardAction = mir_keyboard_event_action(event);
 
-    xkb_keysym_t keyCode = mir_keyboard_event_key_code(event);
+    xkb_keysym_t keyCode = mir_keyboard_event_keysym(event);
 
     MirInputEventModifiers modifiers = mir_keyboard_event_modifiers(event);
 

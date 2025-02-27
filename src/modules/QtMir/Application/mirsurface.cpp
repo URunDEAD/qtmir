@@ -17,6 +17,7 @@
 
 #include "compositortextureprovider.h"
 #include "mirsurface.h"
+#include "mirbuffersgtexture.h"
 #include "mirsurfacelistmodel.h"
 #include "session_interface.h"
 #include "surfacemanager.h"
@@ -203,6 +204,9 @@ public:
 
 MirSurface::MirSurface(NewWindow newWindowInfo,
         WindowControllerInterface* controller,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+        mir::graphics::GLRenderingProvider& glProvider,
+#endif
         SessionInterface *session,
         MirSurface *parentSurface)
     : MirSurfaceInterface()
@@ -219,6 +223,9 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     , m_surface(std::make_shared<miroil::Surface>(newWindowInfo.surface))
     , m_session(session)
     , m_controller(controller)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    , m_glProvider(glProvider)
+#endif
     , m_orientationAngle(Mir::Angle0)
     , m_textures(new CompositorTextureProvider)
     , m_visible(newWindowInfo.windowInfo.is_visible())
@@ -265,7 +272,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
         m_size = size;
         QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
     });
-    connect(m_surfaceObserver.get(), &SurfaceObserver::positionChanged, this, [=](const QPoint& pos){
+    connect(m_surfaceObserver.get(), &SurfaceObserver::positionChanged, this, [=, this](const QPoint& pos){
         this->setPosition(pos);
     });
 
@@ -278,6 +285,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
         }
     });
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     connect(&m_frameDropperTimer, &QTimer::timeout,
             this, &MirSurface::dropPendingBuffer);
     // Rationale behind the frame dropper and its interval value:
@@ -294,6 +302,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     // in practice rarely happen.
     m_frameDropperTimer.setInterval(200);
     m_frameDropperTimer.setSingleShot(false);
+#endif
 
     QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);
 
@@ -320,8 +329,10 @@ MirSurface::~MirSurface()
 
 void MirSurface::onFramesPostedObserved()
 {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     // restart the frame dropper so that items have enough time to render the next frame.
     m_frameDropperTimer.start();
+#endif
 
     Q_EMIT framesPosted();
 }
@@ -373,6 +384,7 @@ Mir::Type MirSurface::type() const
     }
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 void MirSurface::dropPendingBuffer()
 {
     QMutexLocker locker(&m_mutex);
@@ -441,6 +453,7 @@ void MirSurface::startFrameDropper()
         m_frameDropperTimer.start();
     }
 }
+#endif
 
 QSharedPointer<QSGTexture> MirSurface::texture(qintptr userId)
 {
@@ -470,13 +483,21 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
     auto renderables = m_surface->generate_renderables((void*)userId);
 
     std::vector<SubSurfaceTexture> subsurfaces;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    if (renderables.size() > 0) {
+#else
     if (renderables.size() > 0 &&
             (m_surface->buffers_ready_for_compositor((void*)userId) > 0 || !texture->hasBuffer())
         ) {
+#endif
         // Avoid holding two buffers for the compositor at the same time. Thus free the current
         // before acquiring the next
         texture->freeBuffer();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         texture->setBuffer(renderables[0]->buffer());
+#else
+        texture->setBuffer(renderables[0]->buffer(), m_glProvider);
+#endif
         compositorTexture->incrementFrame();
 
         if (texture->textureSize() != m_size) {
@@ -501,7 +522,11 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
 
             QSharedPointer<MirBufferSGTexture> subtexture(new MirBufferSGTexture);
             subtexture->freeBuffer();
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+            texture->setBuffer(renderable->buffer(), m_glProvider);
+#else
             subtexture->setBuffer(renderable->buffer());
+#endif
             subsurfaces.emplace_back(
                 SubSurfaceTexture{
                     relativePosition,
@@ -511,19 +536,23 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
         m_subTextures = subsurfaces;
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     if (m_surface->buffers_ready_for_compositor((void*)userId) > 0) {
         // restart the frame dropper to give MirSurfaceItems enough time to render the next frame.
         // queued since the timer lives in a different thread
         QMetaObject::invokeMethod(&m_frameDropperTimer, "start", Qt::QueuedConnection);
     }
+#endif
 
     return m_subTextures;
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 bool MirSurface::numBuffersReadyForCompositor(qintptr userId)
 {
     return m_surface->buffers_ready_for_compositor((void*)userId);
 }
+#endif
 
 void MirSurface::onCompositorSwappedBuffers()
 {
@@ -981,7 +1010,7 @@ QString MirSurface::keymap() const
 
 void MirSurface::applyKeymap()
 {
-    QStringList stringList = m_keymap.split('+', QString::SkipEmptyParts);
+    QStringList stringList = m_keymap.split('+', Qt::SkipEmptyParts);
 
     QString layout = stringList[0];
     QString variant;
@@ -1320,7 +1349,7 @@ MirSurface::SurfaceObserverImpl::SurfaceObserverImpl()
 {
     // mir cursor names, used by the mir protocol
     // Cursor names are from CSS3: https://www.w3.org/TR/css-ui-3/#propdef-cursor
-    
+
     m_cursorNameToShape["default"] = Qt::ArrowCursor;
     m_cursorNameToShape["crosshair"] = Qt::CrossCursor;
     m_cursorNameToShape["wait"] =  Qt::WaitCursor;
@@ -1572,7 +1601,7 @@ QPoint MirSurface::convertLocalToDisplayCoords(const QPoint &localPos) const
 
     if (m_surface->parent()) {
         miroil::Surface parent(m_surface->parent());
-        
+
         auto parentPos = parent.top_left();
         displayPos.rx() += parentPos.x.as_int();
         displayPos.ry() += parentPos.y.as_int();
@@ -1622,10 +1651,12 @@ void MirSurface::releaseAllPressedKeys()
     for (auto &pressedKey : m_pressedKeys) {
         auto deltaMs = (ulong)(msecsSinceReference() - pressedKey.msecsSinceReference);
         ulong timestamp = pressedKey.timestamp + deltaMs;
-        std::vector<uint8_t> cookie{};
         auto ev = EventBuilder::instance()->make_key_event(pressedKey.deviceId,
                 uncompressTimestamp<qtmir::Timestamp>(qtmir::Timestamp(timestamp)),
-                cookie, mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
+                std::vector<uint8_t>{},
+#endif
+                mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
                 mir_input_event_modifier_none);
 
         auto ev1 = reinterpret_cast<MirKeyboardEvent const*>(ev.get());

@@ -73,7 +73,7 @@ WindowModelNotifier::WindowModelNotifier()
         });
     }, Qt::QueuedConnection);
 
-    connect(this, &WindowModelNotifier::windowRequestedRaise,       this, [this](const miral::WindowInfo &windowInfo) {
+    connect(this, &WindowModelNotifier::windowRequestedRaise,       this, [](const miral::WindowInfo &windowInfo) {
         WindowNotifierObserver::foreachObserverForWindow(windowInfo.window(), [](WindowNotifierObserver* observer) {
             Q_EMIT observer->windowRequestedRaise();
         });

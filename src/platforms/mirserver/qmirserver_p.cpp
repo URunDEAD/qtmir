@@ -32,6 +32,7 @@
 #include "wayland/xdgdecorationV1.h"
 #include "wayland/kwinserverdecoration.h"
 
+#include <mir/graphics/platform.h>
 #include <miroil/prompt_session_manager.h>
 #include <miroil/persist_display_config.h>
 #include <miroil/set_compositor.h>
@@ -43,6 +44,8 @@
 #include <miral/x11_support.h>
 #include <miral/keymap.h>
 #include <miral/wayland_extensions.h>
+
+#include <miral/lambda_as_function.h>
 
 // Qt
 #include <QCoreApplication>
@@ -120,13 +123,19 @@ bool MirServerThread::waitForMirStartup()
 QPlatformOpenGLContext *QMirServerPrivate::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
     QSurfaceFormat            format     = context->format();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     mir::graphics::Display  * mirDisplay = m_mirServerHooks.the_mir_display().get();
+#endif
     mir::graphics::GLConfig * gl_config  = m_openGLContext.the_open_gl_config().get();
     
     if (!gl_config)
         throw std::logic_error("No gl config available. Server not running?");
-    
+
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     return new MirOpenGLContext(*mirDisplay, *gl_config, format);
+#else
+    return new MirOpenGLContext(format, *gl_config);
+#endif
 }
 
 std::shared_ptr<miroil::PromptSessionManager> QMirServerPrivate::promptSessionManager() const
@@ -167,7 +176,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
     );
     
 
-    miral::AddInitCallback addInitCallback{[&, this]
+    miral::AddInitCallback addInitCallback{[]
     {
         qCDebug(QTMIR_MIR_MESSAGES) << "MirServer created";
         qCDebug(QTMIR_MIR_MESSAGES) << "Command line arguments passed to Qt:" << QCoreApplication::arguments();
@@ -184,7 +193,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
     waylandExtensions.add_extension(qtmir::qtXdgDecorationManagerV1Extension());
     waylandExtensions.add_extension(qtmir::qtKwinServerDecorationManagerExtension(m_windowModelNotifier));
 
-    runner.set_exception_handler([this]
+    runner.set_exception_handler([]
     {
         try {
             throw;
@@ -241,7 +250,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             addInitCallback,
             miroil::SetCompositor(
                 // Create the the QtCompositor 
-                    [this]()
+                    []()
                     -> std::shared_ptr<miroil::Compositor>
                 {
                     std::shared_ptr<miroil::Compositor> result = std::make_shared<QtCompositor>();
@@ -250,13 +259,20 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                 ,
                 // Initialization called by mir when the new compositor is setup up              
                     [this](const std::shared_ptr<mir::graphics::Display>& display,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+                           const std::vector<std::shared_ptr<mir::graphics::GLRenderingProvider>> render_providers,
+#endif
                            const std::shared_ptr<miroil::Compositor> & compositor,
                            const std::shared_ptr<mir::compositor::DisplayListener>& displayListener)
                 {
-                    
                     std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
                     
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+                    this->renderingProvider = render_providers.front();
+                    this->screensModel->init(display, renderingProvider, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+#else
                     this->screensModel->init(display, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+#endif
                 }
             ),
             setTerminator,

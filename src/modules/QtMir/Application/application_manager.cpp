@@ -334,7 +334,7 @@ Application* ApplicationManager::startApplication(const QString &inputAppId,
         if (application) {
             m_queuedStartApplications.append(inputAppId);
             qWarning() << "ApplicationManager::startApplication - application appId=" << appId << " is closing. Queuing start";
-            connect(application, &QObject::destroyed, this, [this, application, inputAppId, arguments]() {
+            connect(application, &QObject::destroyed, this, [this, inputAppId, arguments]() {
                 m_queuedStartApplications.removeAll(inputAppId);
                 // start the app.
                 startApplication(inputAppId, arguments);
@@ -787,10 +787,10 @@ void ApplicationManager::add(Application* application)
     // Additionally, only do this in case it's not a legacy app, ie Xwayland
     if (appId != QStringLiteral("xwayland.qtmir")) {
         connect(application, &Application::startProcessRequested,
-                this, [=]() { m_taskController->start(appId, arguments); },
+                this, [=, this]() { m_taskController->start(appId, arguments); },
                 Qt::QueuedConnection);
 
-        connect(application, &Application::stopProcessRequested, this, [=]() {
+        connect(application, &Application::stopProcessRequested, this, [=, this]() {
             if (!m_taskController->stop(appId)) {
                 qWarning() << "FAILED to ask lomiri-app-launch to stop application with appId" << appId
                            << "Sending SIGTERM to process:" << appId;
@@ -800,10 +800,10 @@ void ApplicationManager::add(Application* application)
         });
     }
 
-    connect(application, &Application::suspendProcessRequested, this, [=]() { m_taskController->suspend(appId); } );
-    connect(application, &Application::resumeProcessRequested, this, [=]() { m_taskController->resume(appId); } );
+    connect(application, &Application::suspendProcessRequested, this, [=, this]() { m_taskController->suspend(appId); } );
+    connect(application, &Application::resumeProcessRequested, this, [=, this]() { m_taskController->resume(appId); } );
 
-    connect(application, &Application::stopped, this, [=]() {
+    connect(application, &Application::stopped, this, [=, this]() {
         remove(application);
         application->deleteLater();
     });

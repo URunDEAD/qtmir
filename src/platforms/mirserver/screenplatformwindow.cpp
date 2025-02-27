@@ -19,7 +19,6 @@
 
 // Mir
 #include <mir/geometry/size.h>
-#include <mir/graphics/display_buffer.h>
 
 // Qt
 #include <qpa/qwindowsysteminterface.h>

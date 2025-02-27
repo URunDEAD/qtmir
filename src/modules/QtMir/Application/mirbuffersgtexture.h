@@ -17,13 +17,29 @@
 #ifndef MIRBUFFERSGTEXTURE_H
 #define MIRBUFFERSGTEXTURE_H
 
-#include <miroil/mirbuffer.h>
+
+#include <mir/version.h>
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+namespace mir::graphics
+{
+class Buffer;
+class GLRenderingProvider;
+namespace gl
+{
+class Texture;
+}
+}
+#endif
 
 #include <QSGTexture>
 
 #include <QtGui/qopengl.h>
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 class MirGlBuffer;
+#endif
+
 class MirBufferSGTexture : public QSGTexture
 {
     Q_OBJECT
@@ -31,7 +47,11 @@ public:
     MirBufferSGTexture();
     virtual ~MirBufferSGTexture();
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
+#else
+    void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer, mir::graphics::GLRenderingProvider& glProvider);
+#endif
     void freeBuffer();
     bool hasBuffer() const;
     int comparisonKey() const;
@@ -44,7 +64,12 @@ public:
     void bind() override;
 
 private:
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     std::shared_ptr<MirGlBuffer> m_mirBuffer;
+#else
+    std::shared_ptr<mir::graphics::Buffer> m_mirBuffer;
+    std::shared_ptr<mir::graphics::gl::Texture> m_mirTexture;
+#endif
 };
 
 #endif // MIRBUFFERSGTEXTURE_H

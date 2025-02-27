@@ -317,6 +317,8 @@ namespace qtmir
         getExtraInfo(windowInfo)->state = toQtState(windowInfo.state());
 
         Q_EMIT d->m_windowModel.windowAdded(NewWindow{windowInfo});
+
+        MinimalWindowManager::advise_new_window(windowInfo);
     }
 
     void WindowManagementPolicy::advise_focus_lost(const miral::WindowInfo &windowInfo)
@@ -454,11 +456,6 @@ namespace qtmir
 
         geom.moveTo(x, y);
         return toMirRectangle(geom.marginsRemoved(windowMargins));
-    }
-
-    void WindowManagementPolicy::handle_request_drag_and_drop(miral::WindowInfo &window_info)
-    {
-        MinimalWindowManager::handle_request_drag_and_drop(window_info);
     }
 
     void WindowManagementPolicy::handle_request_move(miral::WindowInfo &window_info,
@@ -792,11 +789,6 @@ void WrappedWindowManagementPolicy::set_window_margins(MirWindowType windowType,
     d->m_windowMargins[windowType] = margins;
 
     // TODO: update window positions/sizes to respect new margins.
-}
-
-void WrappedWindowManagementPolicy::handle_request_drag_and_drop(miral::WindowInfo &window_info)
-{
-    m_wrapper->handle_request_drag_and_drop(window_info);
 }
 
 void WrappedWindowManagementPolicy::handle_request_move(miral::WindowInfo &window_info,

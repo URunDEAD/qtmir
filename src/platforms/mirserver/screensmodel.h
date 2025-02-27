@@ -23,6 +23,7 @@
 #include <QPoint>
 
 // Mir
+#include <mir/version.h>
 #include "mir/int_wrapper.h"
 #include <miroil/display_listener_wrapper.h>
 
@@ -36,6 +37,9 @@ namespace mir {
     typedef IntWrapper <detail::GraphicsConfOutputIdTag> DisplayConfigurationOutputId;
     class Display;
     class DisplayConfigurationOutput;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    class GLRenderingProvider;
+#endif
     }
 }
 class PlatformScreen;
@@ -82,6 +86,9 @@ public:
     // called by MirServer
     void init(
         const std::shared_ptr<mir::graphics::Display>& display,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+        std::shared_ptr<mir::graphics::GLRenderingProvider> glProvider,
+#endif
         const std::shared_ptr<QtCompositor>& compositor,
         const std::shared_ptr<miroil::DisplayListenerWrapper> & displayListener);
     void terminate();
@@ -103,6 +110,9 @@ private:
     std::weak_ptr<mir::graphics::Display> m_display;
     std::shared_ptr<QtCompositor> m_compositor;
     std::shared_ptr<miroil::DisplayListenerWrapper> m_displayListener;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    std::shared_ptr<mir::graphics::GLRenderingProvider> m_glProvider;
+#endif
     QList<PlatformScreen*> m_screenList;
     bool m_compositing;
     std::shared_ptr<OrientationSensor> m_orientationSensor;

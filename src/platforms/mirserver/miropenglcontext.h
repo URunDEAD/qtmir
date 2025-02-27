@@ -23,6 +23,8 @@
 #include <QOpenGLDebugLogger>
 #endif
 
+#include <mir/version.h>
+
 class ScreenPlatformWindow;
 namespace mir { namespace graphics { class Display; class GLConfig; }}
 
@@ -30,10 +32,14 @@ class MirOpenGLContext : public QObject, public QPlatformOpenGLContext
 {
     Q_OBJECT
 public:
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    MirOpenGLContext(const QSurfaceFormat &format, const mir::graphics::GLConfig &gl_config);
+#else
     MirOpenGLContext(
         mir::graphics::Display &display,
         mir::graphics::GLConfig &gl_config
         , const QSurfaceFormat &);
+#endif
     ~MirOpenGLContext() = default;
 
     QSurfaceFormat format() const override;

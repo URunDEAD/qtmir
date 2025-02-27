@@ -1,7 +1,6 @@
-add_library(miroil OBJECT
+set(MIROIL_SRC
     compositor.cpp ${MIROIL_INCLUDE_DIRS}/miroil/compositor.h
     edid.cpp ${qtmir_include}/miroil/edid.h
-    mirbuffer.cpp ${MIROIL_INCLUDE_DIRS}/miroil/mirbuffer.h
     persist_display_config.cpp ${MIROIL_INCLUDE_DIRS}/miroil/persist_display_config.h
     display_configuration_policy.cpp ${qtmir_include}/miroil/display_configuration_policy.h
     display_configuration_controller_wrapper.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_controller_wrapper.h
@@ -19,6 +18,17 @@ add_library(miroil OBJECT
     surface.cpp ${MIROIL_INCLUDE_DIRS}/miroil/surface.h
     ${qtmir_include}/miroil/display_configuration_storage.h
     ${qtmir_include}/miroil/display_id.h
+)
+
+if (${mirserver_version} version_less 2.20.0)
+    set(MIROIL_SRC
+        ${MIROIL_SRC}
+        mirbuffer.cpp ${MIROIL_INCLUDE_DIRS}/miroil/mirbuffer.h
+    )
+endif()
+
+add_library(miroil OBJECT
+    ${MIROIL_SRC}
 )
 
 target_include_directories(miroil

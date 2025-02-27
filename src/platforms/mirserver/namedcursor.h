@@ -35,11 +35,12 @@ public:
 
     const QByteArray &name() const { return m_name; }
 
-    const void *as_argb_8888() const override { return nullptr; }
-    mir::geometry::Size size() const override { return {0,0}; }
+    const void *as_argb_8888() const override { return &transparent_pixel; }
+    mir::geometry::Size size() const override { return {1,1}; }
     mir::geometry::Displacement hotspot() const override { return {0,0}; }
 
 private:
+    uint32_t const transparent_pixel{0x00000000};
     QByteArray m_name;
 };
 
