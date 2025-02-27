@@ -162,8 +162,12 @@ MirGlBuffer::~MirGlBuffer()
 }
 
 std::shared_ptr<MirGlBuffer> MirGlBuffer::from_mir_buffer(const std::shared_ptr<mir::graphics::Buffer>& buffer) {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 12, 0)
     auto glBuffer = miroil::GLBuffer::from_mir_buffer(buffer);
- #if MIR_SERVER_MAJOR_VERSION < 2
+#else
+    auto glBuffer = std::make_shared<miroil::GLBuffer>(buffer);
+#endif
+#if MIR_SERVER_MAJOR_VERSION < 2
     if (glBuffer->type() == miroil::GLBuffer::Type::GLTextureSource)
         return std::make_shared<MirGlBufferTexturesource>(glBuffer);
     else
