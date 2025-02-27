@@ -289,7 +289,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         }
     } else {
         // - 1 since first subtexture is main texture
-        bool isEqual = subtextures.size() - 1 == node->childCount();
+        bool isEqual = (long int)subtextures.size() - 1 == (long int)node->childCount();
         if (!isEqual) {
             qWarning() << "Not equal, recreating childnodes";
             if (node->childCount() > 0) {
