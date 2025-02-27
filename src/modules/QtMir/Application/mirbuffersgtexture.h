@@ -37,6 +37,8 @@ class Texture;
 #include <QtGui/qopengl.h>
 
 #if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
+#include <miroil/mirbuffer.h>
+
 class MirGlBuffer;
 #endif
 
