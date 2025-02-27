@@ -32,7 +32,10 @@
 #include "wayland/xdgdecorationV1.h"
 #include "wayland/kwinserverdecoration.h"
 
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 16, 0)
 #include <mir/graphics/platform.h>
+#endif
 #include <miroil/prompt_session_manager.h>
 #include <miroil/persist_display_config.h>
 #include <miroil/set_compositor.h>

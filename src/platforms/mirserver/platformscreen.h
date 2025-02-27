@@ -27,7 +27,9 @@
 // Mir
 #include <mir/version.h>
 #include <mir_toolkit/common.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 16, 0)
 #include <mir/graphics/platform.h>
+#endif
 #include <mir/graphics/display_configuration.h>
 
 // Miroil

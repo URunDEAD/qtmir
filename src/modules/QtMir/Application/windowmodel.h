@@ -22,8 +22,10 @@
 #include "mirsurface.h"
 #include "windowmodelnotifier.h"
 
-#include <mir/graphics/platform.h>
 #include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 16, 0)
+#include <mir/graphics/platform.h>
+#endif
 
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
 namespace mir::graphics
