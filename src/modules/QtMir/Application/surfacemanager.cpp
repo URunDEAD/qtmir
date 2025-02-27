@@ -29,7 +29,7 @@
 #include <mirqtconversion.h>
 #include <workspacecontrollerinterface.h>
 
-#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
 #include <mir/graphics/platform.h>
 #include <qpa/qplatformnativeinterface.h>
 #endif
