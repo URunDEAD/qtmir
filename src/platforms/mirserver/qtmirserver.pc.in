@@ -4,6 +4,6 @@ includedir=@INCLUDEDIR@
 Name: qtmirserver
 Description: QtMir server library
 Version: @QTMIR_VERSION@
-Requires: miral >= 1.1, miroil,
+Requires: miral >= 1.1, miroil, mirserver
 Libs: -L${libdir} -lqtmirserver
 Cflags: -I${includedir}
