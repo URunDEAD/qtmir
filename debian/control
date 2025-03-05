@@ -108,6 +108,7 @@ Depends: qtmir (= ${binary:Version}),
          ${misc:Depends},
          libmiral-dev (>= 3.0),
          libmiroil-dev,
+         libmirserver-dev,
 Description: Developer files for QtMir server API
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
