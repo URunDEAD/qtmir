@@ -81,6 +81,7 @@ find_package(Threads REQUIRED)
 
 pkg_check_modules(MIRSERVER mirserver>=0.26 REQUIRED)
 if(WITH_MIR2)
+pkg_check_modules(MIRSERVER mirserver REQUIRED)
 pkg_check_modules(MIROIL miroil REQUIRED)
 else()
 pkg_check_modules(MIRCLIENT mirclient>=0.26 REQUIRED)
