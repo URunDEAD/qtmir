@@ -59,6 +59,7 @@ MirOpenGLContext::MirOpenGLContext(
     m_format.setStencilBufferSize(gl_config.stencil_buffer_bits());
     m_format.setSamples(-1);
 
+    m_format.setRenderableType(QSurfaceFormat::OpenGLES);
 #ifdef QGL_DEBUG
     // Query the glGetString function pointer manually to avoid linking to libGL or libGLES.
     const GLubyte *(*qtmir_glGetString) (GLenum name) =
