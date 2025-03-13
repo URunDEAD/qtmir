@@ -30,6 +30,7 @@
 #include <QtGui/private/qopenglcontext_p.h>
 
 // Mir
+#include <mir/version.h>
 #include <mir/graphics/display.h>
 #include <mir/renderer/gl/context.h>
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
