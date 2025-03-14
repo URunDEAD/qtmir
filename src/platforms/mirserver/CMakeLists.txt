@@ -133,7 +133,6 @@ add_library(qtmirserver-mirserver OBJECT
     wrappedwindowmanagementpolicy.cpp
  #   mirdisplayconfigurationobserver.cpp
     wayland-generated/qt-windowmanager_wrapper.cpp
-    wayland-generated/xdg-decoration-unstable-v1_wrapper.cpp
     wayland-generated/server-decoration_wrapper.cpp
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
@@ -156,7 +155,6 @@ set(QMIRSERVER_PLUGIN_SRC
     mirserverapplication.cpp
     windowmodelnotifier.cpp
 
-    wayland/xdgdecorationV1.cpp
     wayland/kwinserverdecoration.cpp
 
 # We need to run moc on these headers

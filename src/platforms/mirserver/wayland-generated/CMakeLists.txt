@@ -15,7 +15,6 @@ function(add_wayland_protocol PREFIX PROTOCOL)
 endfunction()
 
 add_wayland_protocol("qt_" "qt-windowmanager")
-add_wayland_protocol("z" "xdg-decoration-unstable-v1")
 add_wayland_protocol("org_kde_" "server-decoration")
 
 add_custom_target(refresh-wayland-wrapper

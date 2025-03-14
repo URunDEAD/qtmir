@@ -29,7 +29,6 @@
 #include "namedcursor.h"
 #include "promptsessionlistener.h"
 #include "qtwindowmanager.h"
-#include "wayland/xdgdecorationV1.h"
 #include "wayland/kwinserverdecoration.h"
 
 #include <mir/version.h>
@@ -193,7 +192,6 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
 
     miral::WaylandExtensions waylandExtensions{};
     waylandExtensions.add_extension(qtmir::qtWindowmanagerExtension());
-    waylandExtensions.add_extension(qtmir::qtXdgDecorationManagerV1Extension());
     waylandExtensions.add_extension(qtmir::qtKwinServerDecorationManagerExtension(m_windowModelNotifier));
 
     runner.set_exception_handler([]
