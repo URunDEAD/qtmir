@@ -523,7 +523,7 @@ std::vector<MirSurface::SubSurfaceTexture> MirSurface::updateTexture(qintptr use
             QSharedPointer<MirBufferSGTexture> subtexture(new MirBufferSGTexture);
             subtexture->freeBuffer();
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
-            texture->setBuffer(renderable->buffer(), m_glProvider);
+            subtexture->setBuffer(renderable->buffer(), m_glProvider);
 #else
             subtexture->setBuffer(renderable->buffer());
 #endif
