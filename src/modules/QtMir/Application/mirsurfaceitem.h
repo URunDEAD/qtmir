@@ -137,6 +137,8 @@ private:
     MirSurfaceInterface* m_surface;
     QQuickWindow* m_window;
 
+    std::vector<MirSurfaceInterface::SubSurfaceTexture> m_subtextures;
+
     QMutex m_mutex;
     SurfaceItemTextureProvider *m_textureProvider;
 

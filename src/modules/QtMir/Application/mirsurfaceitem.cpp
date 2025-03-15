@@ -245,9 +245,9 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     QMutexLocker textureMutexLocker(m_surface->textureMutex());
 
     const qintptr userId = (qintptr)window();
-    auto subtextures = m_surface->updateTexture(userId);
+    m_subtextures = m_surface->updateTexture(userId);
 
-    if (!userId || !m_textureProvider->texture() || subtextures.empty()) {
+    if (!userId || !m_textureProvider->texture() || m_subtextures.empty()) {
         delete oldNode;
         return nullptr;
     }
@@ -260,6 +260,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
 
     QSGDefaultInternalImageNode *node = static_cast<QSGDefaultInternalImageNode*>(oldNode);
     if (!node) {
+        qWarning() << "New node";
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
         QSGRenderContext *rc = QQuickWindowPrivate::get(window())->context;
         node = new QSGDefaultInternalImageNode(static_cast<QSGDefaultRenderContext *>(rc));
@@ -278,7 +279,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     node->setTexture(texture);
 
     // If we have no subtextures at all, drop all other childnodes
-    if (subtextures.size() - 1 <= 0) {
+    if (m_subtextures.size() - 1 <= 0) {
         if (node->childCount() > 0) {
             qWarning() << " dropping all childnodes";
             while (node->lastChild()) {
@@ -289,9 +290,9 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         }
     } else {
         // - 1 since first subtexture is main texture
-        bool isEqual = (long int)subtextures.size() - 1 == (long int)node->childCount();
+        bool isEqual = (long int)m_subtextures.size() - 1 == (long int)node->childCount();
         if (!isEqual) {
-            qWarning() << "Not equal, recreating childnodes";
+            qWarning() << "Not equal, recreating childnodes," << (long int)m_subtextures.size() << "vs" << (long int)node->childCount();
             if (node->childCount() > 0) {
                 qWarning() << " dropping all childnodes";
                 while (node->lastChild()) {
@@ -304,7 +305,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
 
         // Meh, this is not great code
         int first = 0;
-        for (auto sub : subtextures) {
+        for (auto sub : m_subtextures) {
             first++;
             // Skip first subtexture as this is the main texture
             if (first < 2)
@@ -351,7 +352,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         targetRect.setHeight(qMin(height(), static_cast<qreal>(textureSize.height())));
 
         // x/y from extent is offset
-        auto r = subtextures[0].extent;
+        auto r = m_subtextures[0].extent;
         targetRect.setX(r.x());
         targetRect.setY(r.y());
 
@@ -367,7 +368,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         qWarning() << "Streethcing" << height() << textureSize.height();
         node->setSubSourceRect(QRectF(0, 0, 1, 1));
 
-        auto r = subtextures[0].extent;
+        auto r = m_subtextures[0].extent;
         auto offset_x = r.x();
         auto offset_y = r.y();
         node->setTargetRect(QRectF(offset_x, offset_y, width(), height()));
