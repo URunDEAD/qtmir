@@ -66,11 +66,13 @@ public:
         : t(texture)
     {
     }
+
     QSGTexture *texture() const override {
         return t.data();
     }
 
     void releaseTexture() {
+        QMutexLocker releaseLocker(&lock);
         t.reset();
     }
 
@@ -82,6 +84,8 @@ public:
 
         Q_EMIT textureChanged();
     }
+
+    QMutex lock;
 
 public Q_SLOTS:
     void setSmooth(bool smooth) {
@@ -243,6 +247,7 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
 
     ensureTextureProvider();
     QMutexLocker textureMutexLocker(m_surface->textureMutex());
+    QMutexLocker providerLocker(&m_textureProvider->lock);
 
     const qintptr userId = (qintptr)window();
     auto subtextures = m_surface->updateTexture(userId);
