@@ -362,6 +362,7 @@ namespace qtmir
 
     void WindowManagementPolicy::advise_delete_window(const miral::WindowInfo &windowInfo)
     {
+        MinimalWindowManager::advise_delete_window(windowInfo);
         Q_EMIT d->m_windowModel.windowRemoved(windowInfo);
     }
 
