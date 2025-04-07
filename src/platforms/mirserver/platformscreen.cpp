@@ -57,7 +57,7 @@ namespace mg = mir::geometry;
 
 #define DEBUG_MSG_SCREENS qCDebug(QTMIR_SCREENS).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
 #define DEBUG_MSG_SENSORS qCDebug(QTMIR_SENSOR_MESSAGES).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
-#define WARNING_MSG_SCREENS qCWarning(QTMIR_SCREENS_MESSAGES).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
+#define WARNING_MSG_SCREENS qCWarning(QTMIR_SCREENS).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
 #define WARNING_MSG_SENSORS qCWarning(QTMIR_SENSOR_MESSAGES).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
 
 namespace {
