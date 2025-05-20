@@ -282,7 +282,11 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                     qCDebug(QTMIR_MIR_MESSAGES) << "Initializing screens model";
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
                     this->renderingProvider = render_providers.front();
-                    this->screensModel->init(display, renderingProvider, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+                    auto callback = [=, this](std::shared_ptr<mir::graphics::GLRenderingProvider> provider) {
+                        this->renderingProvider = provider;
+                        qCDebug(QTMIR_MIR_MESSAGES) << "renderingProvider set";
+                    };
+                    this->screensModel->init(display, render_providers, callback, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
 #else
                     this->screensModel->init(display, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
 #endif
