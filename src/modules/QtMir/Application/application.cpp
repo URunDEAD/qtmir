@@ -929,6 +929,8 @@ void Application::terminate()
     }
 
     for (auto session : m_sessions) {
+        // Avoid killing ourselves due to XWayland being connected through
+        // a socket we initially created ourselves.
         if (session->pid() == getpid())
             continue;
         kill(session->pid(), SIGTERM);
@@ -938,6 +940,7 @@ void Application::terminate()
     // See: https://github.com/ubports/ubuntu-app-launch/blob/9ffa5f76711d600c10c20795cdaeb2c0abfa7cde/libubuntu-app-launch/application-impl-base.cpp#L320
     QTimer::singleShot(5000, this, [this]() {
         for (auto session : m_sessions) {
+            // Same avoidance
             if (session->pid() == getpid())
                 continue;
             kill(session->pid(), SIGKILL);
