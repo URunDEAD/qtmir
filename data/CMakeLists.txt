@@ -3,5 +3,5 @@ install(FILES xwayland.qtmir.desktop
 )
 
 install(FILES xwayland.qtmir.png
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/256x256/apps
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/512x512/apps
 )
