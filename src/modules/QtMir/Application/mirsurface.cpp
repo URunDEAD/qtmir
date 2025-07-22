@@ -138,7 +138,7 @@ public:
 #else
     void attrib_changed(MirWindowAttrib, int) override;
     void resized_to(mir::geometry::Size const&) override;
-    void moved_to(mir::geometry::Point const&) override {};
+    void moved_to(mir::geometry::Point const&) override {}
     void hidden_set_to(bool) override;
 
     // Get new frame notifications from Mir, called from a Mir thread.
@@ -681,7 +681,6 @@ void MirSurface::teardown()
     for (const auto& id : m_views.keys()) {
         unregisterView(id);
     }
-    deleteLater();
 }
 
 void MirSurface::resize(int width, int height)
