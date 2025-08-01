@@ -1145,8 +1145,9 @@ void MirSurface::onCloseTimedOut()
         }
     } else {
         // In case this is a weird combie process, just try to remove the application it was related to
-        Application *app = static_cast<Application*>(m_session->application());
-        if (app) {
+        if (m_session && m_session->application()) {
+            Application *app = static_cast<Application*>(m_session->application());
+
             WARNING_MSG << "(), app with ID " << app->appId() << " has " <<
                     "ignored request to close a window. Maybe it is dead already?" <<
                     "Terminating the application anyway.";
