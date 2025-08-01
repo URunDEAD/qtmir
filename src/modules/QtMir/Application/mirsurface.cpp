@@ -1152,6 +1152,19 @@ void MirSurface::onCloseTimedOut()
                     "ignored request to close a window. Maybe it is dead already?" <<
                     "Terminating the application anyway.";
             app->terminate();
+        } else {
+            WARNING_MSG << "() object is still alive despite being not live "
+                    "and has no session. Something hold us up? Will now try to "
+                    "ask Mir to force close this surface. Expect strange "
+                    "behavior.";
+
+            try {
+                m_controller->forceClose(m_window);
+            } catch (const std::out_of_range&) {
+                WARNING_MSG << "() and Mir doesn't even have this surface "
+                        "anymore. What on earth is happenning???";
+                // At this point there's nothing else we can do...
+            }
         }
     }
 }
