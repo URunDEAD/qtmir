@@ -581,7 +581,9 @@ void WrappedWindowManagementPolicy::deliver_keyboard_event(const MirKeyboardEven
     if (mir_keyboard_event_action(event) == mir_keyboard_action_down) {
         tools.invoke_under_lock([&]() {
             if (tools.active_window() != window) {
-                tools.select_active_window(window);
+                try {
+                    tools.select_active_window(window);
+                } catch (const std::out_of_range&) { }
             }
         });
     }
@@ -593,7 +595,9 @@ void WrappedWindowManagementPolicy::deliver_touch_event(const MirTouchEvent *eve
 {
     tools.invoke_under_lock([&]() {
         if (tools.active_window() != window) {
-            tools.select_active_window(window);
+            try {
+                tools.select_active_window(window);
+            } catch (const std::out_of_range&) { }
         }
     });
 
@@ -606,7 +610,9 @@ void WrappedWindowManagementPolicy::deliver_pointer_event(const MirPointerEvent 
     if (mir_pointer_event_action(event) == mir_pointer_action_button_down) {
         tools.invoke_under_lock([&]() {
             if (tools.active_window() != window) {
-                tools.select_active_window(window);
+                try {
+                    tools.select_active_window(window);
+                } catch (const std::out_of_range&) { }
             }
         });
     }
