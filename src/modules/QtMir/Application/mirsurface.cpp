@@ -476,6 +476,19 @@ bool MirSurface::updateTextureLocked(qintptr userId, CompositorTexture *composit
             QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
         }
 
+        auto const mirTopLeft = m_surface->top_left();
+        auto const mirStreamPosition = renderables[0]->screen_position();
+        QRectF const newExtents(
+            mirStreamPosition.left().as_int() - mirTopLeft.x.as_int(),
+            mirStreamPosition.top().as_int() - mirTopLeft.y.as_int(),
+            mirStreamPosition.size.width.as_int(),
+            mirStreamPosition.size.height.as_int()
+        );
+
+        if (m_extents != newExtents) {
+            m_extents = newExtents;
+        }
+
         compositorTexture->setUpToDate(true);
     }
 
@@ -657,6 +670,11 @@ void MirSurface::setPosition(const QPoint newDisplayPosition)
 QSize MirSurface::size() const
 {
     return m_size;
+}
+
+QRectF MirSurface::windowExtents()
+{
+    return m_extents;
 }
 
 Mir::State MirSurface::state() const

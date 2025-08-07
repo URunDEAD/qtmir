@@ -148,6 +148,10 @@ public:
         Q_EMIT focusRequested();
     }
 
+    QRectF windowExtents() override {
+        return QRect(0, 0, size().width(), size().height());
+    }
+
 public Q_SLOTS:
     void requestState(Mir::State qmlState) override;
     void onCompositorSwappedBuffers() override;

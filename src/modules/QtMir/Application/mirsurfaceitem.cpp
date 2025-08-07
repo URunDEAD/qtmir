@@ -280,6 +280,11 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         targetRect.setWidth(qMin(width(), static_cast<qreal>(textureSize.width())));
         targetRect.setHeight(qMin(height(), static_cast<qreal>(textureSize.height())));
 
+        // x/y from extent is offset
+        auto r = m_surface->windowExtents();
+        targetRect.setX(r.x());
+        targetRect.setY(r.y());
+
         qreal u = targetRect.width() / textureSize.width();
         qreal v = targetRect.height() / textureSize.height();
         node->setSubSourceRect(QRectF(0, 0, u, v));
@@ -289,8 +294,12 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     } else {
         // Stretch
         node->setSubSourceRect(QRectF(0, 0, 1, 1));
-        node->setTargetRect(QRectF(0, 0, width(), height()));
-        node->setInnerTargetRect(QRectF(0, 0, width(), height()));
+
+        auto r = m_surface->windowExtents();
+        auto offset_x = r.x();
+        auto offset_y = r.y();
+        node->setTargetRect(QRectF(offset_x, offset_y, width(), height()));
+        node->setInnerTargetRect(QRectF(offset_x, offset_y, width(), height()));
     }
 
     node->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
