@@ -171,6 +171,8 @@ public:
 
     void requestFocus() override;
 
+    QRectF windowExtents() override;
+
     ////
     // Own API
     void setPosition(const QPoint newPosition);
@@ -273,6 +275,7 @@ private:
     bool m_sizePendingChange;
     QSize m_pendingResize;
     QString m_keymap;
+    QRectF m_extents;
 
     QCursor m_cursor;
     Mir::State m_state; // FIXME: remove when Mir gains additional window states to match Mir::State
