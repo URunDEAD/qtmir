@@ -42,6 +42,9 @@ set(QT5PLATFORMSUPPORT_LIBS
     Qt5ServiceSupport::Qt5ServiceSupport
 )
 
+find_package(Freetype REQUIRED)
+pkg_check_modules(HARFBUZZ REQUIRED harfbuzz)
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src/common
@@ -81,6 +84,8 @@ endif()
 
     ${VALGRIND_INCLUDE_DIRS}
 )
+
+include_directories(SYSTEM ${HARFBUZZ_INCLUDE_DIRS})
 
 # We have to remove -pedantic for tracepoints.c
 string (REPLACE " -pedantic " " " TRACEPOINTS_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
@@ -217,6 +222,8 @@ target_link_libraries(qtmirserver
         Qt5::Quick
         Qt5::Sensors
         ${QT5PLATFORMSUPPORT_LIBS}
+        Freetype::Freetype
+        ${HARFBUZZ_LIBRARIES}
 )
 
 set_target_properties(qtmirserver
