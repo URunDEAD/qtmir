@@ -261,11 +261,19 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
 
     // Output data - each output has a unique id and corresponding type. Can be multiple cards.
     m_displayId.output_id = screen.id;
+
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 22, 0)
     try {
         m_displayId.edid.parse_data(reinterpret_cast<std::vector<uint8_t> const&>(screen.edid));
     } catch (std::runtime_error const& e) {
         printf("Failed to parse EDID - %s\n", e.what());
     }
+#else
+    m_displayId.edid.vendor = screen.display_info.vendor.value_or("");
+    m_displayId.edid.product_code = screen.display_info.product_code.value_or(0);
+    m_displayId.edid.serial_number = screen.display_info.serial_number.value_or(0);
+    m_displayId.edid.size = {screen.physical_size_mm.width.as_int(), screen.physical_size_mm.height.as_int()};
+#endif
 
     auto type = static_cast<qtmir::OutputTypes>(screen.type); //FIXME: need compile time check these are equivalent
     if (m_type != type) {
