@@ -58,14 +58,14 @@ ScreensModel::ScreensModel([[maybe_unused]]QObject *parent)
 void ScreensModel::init(
     const std::shared_ptr<mir::graphics::Display>& display,
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
-    const std::vector<std::shared_ptr<mir::graphics::GLRenderingProvider>> renderProviders,
+    std::shared_ptr<mir::graphics::GLRenderingProvider> glProvider,
 #endif
     const std::shared_ptr<QtCompositor>& compositor,
     const std::shared_ptr<miroil::DisplayListenerWrapper>& displayListener)
 {
     m_display = display;
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
-    m_glProviders = renderProviders;
+    m_glProvider = std::move(glProvider);
 #endif
     m_compositor = compositor;
     m_displayListener = displayListener;
@@ -203,24 +203,7 @@ void ScreensModel::updateInternal()
 
             Q_FOREACH (auto screen, m_screenList) {
                 if (dbGeom == screen->geometry()) {
-                    // Find suitable glProvider
-                    std::pair<mg::probe::Result, std::shared_ptr<mg::GLRenderingProvider>> best_provider = std::make_pair(mg::probe::unsupported, nullptr);
-                    for (auto const& provider : m_glProviders)
-                    {
-                        auto suitability = provider->suitability_for_display(sink);
-                        if (suitability > best_provider.first)
-                        {
-                            best_provider = std::make_pair(suitability, provider);
-                        }
-                    }
-
-                    if (best_provider.first == mg::probe::unsupported)
-                    {
-                        BOOST_THROW_EXCEPTION((std::logic_error{"No rendering platform claims to support this output"}));
-                    }
-
-                    auto const chosen_provider = best_provider.second;
-                    screen->setMirDisplaySink(*chosen_provider, &sink, &group);
+                    screen->setMirDisplaySink(*m_glProvider, &sink, &group);
                     break;
                 }
             }

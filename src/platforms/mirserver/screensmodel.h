@@ -87,7 +87,7 @@ public:
     void init(
         const std::shared_ptr<mir::graphics::Display>& display,
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
-        const std::vector<std::shared_ptr<mir::graphics::GLRenderingProvider>> render_providers,
+        std::shared_ptr<mir::graphics::GLRenderingProvider> glProvider,
 #endif
         const std::shared_ptr<QtCompositor>& compositor,
         const std::shared_ptr<miroil::DisplayListenerWrapper> & displayListener);
@@ -111,7 +111,7 @@ private:
     std::shared_ptr<QtCompositor> m_compositor;
     std::shared_ptr<miroil::DisplayListenerWrapper> m_displayListener;
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
-    std::vector<std::shared_ptr<mir::graphics::GLRenderingProvider>> m_glProviders;
+    std::shared_ptr<mir::graphics::GLRenderingProvider> m_glProvider;
 #endif
     QList<PlatformScreen*> m_screenList;
     bool m_compositing;

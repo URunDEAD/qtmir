@@ -258,7 +258,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                     return result;
                 }
                 ,
-                // Initialization called by mir when the new compositor is setup up
+                // Initialization called by mir when the new compositor is setup up              
                     [this](const std::shared_ptr<mir::graphics::Display>& display,
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
                            const std::vector<std::shared_ptr<mir::graphics::GLRenderingProvider>> render_providers,
@@ -267,9 +267,10 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                            const std::shared_ptr<mir::compositor::DisplayListener>& displayListener)
                 {
                     std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
-
+                    
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
-                    this->screensModel->init(display, render_providers, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+                    this->renderingProvider = render_providers.front();
+                    this->screensModel->init(display, renderingProvider, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
 #else
                     this->screensModel->init(display, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
 #endif
