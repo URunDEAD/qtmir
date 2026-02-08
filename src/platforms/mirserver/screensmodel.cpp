@@ -125,6 +125,11 @@ void ScreensModel::updateInternal()
 {
     DEBUG_MSG << "()";
 
+    if (m_compositing) {
+        DEBUG_MSG << "updateInternal() ignored while compositing";
+        return;
+    }
+
     const bool wasCompositing = m_compositing;
 
     auto display = m_display.lock();
@@ -204,7 +209,21 @@ void ScreensModel::updateInternal()
                          sink.view_area().size.height.as_int());
 
             Q_FOREACH (auto screen, m_screenList) {
-                if (dbGeom == screen->geometry()) {
+                QSize logical = screen->geometry().size();
+                qreal scale = screen->scale();
+
+                QRect physical(
+                    screen->geometry().x(),
+                    screen->geometry().y(),
+                    logical.width() / scale,
+                    logical.height() / scale
+                );
+
+                qCDebug(QTMIR_SCREENS) << "Comparing sink physical geom" << dbGeom
+                           << "to screen physical geom" << physical;
+
+                if (dbGeom == physical)
+                {
                     // Find suitable glProvider
                     std::pair<mg::probe::Result, std::shared_ptr<mg::GLRenderingProvider>> best_provider = std::make_pair(mg::probe::unsupported, nullptr);
 
