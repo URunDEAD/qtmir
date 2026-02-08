@@ -269,7 +269,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                     std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
                     qCDebug(QTMIR_MIR_MESSAGES) << "Initializing screens model";
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
-                    auto callback = [=](std::shared_ptr<mir::graphics::GLRenderingProvider> provider) {
+                    auto callback = [=, this](std::shared_ptr<mir::graphics::GLRenderingProvider> provider) {
                         this->renderingProvider = provider;
                         qCDebug(QTMIR_MIR_MESSAGES) << "renderingProvider set";
                     };
