@@ -174,6 +174,7 @@ private:
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
     std::unique_ptr<mir::graphics::gl::OutputSurface> m_outputSurface;
     mir::graphics::DisplaySink *m_displaySink;
+    mir::graphics::DisplaySink *m_lastDisplaySink = nullptr;
 #else
     mir::renderer::gl::RenderTarget *m_renderTarget;
 #endif

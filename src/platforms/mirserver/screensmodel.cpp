@@ -125,11 +125,6 @@ void ScreensModel::updateInternal()
 {
     DEBUG_MSG << "()";
 
-    if (m_compositing) {
-        DEBUG_MSG << "updateInternal() ignored while compositing";
-        return;
-    }
-
     const bool wasCompositing = m_compositing;
 
     auto display = m_display.lock();
