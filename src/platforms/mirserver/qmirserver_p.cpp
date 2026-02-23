@@ -35,6 +35,9 @@
 
 // Qt
 #include <QCoreApplication>
+#include <QDBusConnection>
+#include <QDBusInterface>
+#include <QMap>
 #include <QOpenGLContext>
 
 #ifdef WITH_VALGRIND
@@ -141,6 +144,23 @@ PromptSessionListener *QMirServerPrivate::promptSessionListener() const
     return m_mirServerHooks.promptSessionListener();
 }
 
+inline void exportEnvVarToDbus(const std::string& key, const std::string& value)
+{
+    QDBusInterface dbusDaemon("org.freedesktop.DBus", "/org/freedesktop/DBus",
+                              "org.freedesktop.DBus", QDBusConnection::sessionBus());
+    QVariantMap pair;
+    pair.insert(QString::fromStdString(key), QString::fromStdString(value));
+    dbusDaemon.call("UpdateActivationEnvironment", pair);
+}
+
+inline void exportEnvVarToSystemd(const std::string& key, const std::string& value)
+{
+    QDBusInterface sdManager("org.freedesktop.systemd1", "/org/freedesktop/systemd1",
+                             "org.freedesktop.systemd1.Manager", QDBusConnection::sessionBus());
+    const QString pair = QString::fromStdString(key) + QStringLiteral("=") + QString::fromStdString(value);
+    sdManager.call("SetEnvironment", QStringList() << pair);
+}
+
 void QMirServerPrivate::run(const std::function<void()> &startCallback)
 {
 
@@ -172,7 +192,10 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
         m_mirServerHooks.createInputDeviceObserver();
         if (auto const x11_display = runner.x11_display())
         {
-            setenv("DISPLAY", x11_display.value().c_str(), 1);
+            const auto displayVar = x11_display.value();
+            setenv("DISPLAY", displayVar.c_str(), 1);
+            exportEnvVarToDbus("DISPLAY", displayVar);
+            exportEnvVarToSystemd("DISPLAY", displayVar);
         }
     });
 
