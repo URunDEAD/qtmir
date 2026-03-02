@@ -125,9 +125,10 @@ namespace qtmir
             QFileInfo info(QStringLiteral("/proc/%1/exe").arg(appPid));
 
             // TODO: this is a brute-force fix to make sure only maliit-server can be an input method
-            if (info.symLinkTarget() != "/usr/bin/maliit-server") {
+            auto maliitBinaryPath = info.symLinkTarget();
+            if (maliitBinaryPath != "/usr/bin/maliit-server" && maliitBinaryPath != "/usr/bin/maliit6-server") {
                 qWarning() << "removing mir_window_type_inputmethod method type for" << info.symLinkTarget()
-                        << "as it is not maliit-server";
+                        << "as it is not maliit(6)-server";
                 surfaceType = mir_window_type_normal;
                 parameters.type() = mir_window_type_normal;
             }

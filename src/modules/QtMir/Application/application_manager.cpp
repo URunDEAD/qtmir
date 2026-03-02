@@ -651,7 +651,7 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
 
     // We want to match both "maliit-server" and "/usr/bin/maliit-server"
     QRegularExpression isMaliitOrQtWebProess(
-        QStringLiteral("((^|/)maliit-server|qt5/libexec/QtWebProcess)$"));
+        QStringLiteral("((^|/)maliit6?-server|qt5/libexec/QtWebProcess)$"));
 
     if (isMaliitOrQtWebProess.match(argv0).hasMatch()) {
         authorized = true;
