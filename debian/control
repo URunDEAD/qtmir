@@ -138,7 +138,7 @@ Depends: qtmir (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Provides: lomiri-application-impl,
-          lomiri-application-impl-27,
+          lomiri-application-impl-28,
 Description: Qt/QML module for Lomiri specific Mir APIs
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
