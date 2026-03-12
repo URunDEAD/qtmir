@@ -58,9 +58,6 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR} # for tracepoints.h
 )
 
-set(MIRCOMMON_INCLUDE_DIRS /usr/include/mircommon/)
-set(MIRCOMMON_LDFLAGS "-lmircommon")
-
 include_directories(
     SYSTEM
     ${MIRAL_INCLUDE_DIRS}
@@ -147,7 +144,6 @@ add_library(qtmirserver-mirserver OBJECT
     setqtcompositor.cpp setqtcompositor.h
     eventdispatch.cpp eventdispatch.h
     promptsessionmanager.cpp promptsessionmanager.h promptsession.h
-    wayland-generated/qt-windowmanager_wrapper.cpp
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
 
@@ -194,6 +190,7 @@ add_library(qtmirserver SHARED
     $<TARGET_OBJECTS:qtmirserver-nomirserver>
     $<TARGET_OBJECTS:qtmirserver-mirserver>
     $<TARGET_OBJECTS:miral-prototypes>
+    $<TARGET_OBJECTS:wayland-protocols>
 )
 
 target_link_libraries(qtmirserver
@@ -277,7 +274,12 @@ PRIVATE
     qtmirserver
     ${QT5PLATFORMSUPPORT_LIBS}
 
+    ${MIRCOMMON_LDFLAGS}
     ${MIRSERVER_LDFLAGS}
+    ${MIRWAYLAND_LDFLAGS}
+    ${WAYLAND_CLIENT_LIBRARIES}
+    ${WAYLAND_SERVER_LDFLAGS}
+
     ${URL_DISPATCHER_LDFLAGS}
     ${EGL_LDFLAGS}
     ${LTTNG_LIBRARIES}

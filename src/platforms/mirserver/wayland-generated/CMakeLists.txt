@@ -1,7 +1,7 @@
 function(add_wayland_protocol PREFIX PROTOCOL)
     set(PROTOCOL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../wayland-protocols/${PROTOCOL}.xml")
 
-    set(GENERATE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/${PROTOCOL}_wrapper")
+    set(GENERATE_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROTOCOL}_wrapper")
 
     if(WITH_MIR2)
         find_program(MIR_WAYLAND_GENERATOR mir_wayland_generator)
@@ -24,7 +24,9 @@ endfunction()
 
 add_wayland_protocol("qt_" "qt-windowmanager")
 
-add_custom_target(refresh-wayland-wrapper
-    DEPENDS ${GENERATED_FILES}
-    SOURCES ${GENERATED_FILES}
+include_directories(wayland-protocols
+                    ${MIRCORE_INCLUDE_DIRS}
+                    ${MIRWAYLAND_INCLUDE_DIRS}
+                    ${CMAKE_CURRENT_BINARY_DIR}/../
 )
+add_library(wayland-protocols STATIC ${GENERATED_FILES})
