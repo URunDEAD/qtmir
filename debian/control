@@ -17,6 +17,8 @@ Build-Depends: cmake,
                libmir1common-dev (>= 0.26.0),
                libmir1server-dev (>= 0.26.0),
                libmir1wayland-dev (>= 1.2),
+# this should actually be a dependency of libmir1wayland-dev:
+               libwayland-dev,
                libmtdev-dev,
                libprocess-cpp-dev,
                libqt5sensors5-dev,
