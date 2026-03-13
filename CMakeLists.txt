@@ -87,17 +87,31 @@ if(WITH_MIR2)
     pkg_check_modules(MIRSERVER mirserver>=2.0 REQUIRED)
     pkg_check_modules(MIRRENDERERGLDEV mir-renderer-gl-dev>=2.0 REQUIRED)
     pkg_check_modules(MIRAL miral>=3.0 REQUIRED)
+    pkg_search_module(MIRCOMMON mircommon REQUIRED)
+    pkg_search_module(MIRCORE mircore REQUIRED)
+
     # Mir 2-specific
     pkg_check_modules(MIROIL miroil>=2.0 REQUIRED)
+
+    # Wayland extension qt-windowmanager support
+    pkg_search_module(MIRWAYLAND mirwayland>=1.2 REQUIRED)
 
     set(MIR_VERSION_MAJOR 2)
 else()
     pkg_search_module(MIRSERVER REQUIRED mir1server>=0.26 mirserver>=0.26)
     pkg_search_module(MIRRENDERERGLDEV REQUIRED mir1-renderer-gl-dev>=0.26 mir-renderer-gl-dev>=0.26)
     pkg_search_module(MIRAL REQUIRED mir1al>=1.1.0 miral>=1.1.0)
+    pkg_search_module(MIRCOMMON mir1common REQUIRED)
+    pkg_search_module(MIRCORE mir1core REQUIRED)
+
+    # Wayland extension qt-windowmanager support
+    pkg_search_module(MIRWAYLAND mir1wayland>=1.2 REQUIRED)
 
     set(MIR_VERSION_MAJOR 1)
 endif()
+
+pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
+pkg_check_modules(WAYLAND_SERVER REQUIRED wayland-server)
 
 pkg_check_modules(XKBCOMMON xkbcommon REQUIRED)
 pkg_check_modules(GLIB glib-2.0 REQUIRED)

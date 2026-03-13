@@ -23,6 +23,7 @@ else()
 endif()
 
 add_subdirectory(miral)
+add_subdirectory(wayland-generated)
 
 # Hacks for the QPA privates monster.
 pkg_check_modules(FONTCONFIG fontconfig REQUIRED)
@@ -64,6 +65,7 @@ include_directories(
     ${MIRSERVER_INCLUDE_DIRS}
     ${MIRRENDERERGLDEV_INCLUDE_DIRS}
     ${MIRSERVER_INCLUDE_DIRS}
+    ${MIRWAYLAND_INCLUDE_DIRS}
 
     ${URL_DISPATCHER_INCLUDE_DIRS}
     ${EGL_INCLUDE_DIRS}
@@ -114,6 +116,7 @@ add_library(qtmirserver-nomirserver OBJECT
     displayconfigurationstorage.cpp
     nativeinterface.cpp
     services.cpp
+    urlbuilderdispatcher.cpp
     windowcontroller.cpp
     workspacecontroller.cpp
     tracepoints.c
@@ -149,6 +152,7 @@ set(QMIRSERVER_PLUGIN_SRC
     ${CMAKE_SOURCE_DIR}/src/common/debughelpers.cpp
     cursor.cpp
     eventbuilder.cpp
+    qtwindowmanager.cpp
     qteventfeeder.cpp
     qmirserver.cpp
     qmirserver_p.cpp
@@ -186,6 +190,7 @@ add_library(qtmirserver SHARED
     $<TARGET_OBJECTS:qtmirserver-nomirserver>
     $<TARGET_OBJECTS:qtmirserver-mirserver>
     $<TARGET_OBJECTS:miral-prototypes>
+    $<TARGET_OBJECTS:wayland-protocols>
 )
 
 target_link_libraries(qtmirserver
@@ -203,6 +208,11 @@ target_link_libraries(qtmirserver
         ${GIO_LDFLAGS}
         ${FONTCONFIG_LDFLAGS}
         ${XKBCOMMON_LIBRARIES}
+
+        ${MIRCOMMON_LDFLAGS}
+        ${MIRWAYLAND_LDFLAGS}
+        ${WAYLAND_CLIENT_LIBRARIES}
+        ${WAYLAND_SERVER_LDFLAGS}
 
         ${CONTENT_HUB_LIBRARIES}
 
@@ -264,7 +274,12 @@ PRIVATE
     qtmirserver
     ${QT5PLATFORMSUPPORT_LIBS}
 
+    ${MIRCOMMON_LDFLAGS}
     ${MIRSERVER_LDFLAGS}
+    ${MIRWAYLAND_LDFLAGS}
+    ${WAYLAND_CLIENT_LIBRARIES}
+    ${WAYLAND_SERVER_LDFLAGS}
+
     ${URL_DISPATCHER_LDFLAGS}
     ${EGL_LDFLAGS}
     ${LTTNG_LIBRARIES}
