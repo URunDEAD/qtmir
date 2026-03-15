@@ -28,11 +28,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/mod
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -fno-strict-aliasing -Wextra")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_C_STANDARD 17)
+set (CMAKE_CXX_STANDARD 17)
 
 if ("${CMAKE_CXX_COMPILER}" MATCHES "clang")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-return-type-c-linkage -Wno-mismatched-tags -Wno-inconsistent-missing-override -Wno-implicit-exception-spec-mismatch -Wno-unknown-pragmas")
