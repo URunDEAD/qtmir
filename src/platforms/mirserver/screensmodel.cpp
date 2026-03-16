@@ -65,7 +65,7 @@ void ScreensModel::init(
     // Queued connections work because the thread affinity of this class is with the Qt GUI thread.
     auto qtCompositor = compositor.get();
     connect(qtCompositor, &QtCompositor::starting,
-            this, &ScreensModel::onCompositorStarting);
+            this, &ScreensModel::onCompositorStarting, Qt::AutoConnection);
     connect(qtCompositor, &QtCompositor::stopping,
             this, &ScreensModel::onCompositorStopping, Qt::BlockingQueuedConnection);
 
