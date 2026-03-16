@@ -1149,10 +1149,12 @@ void MirSurface::onCloseTimedOut()
                 // FIXME: We should have a way to ask the user if they'd like
                 // to kill the app.
                 // ref https://github.com/ubports/ubuntu-touch/issues/1417
-                WARNING_MSG << "(), app with ID " << app->appId() << " has " <<
-                    "ignored request to close a window. Terminating the " <<
-                    "application. This could be a bug in the application.";
-                app->terminate();
+                if (app->isTouchApp()) {
+                    WARNING_MSG << "(), app with ID " << app->appId() << " has " <<
+                        "ignored request to close a window. Terminating the " <<
+                        "application. This could be a bug in the application.";
+                    app->terminate();
+                }
             }
         } else {
             // Weird zombie surface. Removing it may still cause problems later
