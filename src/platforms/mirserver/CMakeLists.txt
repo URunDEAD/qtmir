@@ -37,8 +37,6 @@ if (WITH_CONTENTHUB)
     add_definitions(-DWITH_CONTENTHUB)
 endif()
 
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -fPIC")
-
 find_package(Qt5FontDatabaseSupport REQUIRED)
 find_package(Qt5ThemeSupport REQUIRED)
 find_package(Qt5EventDispatcherSupport REQUIRED)

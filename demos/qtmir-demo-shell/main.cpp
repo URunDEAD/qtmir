@@ -122,7 +122,7 @@ struct DemoDisplayConfigurationStorage : miral::DisplayConfigurationStorage
 
                 if (jsonMode.contains("size") && jsonMode.contains("refresh_rate")) {
                     QString sz(jsonMode["size"].toString());
-                    QStringList geo = sz.split("x", QString::SkipEmptyParts);
+                    QStringList geo = sz.split("x", Qt::SkipEmptyParts);
                     if (geo.count() == 2) {
                         miral::DisplayConfigurationOptions::DisplayMode mode;
                         mode.size = mir::geometry::Size(geo[0].toInt(), geo[1].toInt());
