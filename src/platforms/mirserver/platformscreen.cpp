@@ -45,6 +45,7 @@ namespace mg = mir::geometry;
 
 #define DEBUG_MSG_SCREENS qCDebug(QTMIR_SCREENS).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
 #define DEBUG_MSG_SENSORS qCDebug(QTMIR_SENSOR_MESSAGES).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
+#define WARNING_MSG_SCREENS qCWarning(QTMIR_SCREENS).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
 #define WARNING_MSG_SENSORS qCWarning(QTMIR_SENSOR_MESSAGES).nospace() << "PlatformScreen[" << (void*)this <<"]::" << __func__
 
 namespace {
@@ -262,6 +263,7 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
 
     // Screen capabilities
     uint32_t oldCurrentModeIndex = m_currentModeIndex;
+    uint32_t invalidModeIndex = std::numeric_limits<uint32_t>::max();
     m_currentModeIndex = screen.current_mode_index;
 
     // available modes
@@ -286,6 +288,13 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
     if (m_powerMode != screen.power_mode) {
         m_powerMode = screen.power_mode;
         Q_EMIT powerModeChanged();
+    }
+
+
+    // first check if current mode is valid, if not don't make further changes
+    if (m_currentModeIndex == invalidModeIndex) {
+        WARNING_MSG_SCREENS << "Invalid mode index, not processing geometry and screen modes";
+        return;
     }
 
     QRect oldGeometry = m_geometry;
