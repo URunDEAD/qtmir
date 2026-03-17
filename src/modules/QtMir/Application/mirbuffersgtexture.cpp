@@ -73,6 +73,7 @@ public:
     {
         auto cc = QOpenGLContext::currentContext();
         if (!cc) {
+            qWarning() << "WARNING: MirGlBufferTexture::updateTextureId: no context, no texture. This should not happen!";
             return; // No context, no texture
         }
 
@@ -106,6 +107,7 @@ public:
     {
         auto cc = QOpenGLContext::currentContext();
         if (!cc) {
+            qWarning() << "WARNING: MirGlBufferTexturesource::updateTextureId: no context, no texture. This should not happen!";
             return; // No context, no texture
         }
 
@@ -120,6 +122,7 @@ public:
     {
         auto cc = QOpenGLContext::currentContext();
         if (!cc) {
+            qWarning() << "WARNING: MirGlBufferTexturesource::bindTexture: no context, no texture. This should not happen!";
             return; // No context, no texture
         }
 
@@ -151,6 +154,9 @@ MirGlBuffer::MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer) :
 MirGlBuffer::~MirGlBuffer()
 {
     auto cc = QOpenGLContext::currentContext();
+    if (!cc) {
+        qWarning() << "WARNING: MirGlBuffer::~MirGlBuffer: no context. This should not happen!";
+    }
     if (m_textureId && cc) {
         auto f = cc->functions();
         f->glDeleteTextures(1, &m_textureId);
