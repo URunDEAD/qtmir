@@ -571,10 +571,8 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
 
     if (desktopFileName.isNull()) {
         auto environment = m_procInfo->environment(pid);
-        if (!environment->contains("DESKTOP_FILE_HINT")) {
-            //qCritical() << "ApplicationManager REJECTED connection from app with pid" << pid
-            //            << "as it was not launched by lomiri-app-launch, and no desktop_file_hint is specified";
-            // We cannot identify this app, so group it under a catch-all hint.
+        if (!environment || !environment->contains("DESKTOP_FILE_HINT")) {
+            // We cannot identify this app, so group it under a catch-all file hint.
             auto appInfo = m_taskController->getInfoForApp("unknown.qtmir");
             if (!appInfo) {
                 qWarning() << "Failed to add unknown application";
