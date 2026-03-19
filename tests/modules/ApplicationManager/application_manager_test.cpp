@@ -74,12 +74,14 @@ private:
     const QTemporaryDir m_tempDir;
 };
 
+/* This test now validates whether a second instance can be spawned using a different ID */
 TEST_F(ApplicationManagerTests,bug_case_1240400_second_dialer_app_fails_to_authorize_and_gets_mixed_up_with_first_one)
 {
     using namespace ::testing;
     const pid_t firstProcId = 5921;
     const pid_t secondProcId = 5922;
     const char dialer_app_id[] = "dialer-app";
+    const char unknown_app_id[] = "unknown.qtmir";
     QByteArray cmdLine( "/usr/bin/dialer-app --desktop_file_hint=dialer-app");
     QByteArray secondcmdLine( "/usr/bin/dialer-app");
 
@@ -113,8 +115,11 @@ TEST_F(ApplicationManagerTests,bug_case_1240400_second_dialer_app_fails_to_autho
     applicationManager.authorizeSession(secondProcId, authed);
     applicationManager.onProcessStarting(dialer_app_id);
 
-    EXPECT_FALSE(authed);
     EXPECT_EQ(application, applicationManager.findApplication(dialer_app_id));
+
+    // "unknown app"
+    EXPECT_TRUE(authed);
+    ASSERT_NE(nullptr, applicationManager.findApplication(unknown_app_id));
 }
 
 TEST_F(ApplicationManagerTests,application_dies_while_starting)
@@ -569,12 +574,12 @@ TEST_F(ApplicationManagerTests,appStartedUsingCorrectDesktopFileHintSwitch)
 }
 
 /*
- * Test that an application launched via the command line without the correct --desktop_file_hint is rejected
+ * Test that an application launched via the command line without the correct --desktop_file_hint is grouped as "unknown"
  */
-TEST_F(ApplicationManagerTests,appDoesNotStartWhenUsingBadDesktopFileHintSwitch)
+TEST_F(ApplicationManagerTests,appStartsEvenWhenUsingBadDesktopFileHintSwitch)
 {
     using namespace ::testing;
-    const QString appId("testAppId");
+    const QString appId("unknown.qtmir");
     const QString name("Test App");
     const pid_t procId = 5551;
     QByteArray cmdLine("/usr/bin/testApp");
@@ -586,18 +591,18 @@ TEST_F(ApplicationManagerTests,appDoesNotStartWhenUsingBadDesktopFileHintSwitch)
 
     QSignalSpy countSpy(&applicationManager, SIGNAL(countChanged()));
 
-    // Mir requests authentication for an application that was started
+    // QtMir groups apps without a proper desktop file hint among unknown apps
     bool authed = true;
     applicationManager.authorizeSession(procId, authed);
-    EXPECT_EQ(authed, false);
+    EXPECT_EQ(authed, true);
 
     Application *theApp = applicationManager.findApplication(appId);
 
-    EXPECT_EQ(theApp, nullptr);
+    ASSERT_NE(theApp, nullptr);
 
-    // check no new signals were emitted
-    EXPECT_EQ(countSpy.count(), 0);
-    EXPECT_EQ(applicationManager.count(), 0);
+    // check whether new signals were emitted
+    EXPECT_GT(countSpy.count(), 0);
+    EXPECT_EQ(applicationManager.count(), 1);
 }
 
 /*
