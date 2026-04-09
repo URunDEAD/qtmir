@@ -99,6 +99,7 @@ public Q_SLOTS:
     void onFocusRequested(const QString& appId);
     void onResumeRequested(const QString& appId);
     void onSessionStarting(SessionInterface *session);
+    void onSessionStopping(SessionInterface *session);
 
 private Q_SLOTS:
     void onAppDataChanged(const int role);
@@ -124,6 +125,8 @@ private:
     Application* findApplicationWithPromptSession(const mir::scene::PromptSession* promptSession);
     Application *findClosingApplication(const QString &inputAppId) const;
 
+    SessionInterface* findSessionForPid(const pid_t pid);
+
     QList<Application*> m_applications;
     DBusFocusInfo *m_dbusFocusInfo;
     QSharedPointer<TaskController> m_taskController;
@@ -136,6 +139,7 @@ private:
     static ApplicationManager* the_application_manager;
 
     QHash<pid_t, QString> m_authorizedPids;
+    QHash<pid_t, pid_t> m_promptPids;
 
     mutable QMutex m_mutex;
 };

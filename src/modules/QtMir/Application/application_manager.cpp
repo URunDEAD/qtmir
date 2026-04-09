@@ -154,6 +154,8 @@ ApplicationManager::ApplicationManager(
                      this, &ApplicationManager::authorizeSession, Qt::DirectConnection);
     QObject::connect(m_taskController.data(), &TaskController::sessionStarting,
                      this, &ApplicationManager::onSessionStarting);
+    QObject::connect(m_taskController.data(), &TaskController::sessionStopping,
+                     this, &ApplicationManager::onSessionStopping);
 
     connect(this, &ApplicationManager::queuedAddApp, this, &ApplicationManager::addApp);
 }
@@ -567,6 +569,39 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         return;
     }
 
+    // Wayland permission prompts:
+    // Check environment for PID this request pertains to
+    QRegularExpression isPermissionPrompt(
+        QStringLiteral("((^|/)trust-prompt-wayland)$"));
+    if (isPermissionPrompt.match(argv0).hasMatch()) {
+        QString requestingPidStr;
+
+        const auto parameter = info->getParameter("--for-pid=");
+        if (parameter.isNull()) {
+            auto environment = m_procInfo->environment(pid);
+            if (!environment || !environment->contains("CORE_TRUST_FOR_PID")) {
+                qWarning() << "No idea which client PID this prompt pertains to. Bailing...";
+                return;
+            }
+            requestingPidStr = environment->getParameter("CORE_TRUST_FOR_PID");
+        } else {
+            requestingPidStr = parameter;
+        }
+
+        bool parseOk = false;
+        const auto requestingPid = requestingPidStr.toInt(&parseOk);
+        if (!parseOk) {
+            qWarning() << "Failed to get client PID this prompt pertains to (" << requestingPidStr << "), Bailing...";
+            return;
+        }
+
+        qInfo() << "Permission prompt for PID:" << requestingPid;
+        m_promptPids.insert(pid, requestingPid);
+
+        authorized = true;
+        return;
+    }
+
     QString desktopFileName = info->getParameter("--desktop_file_hint=");
 
     if (desktopFileName.isNull()) {
@@ -828,9 +863,35 @@ Application *ApplicationManager::findClosingApplication(const QString &inputAppI
     return nullptr;
 }
 
+SessionInterface* ApplicationManager::findSessionForPid(const pid_t pid)
+{
+    for (auto *application : m_applications) {
+        for (auto *qmlSession : application->sessions()) {
+            if (qmlSession->pid() == pid) {
+                return qmlSession;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 void ApplicationManager::onSessionStarting(SessionInterface *qmlSession)
 {
     QMutexLocker locker(&m_mutex);
+
+    qDebug() << Q_FUNC_INFO;
+
+    if (m_promptPids.contains(qmlSession->pid())) {
+        const auto requestingPid = m_promptPids.value(qmlSession->pid());
+
+        auto requestingSession = findSessionForPid(requestingPid);
+        if (requestingSession) {
+            requestingSession->addChildSession(qmlSession);
+        }
+
+        return;
+    }
 
     Application* application = nullptr;
     {
@@ -844,6 +905,32 @@ void ApplicationManager::onSessionStarting(SessionInterface *qmlSession)
 
     if (application) {
         application->addSession(qmlSession);
+    }
+}
+
+void ApplicationManager::onSessionStopping(SessionInterface* qmlSession)
+{
+    QMutexLocker locker(&m_mutex);
+
+    qDebug() << Q_FUNC_INFO;
+
+    if (m_promptPids.contains(qmlSession->pid())) {
+        const auto requestingPid = m_promptPids.value(qmlSession->pid());
+        m_promptPids.remove(qmlSession->pid());
+
+        auto requestingSession = findSessionForPid(requestingPid);
+        if (requestingSession) {
+            requestingSession->removeChildSession(qmlSession);
+            qDebug() << "Prompt session removed";
+        }
+
+        QTimer::singleShot(100, this, [=]() {
+            auto application = findApplicationWithSession(requestingSession->session());
+            if (application) {
+                application->requestFocus();
+                qDebug() << "Switched focus after prompt session to:" << application->appId();
+            }
+        });
     }
 }
 
