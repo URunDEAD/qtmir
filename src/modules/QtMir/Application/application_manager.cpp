@@ -505,6 +505,37 @@ void ApplicationManager::onAppDataChanged(const int role)
     }
 }
 
+
+static inline pid_t getParentPid(pid_t pid)
+{
+    const auto statusTemplate = QStringLiteral("/proc/%1/status");
+    const auto statusPath = statusTemplate.arg(QString::number(pid));
+
+    QFile statusFile(statusPath);
+    if (!statusFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return 0;
+    }
+
+    QTextStream stream(&statusFile);
+    QString line;
+    while (stream.readLineInto(&line)) {
+        if (line.startsWith("PPid:")) {
+            auto split = line.split('\t', Qt::SkipEmptyParts);
+            if (split.length() == 0)
+                return 0;
+
+            const auto ppidStr = split.takeLast();
+            bool parseOk = false;
+            const auto ppid = ppidStr.toInt(&parseOk);
+            if (!parseOk)
+                return 0;
+            return ppid;
+        }
+    }
+
+    return 0;
+}
+
 void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
 {
     // This is the only function that is called from a different thread than the one
@@ -589,10 +620,24 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         }
 
         bool parseOk = false;
-        const auto requestingPid = requestingPidStr.toInt(&parseOk);
+        auto requestingPid = requestingPidStr.toInt(&parseOk);
         if (!parseOk) {
             qWarning() << "Failed to get client PID this prompt pertains to (" << requestingPidStr << "), Bailing...";
             return;
+        }
+
+        const auto origRequestingPid = requestingPid;
+        while (true) {
+            const auto existingSession = findSessionForPid(requestingPid);
+            if (!existingSession) {
+                requestingPid = getParentPid(requestingPid);
+                if (requestingPid <= 1) {
+                    qWarning() << "Failed to resolve parent pid of client" << origRequestingPid;
+                    return;
+                }
+            } else {
+                break;
+            }
         }
 
         qInfo() << "Permission prompt for PID:" << requestingPid;
@@ -923,14 +968,6 @@ void ApplicationManager::onSessionStopping(SessionInterface* qmlSession)
             requestingSession->removeChildSession(qmlSession);
             qDebug() << "Prompt session removed";
         }
-
-        QTimer::singleShot(100, this, [=]() {
-            auto application = findApplicationWithSession(requestingSession->session());
-            if (application) {
-                application->requestFocus();
-                qDebug() << "Switched focus after prompt session to:" << application->appId();
-            }
-        });
     }
 }
 
