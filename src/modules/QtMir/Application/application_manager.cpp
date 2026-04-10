@@ -43,6 +43,7 @@
 #include <QByteArray>
 #include <QDir>
 #include <QRegularExpression>
+#include <QFileInfo>
 
 // std
 #include <csignal>
@@ -505,6 +506,13 @@ void ApplicationManager::onAppDataChanged(const int role)
     }
 }
 
+static inline bool isSystemHelper(const pid_t pid)
+{
+    const auto exeTemplate = QStringLiteral("/proc/%1/exe");
+    const auto exePath = exeTemplate.arg(QString::number(pid));
+    const QFileInfo exeFileInfo(exePath);
+    return exeFileInfo.isSymLink() && exeFileInfo.symLinkTarget().startsWith("/usr/");
+}
 
 static inline pid_t getParentPid(pid_t pid)
 {
@@ -604,7 +612,7 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
     // Check environment for PID this request pertains to
     QRegularExpression isPermissionPrompt(
         QStringLiteral("((^|/)trust-prompt-wayland)$"));
-    if (isPermissionPrompt.match(argv0).hasMatch()) {
+    if (isPermissionPrompt.match(argv0).hasMatch() && isSystemHelper(pid)) {
         QString requestingPidStr;
 
         const auto parameter = info->getParameter("--for-pid=");
