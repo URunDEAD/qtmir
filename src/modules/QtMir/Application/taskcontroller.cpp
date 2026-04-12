@@ -91,8 +91,6 @@ void TaskController::onSessionStopping(const miral::ApplicationInfo &appInfo)
 
     m_sessionList.removeAll(qmlSession);
 
-    qmlSession->setLive(false);
-
     Q_EMIT sessionStopping(qmlSession);
 }
 

@@ -963,15 +963,26 @@ void ApplicationManager::onSessionStopping(SessionInterface* qmlSession)
 
     qDebug() << Q_FUNC_INFO;
 
+    // This is a prompt session on Wayland
     if (m_promptPids.contains(qmlSession->pid())) {
-        const auto requestingPid = m_promptPids.value(qmlSession->pid());
-        m_promptPids.remove(qmlSession->pid());
+        const auto pid = qmlSession->pid();
+        const auto requestingPid = m_promptPids.value(pid);
+        m_promptPids.remove(pid);
 
-        auto requestingSession = findSessionForPid(requestingPid);
-        if (requestingSession) {
-            requestingSession->removeChildSession(qmlSession);
-            qDebug() << "Prompt session removed";
-        }
+        // Give the prompt session time to animate out.
+        QTimer::singleShot(750, this, [this, requestingPid, qmlSession]() {
+            auto requestingSession = findSessionForPid(requestingPid);
+
+            if (requestingSession && qmlSession) {
+                requestingSession->removeChildSession(qmlSession);
+                qmlSession->setLive(false);
+
+                qDebug() << "Prompt session removed";
+            }
+        });
+    } // This is any other type of windowing session
+    else {
+        qmlSession->setLive(false);
     }
 }
 
