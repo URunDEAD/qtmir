@@ -616,15 +616,11 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         QString requestingPidStr;
 
         const auto parameter = info->getParameter("--for-pid=");
-        if (parameter.isNull()) {
-            auto environment = m_procInfo->environment(pid);
-            if (!environment || !environment->contains("CORE_TRUST_FOR_PID")) {
-                qWarning() << "No idea which client PID this prompt pertains to. Bailing...";
-                return;
-            }
-            requestingPidStr = environment->getParameter("CORE_TRUST_FOR_PID");
-        } else {
+        if (!parameter.isNull()) {
             requestingPidStr = parameter;
+        } else {
+            qWarning() << "No idea which client PID this prompt pertains to. Bailing...";
+            return;
         }
 
         bool parseOk = false;
