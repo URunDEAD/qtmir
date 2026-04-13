@@ -96,6 +96,7 @@ Q_SIGNALS:
     void authorizationRequestedForSession(const pid_t &pid, bool &authorized);
 
     void sessionStarting(SessionInterface *session);
+    void sessionStopping(SessionInterface *session);
 
 public Q_SLOTS:
     void onSessionStarting(const miral::ApplicationInfo &appInfo);

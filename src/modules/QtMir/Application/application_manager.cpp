@@ -43,6 +43,7 @@
 #include <QByteArray>
 #include <QDir>
 #include <QRegularExpression>
+#include <QFileInfo>
 
 // std
 #include <csignal>
@@ -154,6 +155,8 @@ ApplicationManager::ApplicationManager(
                      this, &ApplicationManager::authorizeSession, Qt::DirectConnection);
     QObject::connect(m_taskController.data(), &TaskController::sessionStarting,
                      this, &ApplicationManager::onSessionStarting);
+    QObject::connect(m_taskController.data(), &TaskController::sessionStopping,
+                     this, &ApplicationManager::onSessionStopping);
 
     connect(this, &ApplicationManager::queuedAddApp, this, &ApplicationManager::addApp);
 }
@@ -503,6 +506,44 @@ void ApplicationManager::onAppDataChanged(const int role)
     }
 }
 
+static inline bool isSystemHelper(const pid_t pid)
+{
+    const auto exeTemplate = QStringLiteral("/proc/%1/exe");
+    const auto exePath = exeTemplate.arg(QString::number(pid));
+    const QFileInfo exeFileInfo(exePath);
+    return exeFileInfo.isSymLink() && exeFileInfo.symLinkTarget().startsWith("/usr/");
+}
+
+static inline pid_t getParentPid(pid_t pid)
+{
+    const auto statusTemplate = QStringLiteral("/proc/%1/status");
+    const auto statusPath = statusTemplate.arg(QString::number(pid));
+
+    QFile statusFile(statusPath);
+    if (!statusFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return 0;
+    }
+
+    QTextStream stream(&statusFile);
+    QString line;
+    while (stream.readLineInto(&line)) {
+        if (line.startsWith("PPid:")) {
+            auto split = line.split('\t', Qt::SkipEmptyParts);
+            if (split.length() == 0)
+                return 0;
+
+            const auto ppidStr = split.takeLast();
+            bool parseOk = false;
+            const auto ppid = ppidStr.toInt(&parseOk);
+            if (!parseOk)
+                return 0;
+            return ppid;
+        }
+    }
+
+    return 0;
+}
+
 void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
 {
     // This is the only function that is called from a different thread than the one
@@ -563,6 +604,49 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         QStringLiteral("((^|/)maliit6?-server|qt5/libexec/QtWebProcess)$"));
 
     if (isMaliitOrQtWebProess.match(argv0).hasMatch()) {
+        authorized = true;
+        return;
+    }
+
+    // Wayland permission prompts:
+    // Check environment for PID this request pertains to
+    QRegularExpression isPermissionPrompt(
+        QStringLiteral("((^|/)trust-prompt-wayland)$"));
+    if (isPermissionPrompt.match(argv0).hasMatch() && isSystemHelper(pid)) {
+        QString requestingPidStr;
+
+        const auto parameter = info->getParameter("--for-pid=");
+        if (!parameter.isNull()) {
+            requestingPidStr = parameter;
+        } else {
+            qWarning() << "No idea which client PID this prompt pertains to. Bailing...";
+            return;
+        }
+
+        bool parseOk = false;
+        auto requestingPid = requestingPidStr.toInt(&parseOk);
+        if (!parseOk) {
+            qWarning() << "Failed to get client PID this prompt pertains to (" << requestingPidStr << "), Bailing...";
+            return;
+        }
+
+        const auto origRequestingPid = requestingPid;
+        while (true) {
+            const auto existingSession = findSessionForPid(requestingPid);
+            if (!existingSession) {
+                requestingPid = getParentPid(requestingPid);
+                if (requestingPid <= 1) {
+                    qWarning() << "Failed to resolve parent pid of client" << origRequestingPid;
+                    return;
+                }
+            } else {
+                break;
+            }
+        }
+
+        qInfo() << "Permission prompt for PID:" << requestingPid;
+        m_promptPids.insert(pid, requestingPid);
+
         authorized = true;
         return;
     }
@@ -828,9 +912,35 @@ Application *ApplicationManager::findClosingApplication(const QString &inputAppI
     return nullptr;
 }
 
+SessionInterface* ApplicationManager::findSessionForPid(const pid_t pid)
+{
+    for (auto *application : m_applications) {
+        for (auto *qmlSession : application->sessions()) {
+            if (qmlSession->pid() == pid) {
+                return qmlSession;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 void ApplicationManager::onSessionStarting(SessionInterface *qmlSession)
 {
     QMutexLocker locker(&m_mutex);
+
+    qDebug() << Q_FUNC_INFO;
+
+    if (m_promptPids.contains(qmlSession->pid())) {
+        const auto requestingPid = m_promptPids.value(qmlSession->pid());
+
+        auto requestingSession = findSessionForPid(requestingPid);
+        if (requestingSession) {
+            requestingSession->addChildSession(qmlSession);
+        }
+
+        return;
+    }
 
     Application* application = nullptr;
     {
@@ -844,6 +954,35 @@ void ApplicationManager::onSessionStarting(SessionInterface *qmlSession)
 
     if (application) {
         application->addSession(qmlSession);
+    }
+}
+
+void ApplicationManager::onSessionStopping(SessionInterface* qmlSession)
+{
+    QMutexLocker locker(&m_mutex);
+
+    qDebug() << Q_FUNC_INFO;
+
+    // This is a prompt session on Wayland
+    if (m_promptPids.contains(qmlSession->pid())) {
+        const auto pid = qmlSession->pid();
+        const auto requestingPid = m_promptPids.value(pid);
+        m_promptPids.remove(pid);
+
+        // Give the prompt session time to animate out.
+        QTimer::singleShot(750, this, [this, requestingPid, qmlSession]() {
+            auto requestingSession = findSessionForPid(requestingPid);
+
+            if (requestingSession && qmlSession) {
+                requestingSession->removeChildSession(qmlSession);
+                qmlSession->setLive(false);
+
+                qDebug() << "Prompt session removed";
+            }
+        });
+    } // This is any other type of windowing session
+    else {
+        qmlSession->setLive(false);
     }
 }
 
