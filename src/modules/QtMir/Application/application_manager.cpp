@@ -609,7 +609,7 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
     }
 
     // Wayland permission prompts:
-    // Check environment for PID this request pertains to
+    // Check cmdline for PID this request pertains to
     QRegularExpression isPermissionPrompt(
         QStringLiteral("((^|/)trust-prompt-wayland)$"));
     if (isPermissionPrompt.match(argv0).hasMatch() && isSystemHelper(pid)) {
@@ -631,21 +631,40 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         }
 
         const auto origRequestingPid = requestingPid;
+        SessionInterface* existingSession = nullptr;
         while (true) {
-            const auto existingSession = findSessionForPid(requestingPid);
+            existingSession = findSessionForPid(requestingPid);
             if (!existingSession) {
                 requestingPid = getParentPid(requestingPid);
+                // We don't expect PID 1 to make a permission request
                 if (requestingPid <= 1) {
                     qWarning() << "Failed to resolve parent pid of client" << origRequestingPid;
-                    return;
+                    break;
                 }
             } else {
                 break;
             }
         }
 
-        qInfo() << "Permission prompt for PID:" << requestingPid;
-        m_promptPids.insert(pid, requestingPid);
+        if (existingSession) {
+            qInfo() << "Permission prompt for PID:" << requestingPid;
+            m_promptPids.insert(pid, requestingPid);
+        } else {
+            // Under some constellations it is not possible to retrieve an existing session for the prompt
+            // (ie. when the requesting client is an Xwayland app), so do the only sensible thing
+            // and show the permission prompt as it's own top-level window.
+            qInfo() << "Couldn't retrieve PID to attach child session to, spawn permission prompt as separate window.";
+
+            QString desktopFileHint = info->getParameter("--desktop_file_hint=");
+            auto appInfo = m_taskController->getInfoForApp(desktopFileHint);
+            if (!appInfo) {
+                qCWarning(QTMIR_APPLICATIONS) << "ApplicationManager::authorizeSession - Failed to retrieve appInfo for permission prompt.";
+                return;
+            }
+            const QStringList arguments(info->asStringList());
+            queuedAddApp(appInfo, arguments, pid);
+            m_authorizedPids.insert(pid, desktopFileHint);
+        }
 
         authorized = true;
         return;
