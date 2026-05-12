@@ -1056,6 +1056,12 @@ void MirSurface::setReady()
     if (!m_ready) {
         DEBUG_MSG << "()";
         m_ready = true;
+        // X11 override-redirect windows (e.g. GTK menus) are created hidden miral-side but
+        // BasicSurface::hidden stays false, so Mir never fires advise_state_change to restore them.
+        if (m_state == Mir::HiddenState && m_surface->visible()) {
+            m_state = Mir::RestoredState;
+            Q_EMIT stateChanged(state());
+        }
         updateVisible(); // as Mir can change m_surface->visible() to true after first frame swap
         Q_EMIT ready();
         updateExposure();
