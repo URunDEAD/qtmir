@@ -112,8 +112,9 @@ namespace qtmir
         int surfaceType = requestParameters.type().is_set() ? requestParameters.type().value() : -1;
         pid_t appPid = miral::pid_of(appInfo.application());
         auto parameters = CanonicalWindowManagerPolicy::place_new_window(appInfo, requestParameters);
+        auto surfaceName = requestParameters.name().is_set() ? requestParameters.name().value() : "";
 
-        if (surfaceType == mir_window_type_inputmethod) {
+        if (surfaceType == mir_window_type_inputmethod || surfaceName == "maliit-server" || surfaceName == "maliit6-server") {
             QFileInfo info(QStringLiteral("/proc/%1/exe").arg(appPid));
 
             // TODO: this is a brute-force fix to make sure only maliit-server can be an input method
@@ -123,6 +124,10 @@ namespace qtmir
                         << "as it is not maliit(6)-server";
                 surfaceType = mir_window_type_normal;
                 parameters.type() = mir_window_type_normal;
+            // TODO: brute-force fix part 2 - force inputmethod for these surfaces since Mir 2.x only sets these on surfaces created with input-method-v1/v2
+            } else {
+                surfaceType = mir_window_type_inputmethod;
+                parameters.type() = mir_window_type_inputmethod;
             }
         }
 
