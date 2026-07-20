@@ -743,8 +743,12 @@ Application* ApplicationManager::findApplicationWithAppId(const qtmir::MirSurfac
     if (!surface)
         return nullptr;
 
+    // Surfaces can carry the long form of an app id, while applications are
+    // always kept under the short one.
+    const QString appId = toShortAppIdIfPossible(surface->appId());
+
     for (auto *application : m_applications) {
-        if (application->appId() == surface->appId())
+        if (application->appId() == appId)
             return application;
     }
 
