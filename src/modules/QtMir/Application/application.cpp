@@ -65,9 +65,6 @@ Application::Application(const QSharedPointer<SharedWakelock>& sharedWakelock,
 {
     DEBUG_MSG << "()";
 
-    // Because m_state is InternalState::Starting
-    acquireWakelock();
-
     m_supportedOrientations = m_appInfo->supportedOrientations();
 
     m_rotatesWindowContents = m_appInfo->rotatesWindowContents();
@@ -570,22 +567,16 @@ void Application::setInternalState(Application::InternalState state)
     switch (m_state) {
         case InternalState::Starting:
         case InternalState::Running:
-            acquireWakelock();
-            break;
         case InternalState::RunningInBackground:
         case InternalState::Suspended:
-            releaseWakelock();
             break;
         case InternalState::Closing:
             Q_EMIT closing();
-            acquireWakelock();
             break;
         case InternalState::StoppedResumable:
-            releaseWakelock();
             break;
         case InternalState::Stopped:
             Q_EMIT stopped();
-            releaseWakelock();
             break;
         case InternalState::SuspendingWaitSession:
         case InternalState::SuspendingWaitProcess:
