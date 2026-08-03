@@ -397,8 +397,8 @@ void MirSurface::dropPendingBuffer()
                 }
             }
         } else {
-            // Just get a pointer to the buffer. This tells mir we consumed it.
-            renderables[0]->buffer();
+            // No renderables, so there is nothing to consume and nothing to drop.
+            return;
         }
         Q_EMIT frameDropped();
     });
