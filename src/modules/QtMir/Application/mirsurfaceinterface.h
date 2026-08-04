@@ -25,8 +25,11 @@
 // Qt
 #include <QCursor>
 #include <QPoint>
+#include <QRectF>
 #include <QSharedPointer>
 #include <QTouchEvent>
+
+#include <vector>
 
 class QHoverEvent;
 class QMouseEvent;
@@ -57,7 +60,20 @@ public:
     // methods called from the rendering (scene graph) thread:
     virtual QSharedPointer<QSGTexture> texture(qintptr userId) = 0;
     virtual QSGTexture *weakTexture(qintptr userId) const = 0;
+
+    struct SubSurfaceTexture
+    {
+        QRectF extent;
+        QSharedPointer<QSGTexture> texture;
+    };
+    using SubSurfaceTextures = std::vector<SubSurfaceTexture>;
+
+    // Acquires the next buffer set for this output. True when there is something to draw.
     virtual bool updateTexture(qintptr userId) = 0;
+    // Snapshot for this output; element 0 is the surface's own texture, the rest are
+    // its subsurfaces. By value, so the caller's nodes can reference them for the frame.
+    virtual SubSurfaceTextures textures(qintptr userId) const = 0;
+
     virtual unsigned int currentFrameNumber(qintptr userId) const = 0;
     virtual bool numBuffersReadyForCompositor(qintptr userId) = 0;
     // end of methods called from the rendering (scene graph) thread

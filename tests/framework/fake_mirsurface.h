@@ -112,6 +112,7 @@ public:
     QSharedPointer<QSGTexture> texture(qintptr) override;
     QSGTexture *weakTexture(qintptr) const override;
     bool updateTexture(qintptr) override;
+    qtmir::MirSurfaceInterface::SubSurfaceTextures textures(qintptr) const override;
     unsigned int currentFrameNumber(qintptr) const override;
     bool numBuffersReadyForCompositor(qintptr) override;
     // end of methods called from the rendering (scene graph) thread

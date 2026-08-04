@@ -32,7 +32,6 @@ struct MirEvent {}; // otherwise won't compile otherwise due to incomplete type
 #include <QtMir/Application/mirsurface.h>
 
 #include <QtMir/Application/timer.h>
-#include <QtMir/Application/compositortextureprovider.h>
 
 // mirtest
 #include <mir/test/doubles/stub_session.h>
@@ -70,15 +69,6 @@ struct MockSurface : public StubSurface
     MOCK_CONST_METHOD1(generate_renderables,mir::graphics::RenderableList(mir::compositor::CompositorID id));
 };
 
-struct FakeCompositorTextureProvider: CompositorTextureProvider
-{
-    QSGTexture *createTexture() const override
-    {
-        return nullptr;
-    }
-
-};
-
 class MirSurfaceTest : public ::testing::Test
 {
 public:
@@ -104,11 +94,6 @@ TEST_F(MirSurfaceTest, UpdateTextureBeforeDraw)
     miral::WindowInfo mockWindowInfo(mockWindow, spec);
     auto mockRenderable = std::make_shared<NiceMock<mir::graphics::MockRenderable>>();
 
-    auto fakeTextureProvider = new FakeCompositorTextureProvider;
-    // request multiple textures to simulate multiple screens.
-    fakeTextureProvider->texture((qintptr)123);
-    fakeTextureProvider->texture((qintptr)124);
-
     EXPECT_CALL(*mockSurface.get(),buffers_ready_for_compositor(_))
         .WillRepeatedly(Return(1));
 
@@ -119,7 +104,11 @@ TEST_F(MirSurfaceTest, UpdateTextureBeforeDraw)
         .WillRepeatedly(Return(std::make_shared<mir::graphics::StubBuffer>()));
 
     qtmir::MirSurface surface(mockWindowInfo, nullptr);
-    surface.setTextureProvider(fakeTextureProvider);
+    surface.setTextureFactory([]{ return nullptr; });
+    // draw once per output to simulate multiple screens; the frame dropper
+    // only cycles outputs it has seen
+    surface.updateTexture((qintptr)123);
+    surface.updateTexture((qintptr)124);
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(0, 30, 0)
     surface.surfaceObserver()->frame_posted(NULL, 1, mir::geometry::Size{1,1});
 #else

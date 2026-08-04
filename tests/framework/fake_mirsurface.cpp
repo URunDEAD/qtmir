@@ -161,6 +161,8 @@ QSGTexture *FakeMirSurface::weakTexture(qintptr) const { return nullptr; }
 
 bool FakeMirSurface::updateTexture(qintptr) { return true; }
 
+qtmir::MirSurfaceInterface::SubSurfaceTextures FakeMirSurface::textures(qintptr) const { return {}; }
+
 unsigned int FakeMirSurface::currentFrameNumber(qintptr) const { return 0; }
 
 bool FakeMirSurface::numBuffersReadyForCompositor(qintptr) { return 0; }
