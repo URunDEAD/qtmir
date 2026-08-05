@@ -18,9 +18,11 @@
 #define MIRSURFACEITEM_H
 
 #include <memory>
+#include <optional>
 
 // Qt
 #include <QMutex>
+#include <QRectF>
 #include <QTimer>
 
 // Lomiri Shell API
@@ -30,9 +32,6 @@
 #include "session_interface.h"
 
 namespace qtmir {
-
-class QSGMirSurfaceNode;
-class SurfaceItemTextureProvider;
 
 class MirSurfaceItem : public lomiri::shell::application::MirSurfaceItemInterface
 {
@@ -71,12 +70,6 @@ public:
     void setFillMode(FillMode value) override;
 
     ////////
-    // QQuickItem
-
-    bool isTextureProvider() const override { return true; }
-    QSGTextureProvider *textureProvider() const override;
-
-    ////////
     // own API
 
     // to allow easy touch event injection from tests
@@ -85,7 +78,6 @@ public:
             Qt::KeyboardModifiers modifiers,
             const QList<QTouchEvent::TouchPoint> &touchPoints,
             Qt::TouchPointStates touchPointStates);
-
 
 public Q_SLOTS:
     // Called by QQuickWindow from the rendering thread
@@ -122,8 +114,6 @@ private Q_SLOTS:
     void onWindowChanged(QQuickWindow *window);
 
 private:
-    void ensureTextureProvider();
-
     bool hasTouchInsideInputRegion(const QList<QTouchEvent::TouchPoint> &touchPoints);
 
     QString appId() const;
@@ -134,11 +124,17 @@ private:
             const QList<QTouchEvent::TouchPoint> &touchPoints,
             Qt::TouchPointStates touchPointStates);
 
+    void setSurfaceLocked(lomiri::shell::application::MirSurfaceInterface *lomiriShellSurface);
+
     MirSurfaceInterface* m_surface;
     QQuickWindow* m_window;
 
     QMutex m_mutex;
-    SurfaceItemTextureProvider *m_textureProvider;
+
+    // Guards m_subSurfaceTextures. Deliberately NOT m_mutex: releaseResources() and
+    // ~MirSurfaceItem run on the GUI thread and cannot take m_mutex (setSurfaceLocked
+    // re-enters QML under it).
+    QMutex m_textureMutex;
 
     QTimer m_updateMirSurfaceSizeTimer;
 
@@ -162,7 +158,7 @@ private:
         Qt::TouchPointStates touchPointStates;
     } *m_lastTouchEvent;
 
-    unsigned int *m_lastFrameNumberRendered;
+    std::optional<unsigned int> m_lastFrameNumberRendered;
 
     int m_surfaceWidth;
     int m_surfaceHeight;
@@ -171,6 +167,10 @@ private:
     bool m_consumesInput;
 
     FillMode m_fillMode;
+
+    // The textures drawn by the last updatePaintNode(), entry 0 being the surface's
+    // own. Held so they outlive the nodes pointing at them.
+    qtmir::MirSurfaceInterface::SubSurfaceTextures m_subSurfaceTextures;
 };
 
 } // namespace qtmir

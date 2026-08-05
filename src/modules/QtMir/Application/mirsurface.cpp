@@ -428,29 +428,6 @@ void MirSurface::startFrameDropper()
     }
 }
 
-QSharedPointer<QSGTexture> MirSurface::texture(qintptr userId)
-{
-    QMutexLocker locker(&m_mutex);
-
-    auto &output = m_outputTextures[userId];
-    if (output.slots.empty()) {
-        output.slots.resize(1);
-    }
-    if (!output.slots[0].texture) {
-        output.slots[0].texture = QSharedPointer<QSGTexture>(m_textureFactory());
-    }
-    return output.slots[0].texture;
-}
-
-QSGTexture *MirSurface::weakTexture(qintptr userId) const
-{
-    QMutexLocker locker(&m_mutex);
-
-    auto it = m_outputTextures.constFind(userId);
-    return (it == m_outputTextures.constEnd() || it->slots.empty())
-        ? nullptr : it->slots[0].texture.data();
-}
-
 bool MirSurface::updateTexture(qintptr userId)
 {
     QMutexLocker locker(&m_mutex);

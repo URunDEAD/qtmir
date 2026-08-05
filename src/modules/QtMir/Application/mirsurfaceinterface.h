@@ -58,9 +58,6 @@ public:
     virtual void setViewExposure(qintptr viewId, bool exposed) = 0;
 
     // methods called from the rendering (scene graph) thread:
-    virtual QSharedPointer<QSGTexture> texture(qintptr userId) = 0;
-    virtual QSGTexture *weakTexture(qintptr userId) const = 0;
-
     struct SubSurfaceTexture
     {
         QRectF extent;

@@ -128,8 +128,6 @@ public:
     void setViewExposure(qintptr viewId, bool exposed) override;
 
     // methods called from the rendering (scene graph) thread:
-    QSharedPointer<QSGTexture> texture(qintptr userId) override;
-    QSGTexture *weakTexture(qintptr userId) const override;
     bool updateTexture(qintptr userId) override;
     SubSurfaceTextures textures(qintptr userId) const override;
     unsigned int currentFrameNumber(qintptr userId) const override;

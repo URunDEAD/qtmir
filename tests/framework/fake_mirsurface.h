@@ -109,8 +109,6 @@ public:
     void unregisterView(qintptr viewId) override;
 
     // methods called from the rendering (scene graph) thread:
-    QSharedPointer<QSGTexture> texture(qintptr) override;
-    QSGTexture *weakTexture(qintptr) const override;
     bool updateTexture(qintptr) override;
     qtmir::MirSurfaceInterface::SubSurfaceTextures textures(qintptr) const override;
     unsigned int currentFrameNumber(qintptr) const override;
