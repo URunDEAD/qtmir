@@ -378,21 +378,25 @@ void MirSurface::dropPendingBuffer()
         output.frameNumber++;
         output.upToDate = false;
 
-        auto texture = output.slots.empty()
-            ? QSharedPointer<MirBufferSGTexture>()
-            : qSharedPointerCast<MirBufferSGTexture>(output.slots[0].texture);
-        if (texture) {
+        // Cycle every stream, or the client stays blocked on it. Non-creating on
+        // purpose: this runs on the GUI thread, and a texture created here would
+        // later be destroyed without a GL context.
+        for (size_t i = 0; i < renderables.size(); i++) {
+            auto texture = i < output.slots.size()
+                ? qSharedPointerCast<MirBufferSGTexture>(output.slots[i].texture)
+                : QSharedPointer<MirBufferSGTexture>();
+            if (!texture) { renderables[i]->buffer(); continue; } // consume
             // Avoid holding two buffers for the compositor at the same time. Thus
             // free the current before acquiring the next
             texture->freeBuffer();
-            texture->setBuffer(renderables[0]->buffer());
-            if (texture->textureSize() != m_size) {
+            texture->setBuffer(renderables[i]->buffer());
+            if (i == 0 && texture->textureSize() != m_size) {
                 m_size = texture->textureSize();
                 m_sizePendingChange = false;
                 QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
             }
-            output.upToDate = true;
         }
+        output.upToDate = true;
 
         framesPending = m_surface->buffers_ready_for_compositor((void*)userId);
         if (framesPending > 0) {
@@ -461,50 +465,53 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
             : qSharedPointerDynamicCast<MirBufferSGTexture>(output.slots[0].texture);
     };
 
-    if (output.upToDate) {
-        auto const primary = primaryTexture();
-        return primary && primary->hasBuffer();
-    }
-
     auto renderables = m_surface->generate_renderables((void*)userId);
 
     if (renderables.size() > 0 &&
             (m_surface->buffers_ready_for_compositor((void*)userId) > 0
-             || !primaryTexture() || !primaryTexture()->hasBuffer())
+             || !primaryTexture() || !primaryTexture()->hasBuffer()
+             // a subsurface appearing or disappearing must refresh even without a new buffer
+             || output.slots.size() != renderables.size())
         ) {
-        output.slots.resize(1);
+        // Shrinking drops the strong refs, which is how a vanished subsurface is released.
+        output.slots.resize(renderables.size());
         output.frameNumber++;
 
-        auto &slot = output.slots[0];
-        if (!slot.texture) {
-            // The factory may legitimately return null (test overrides do).
-            slot.texture = QSharedPointer<QSGTexture>(m_textureFactory());
-        }
-        auto texture = qSharedPointerDynamicCast<MirBufferSGTexture>(slot.texture);
-        if (!texture) return false;
-
-        // Avoid holding two buffers for the compositor at the same time. Thus
-        // free the current before acquiring the next
-        texture->freeBuffer();
-        texture->setBuffer(renderables[0]->buffer());
-
-        if (texture->textureSize() != m_size) {
-            m_size = texture->textureSize();
-            m_sizePendingChange = false;
-            QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
-        }
-
         auto const mirTopLeft = m_surface->top_left();
-        auto const mirStreamPosition = renderables[0]->screen_position();
-        slot.extent = QRectF(
-            mirStreamPosition.left().as_int() - mirTopLeft.x.as_int(),
-            mirStreamPosition.top().as_int() - mirTopLeft.y.as_int(),
-            mirStreamPosition.size.width.as_int(),
-            mirStreamPosition.size.height.as_int()
-        );
-        // Per-output copy; the mirror keeps windowExtents() as it was.
-        if (m_extents != slot.extent) {
-            m_extents = slot.extent;
+        auto const extentOf = [&mirTopLeft](mir::geometry::Rectangle const& streamPosition) {
+            return QRectF(
+                streamPosition.left().as_int() - mirTopLeft.x.as_int(),
+                streamPosition.top().as_int() - mirTopLeft.y.as_int(),
+                streamPosition.size.width.as_int(),
+                streamPosition.size.height.as_int()
+            );
+        };
+
+        for (size_t i = 0; i < renderables.size(); i++) {
+            auto &slot = output.slots[i];
+            if (!slot.texture) {
+                // The factory may legitimately return null (test overrides do).
+                slot.texture = QSharedPointer<QSGTexture>(m_textureFactory());
+            }
+            auto texture = qSharedPointerDynamicCast<MirBufferSGTexture>(slot.texture);
+            if (!texture) { renderables[i]->buffer(); continue; } // consume; don't block the client
+            // Avoid holding two buffers for the compositor at the same time. Thus
+            // free the current before acquiring the next
+            texture->freeBuffer();
+            texture->setBuffer(renderables[i]->buffer());
+            slot.extent = extentOf(renderables[i]->screen_position());
+
+            if (i == 0) {
+                if (texture->textureSize() != m_size) {
+                    m_size = texture->textureSize();
+                    m_sizePendingChange = false;
+                    QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
+                }
+                // Per-output copy; the mirror keeps windowExtents() as it was.
+                if (m_extents != slot.extent) {
+                    m_extents = slot.extent;
+                }
+            }
         }
 
         output.upToDate = true;
