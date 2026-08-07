@@ -376,7 +376,6 @@ void MirSurface::dropPendingBuffer()
 
         allStop = false;
         output.frameNumber++;
-        output.upToDate = false;
 
         // Cycle every stream, or the client stays blocked on it. Non-creating on
         // purpose: this runs on the GUI thread, and a texture created here would
@@ -396,7 +395,6 @@ void MirSurface::dropPendingBuffer()
                 QMetaObject::invokeMethod(this, "emitSizeChanged", Qt::QueuedConnection);
             }
         }
-        output.upToDate = true;
 
         framesPending = m_surface->buffers_ready_for_compositor((void*)userId);
         if (framesPending > 0) {
@@ -513,8 +511,6 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
                 }
             }
         }
-
-        output.upToDate = true;
     }
 
     if (m_surface->buffers_ready_for_compositor((void*)userId) > 0) {
@@ -531,19 +527,6 @@ bool MirSurface::numBuffersReadyForCompositor(qintptr userId)
 {
     QMutexLocker locker(&m_mutex);
     return m_surface->buffers_ready_for_compositor((void*)userId);
-}
-
-void MirSurface::onCompositorSwappedBuffers()
-{
-    QMutexLocker locker(&m_mutex);
-
-    if(!isBeingDisplayed()) {
-        return;
-    }
-
-    for (auto &output : m_outputTextures) {
-        output.upToDate = false;
-    }
 }
 
 void MirSurface::setFocused(bool value)

@@ -191,8 +191,6 @@ public Q_SLOTS:
 
     ////
     // qtmir::MirSurfaceInterface
-    void onCompositorSwappedBuffers() override;
-
     void setShellChrome(Mir::ShellChrome shellChrome) override;
 
 private Q_SLOTS:
@@ -233,7 +231,6 @@ private:
     struct OutputTextures {
         SubSurfaceTextures slots;
         unsigned int frameNumber{0};
-        bool upToDate{false};
     };
 
     bool updateTextureLocked(qintptr userId, OutputTextures &output);

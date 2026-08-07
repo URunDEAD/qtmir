@@ -641,23 +641,12 @@ void MirSurfaceItem::setSurfaceLocked(lomiri::shell::application::MirSurfaceInte
     Q_EMIT surfaceChanged(m_surface);
 }
 
-void MirSurfaceItem::onCompositorSwappedBuffers()
-{
-    if (Q_LIKELY(m_surface)) {
-        m_surface->onCompositorSwappedBuffers();
-    }
-}
-
 void MirSurfaceItem::onWindowChanged(QQuickWindow *window)
 {
     if (m_window) {
         disconnect(m_window, nullptr, this, nullptr);
     }
     m_window = window;
-    if (m_window) {
-        connect(m_window, &QQuickWindow::frameSwapped, this, &MirSurfaceItem::onCompositorSwappedBuffers,
-                Qt::DirectConnection);
-    }
 }
 
 // Do not take m_mutex here: this is QQuickItemPrivate::derefWindow()'s hook, and it

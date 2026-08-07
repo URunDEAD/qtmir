@@ -123,8 +123,6 @@ public:
     virtual QRectF windowExtents() = 0;
 
 public Q_SLOTS:
-    virtual void onCompositorSwappedBuffers() = 0;
-
     virtual void setShellChrome(Mir::ShellChrome shellChrome) = 0;
 
 Q_SIGNALS:

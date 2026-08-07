@@ -109,7 +109,6 @@ private Q_SLOTS:
     void updateMirSurfaceExposure();
 
     void onActualSurfaceSizeChanged(QSize size);
-    void onCompositorSwappedBuffers();
 
     void onWindowChanged(QQuickWindow *window);
 

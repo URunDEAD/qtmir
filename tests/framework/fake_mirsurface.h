@@ -153,7 +153,6 @@ public:
 
 public Q_SLOTS:
     void requestState(Mir::State qmlState) override;
-    void onCompositorSwappedBuffers() override;
 
     void setShellChrome(Mir::ShellChrome shellChrome) override;
 
