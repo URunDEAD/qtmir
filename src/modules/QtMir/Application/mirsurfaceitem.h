@@ -79,6 +79,18 @@ public:
             const QList<QTouchEvent::TouchPoint> &touchPoints,
             Qt::TouchPointStates touchPointStates);
 
+    struct TexturePlacement { QRectF targetRect; QRectF subSourceRect; };
+    // Maps one renderable extent (surface units, relative to the surface top-left)
+    // into item coordinates and crops it to itemRect. False when nothing is visible,
+    // in which case no node is created for it.
+    static bool computeTexturePlacement(const QRectF &extent,
+                                        const QRectF &primaryExtent,
+                                        const QSize  &primaryTextureSize,
+                                        const QRectF &itemRect,
+                                        FillMode fillMode,
+                                        TexturePlacement *out);
+
+
 public Q_SLOTS:
     // Called by QQuickWindow from the rendering thread
     void invalidateSceneGraph();
@@ -168,7 +180,8 @@ private:
     FillMode m_fillMode;
 
     // The textures drawn by the last updatePaintNode(), entry 0 being the surface's
-    // own. Held so they outlive the nodes pointing at them.
+    // own. Held so they outlive the nodes pointing at them. Lifetime only: fully
+    // clipped entries get no node, so this does not index-match the node tree.
     qtmir::MirSurfaceInterface::SubSurfaceTextures m_subSurfaceTextures;
 };
 

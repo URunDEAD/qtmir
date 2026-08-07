@@ -181,6 +181,46 @@ Mir::ShellChrome MirSurfaceItem::shellChrome() const
     return m_surface ? m_surface->shellChrome() : Mir::NormalChrome;
 }
 
+bool MirSurfaceItem::computeTexturePlacement(const QRectF &extent,
+                                             const QRectF &primaryExtent,
+                                             const QSize &primaryTextureSize,
+                                             const QRectF &itemRect,
+                                             FillMode fillMode,
+                                             TexturePlacement *out)
+{
+    if (!out || extent.isEmpty() || itemRect.isEmpty()
+            || primaryExtent.width() <= 0 || primaryExtent.height() <= 0) {
+        return false;
+    }
+
+    // One surface->item scale for every renderable, so subsurfaces move and scale with
+    // the primary. Stretch maps the primary extent onto the whole item. PadOrCrop draws
+    // buffer pixels 1:1, so its scale is the buffer scale - 1 whenever the primary's
+    // extent and its texture agree, which is the usual case.
+    qreal scaleX, scaleY;
+    if (fillMode == PadOrCrop) {
+        if (primaryTextureSize.isEmpty()) return false;
+        scaleX = primaryTextureSize.width() / primaryExtent.width();
+        scaleY = primaryTextureSize.height() / primaryExtent.height();
+    } else {
+        scaleX = itemRect.width() / primaryExtent.width();
+        scaleY = itemRect.height() / primaryExtent.height();
+    }
+
+    const QRectF mapped(extent.x() * scaleX, extent.y() * scaleY,
+                        extent.width() * scaleX, extent.height() * scaleY);
+
+    const QRectF clipped = mapped & itemRect;
+    if (clipped.isEmpty()) return false;
+
+    out->targetRect = clipped;
+    out->subSourceRect = QRectF((clipped.x() - mapped.x()) / mapped.width(),
+                                (clipped.y() - mapped.y()) / mapped.height(),
+                                clipped.width() / mapped.width(),
+                                clipped.height() / mapped.height());
+    return true;
+}
+
 QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)    // called by render thread
 {
     QMutexLocker mutexLocker(&m_mutex);
@@ -213,58 +253,73 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         QTimer::singleShot(0, this, &MirSurfaceItem::update);
     }
 
-    QSGDefaultInternalImageNode *node = static_cast<QSGDefaultInternalImageNode*>(oldNode);
-    if (!node) {
-        node = createImageNode(window());
-    } else {
-        if (!m_lastFrameNumberRendered || (*m_lastFrameNumberRendered != m_surface->currentFrameNumber(userId))) {
-            node->markDirty(QSGNode::DirtyMaterial);
+    // One node per visible texture, index 0 included with no special case.
+    struct Painted { QSGTexture *texture; TexturePlacement placement; };
+    std::vector<Painted> painted;
+    painted.reserve(subtextures.size());
+
+    // Entry 0 is the surface itself and its extent defines the surface->item mapping for
+    // all of them. textures() reports nothing until a buffer was composited, and the same
+    // step sets the extents, so both are valid here.
+    const QSize primaryTextureSize = subtextures[0].texture->textureSize();
+    const QRectF primaryExtent = subtextures[0].extent;
+
+    for (auto const &sub : subtextures) {
+        if (!sub.texture) continue;
+        TexturePlacement placement;
+        if (!computeTexturePlacement(sub.extent, primaryExtent, primaryTextureSize,
+                                     boundingRect(), m_fillMode, &placement)) {
+            continue;
         }
-    }
-    QSGTexture *texture = subtextures[0].texture.data();
-    node->setTexture(texture);
-
-    if (m_fillMode == PadOrCrop) {
-        const QSize &textureSize = texture->textureSize();
-
-        QRectF targetRect;
-        targetRect.setWidth(qMin(width(), static_cast<qreal>(textureSize.width())));
-        targetRect.setHeight(qMin(height(), static_cast<qreal>(textureSize.height())));
-
-        // x/y from extent is offset
-        auto r = m_surface->windowExtents();
-        targetRect.setX(r.x());
-        targetRect.setY(r.y());
-
-        qreal u = targetRect.width() / textureSize.width();
-        qreal v = targetRect.height() / textureSize.height();
-        node->setSubSourceRect(QRectF(0, 0, u, v));
-
-        node->setTargetRect(targetRect);
-        node->setInnerTargetRect(targetRect);
-    } else {
-        // Stretch
-        node->setSubSourceRect(QRectF(0, 0, 1, 1));
-
-        auto r = m_surface->windowExtents();
-        auto offset_x = r.x();
-        auto offset_y = r.y();
-        node->setTargetRect(QRectF(offset_x, offset_y, width(), height()));
-        node->setInnerTargetRect(QRectF(offset_x, offset_y, width(), height()));
+        painted.push_back({sub.texture.data(), placement});
     }
 
-    node->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
-    node->setAntialiasing(antialiasing());
+    // A plain root: it draws nothing, so children are all equal and drawn in the order
+    // Mir returned them.
+    QSGNode *root = oldNode ? oldNode : new QSGNode;
 
-    node->update();
+    const unsigned int frameNumber = m_surface->currentFrameNumber(userId);
+    const bool frameAdvanced = !m_lastFrameNumberRendered || *m_lastFrameNumberRendered != frameNumber;
 
-    m_lastFrameNumberRendered = m_surface->currentFrameNumber(userId);
+    QSGNode *child = root->firstChild();
+    for (auto const &p : painted) {
+        QSGDefaultInternalImageNode *node;
+        if (child) {
+            node = static_cast<QSGDefaultInternalImageNode*>(child);
+            if (frameAdvanced) {
+                node->markDirty(QSGNode::DirtyMaterial);
+            }
+            child = child->nextSibling();
+        } else {
+            node = createImageNode(window());
+            root->appendChildNode(node);
+        }
 
-    // Last: assigning this both keeps the new texture alive past this function and
+        // texture is kept alive by m_subSurfaceTextures below
+        node->setTexture(p.texture);
+        node->setTargetRect(p.placement.targetRect);
+        node->setInnerTargetRect(p.placement.targetRect);
+        node->setSubSourceRect(p.placement.subSourceRect);
+        node->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
+        node->setAntialiasing(antialiasing());
+        node->update();
+    }
+
+    // Trim the surplus: a subsurface went away or became fully clipped.
+    while (child) {
+        QSGNode *next = child->nextSibling();
+        root->removeChildNode(child);
+        delete child;
+        child = next;
+    }
+
+    m_lastFrameNumberRendered = frameNumber;
+
+    // Last: assigning this both keeps the new textures alive past this function and
     // drops the previous frame's, here on the render thread with a current context.
     m_subSurfaceTextures = subtextures;
 
-    return node;
+    return root;
 }
 
 void MirSurfaceItem::mousePressEvent(QMouseEvent *event)
