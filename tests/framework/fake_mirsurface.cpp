@@ -155,11 +155,9 @@ void FakeMirSurface::unregisterView(qintptr viewId)
     updateVisibility();
 }
 
-QSharedPointer<QSGTexture> FakeMirSurface::texture(qintptr) { return QSharedPointer<QSGTexture>(); }
+bool FakeMirSurface::updateTexture(qintptr) { return false; }
 
-QSGTexture *FakeMirSurface::weakTexture(qintptr) const { return nullptr; }
-
-bool FakeMirSurface::updateTexture(qintptr) { return true; }
+qtmir::MirSurfaceInterface::SubSurfaceTextures FakeMirSurface::textures(qintptr) const { return {}; }
 
 unsigned int FakeMirSurface::currentFrameNumber(qintptr) const { return 0; }
 
@@ -200,8 +198,6 @@ void FakeMirSurface::touchEvent(Qt::KeyboardModifiers mods,
 }
 
 QString FakeMirSurface::appId() const { return "foo-app"; }
-
-void FakeMirSurface::onCompositorSwappedBuffers() {}
 
 void FakeMirSurface::setShellChrome(Mir::ShellChrome /*shellChrome*/) {}
 

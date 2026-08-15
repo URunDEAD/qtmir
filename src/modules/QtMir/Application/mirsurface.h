@@ -32,6 +32,8 @@
 #include <QVector>
 #include <QKeyEvent>
 
+#include <functional>
+
 #include "mirbuffersgtexture.h"
 #include "windowcontrollerinterface.h"
 #include "windowmodelnotifier.h"
@@ -47,8 +49,6 @@ namespace qtmir {
 class AbstractTimer;
 class MirSurfaceListModel;
 class SessionInterface;
-class CompositorTextureProvider;
-class CompositorTexture;
 
 class MirSurface : public MirSurfaceInterface
 {
@@ -128,9 +128,8 @@ public:
     void setViewExposure(qintptr viewId, bool exposed) override;
 
     // methods called from the rendering (scene graph) thread:
-    QSharedPointer<QSGTexture> texture(qintptr userId) override;
-    QSGTexture *weakTexture(qintptr userId) const override;
     bool updateTexture(qintptr userId) override;
+    SubSurfaceTextures textures(qintptr userId) const override;
     unsigned int currentFrameNumber(qintptr userId) const override;
     bool numBuffersReadyForCompositor(qintptr userId) override;
     // end of methods called from the rendering (scene graph) thread
@@ -183,7 +182,7 @@ public:
     // useful for tests
     void setCloseTimer(AbstractTimer *timer);
     std::shared_ptr<SurfaceObserver> surfaceObserver() const;
-    void setTextureProvider(CompositorTextureProvider *textureProvider);
+    void setTextureFactory(std::function<QSGTexture*()> factory);
 
 public Q_SLOTS:
     ////
@@ -192,7 +191,6 @@ public Q_SLOTS:
 
     ////
     // qtmir::MirSurfaceInterface
-    void onCompositorSwappedBuffers() override;
     void setShellChrome(Mir::ShellChrome shellChrome) override;
 
 private Q_SLOTS:
@@ -227,7 +225,15 @@ private:
     void forgetPressedKey(quint32 nativeVirtualKey);
     void releaseAllPressedKeys();
 
-    bool updateTextureLocked(qintptr userId, CompositorTexture* compositorTexture);
+    // One texture set per rendering output (the userId is the QQuickWindow).
+    // Slot i holds renderables[i]'s texture and extent, the surface's own
+    // stream being slot 0.
+    struct OutputTextures {
+        SubSurfaceTextures slots;
+        unsigned int frameNumber{0};
+    };
+
+    bool updateTextureLocked(qintptr userId, OutputTextures &output);
 
     const miral::Window m_window;
     const std::shared_ptr<ExtraWindowInfo> m_extraInfo;
@@ -251,7 +257,9 @@ private:
 
     mutable QMutex m_mutex;
 
-    CompositorTextureProvider* m_textures;
+    QHash<qintptr, OutputTextures> m_outputTextures;
+    // Test seam; makes the texture for a slot. The result may be null.
+    std::function<QSGTexture*()> m_textureFactory{[]{ return new MirBufferSGTexture; }};
 
     bool m_ready{false};
     bool m_visible;

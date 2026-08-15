@@ -2,6 +2,7 @@ set(
   MIR_WINDOW_MANAGER_TEST_SOURCES
 #  mirsurfaceitem_test.cpp #FIXME - reinstate these tests when functionality there
   mirsurface_test.cpp
+  mirsurfaceitemgeometry_test.cpp
   windowmodel_test.cpp
   ${CMAKE_SOURCE_DIR}/src/common/debughelpers.cpp
 )

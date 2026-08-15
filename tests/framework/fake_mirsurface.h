@@ -109,9 +109,8 @@ public:
     void unregisterView(qintptr viewId) override;
 
     // methods called from the rendering (scene graph) thread:
-    QSharedPointer<QSGTexture> texture(qintptr) override;
-    QSGTexture *weakTexture(qintptr) const override;
     bool updateTexture(qintptr) override;
+    qtmir::MirSurfaceInterface::SubSurfaceTextures textures(qintptr) const override;
     unsigned int currentFrameNumber(qintptr) const override;
     bool numBuffersReadyForCompositor(qintptr) override;
     // end of methods called from the rendering (scene graph) thread
@@ -154,7 +153,6 @@ public:
 
 public Q_SLOTS:
     void requestState(Mir::State qmlState) override;
-    void onCompositorSwappedBuffers() override;
 
     void setShellChrome(Mir::ShellChrome shellChrome) override;
 

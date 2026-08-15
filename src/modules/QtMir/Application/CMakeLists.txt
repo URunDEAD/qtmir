@@ -42,7 +42,6 @@ add_custom_target(QtMirApplication_LTTNG
 set(QMLMIRPLUGIN_SRC
     application_manager.cpp
     application.cpp
-    compositortextureprovider.cpp
     ../../../common/abstractdbusservicemonitor.cpp
     ../../../common/debughelpers.cpp
     dbusfocusinfo.cpp

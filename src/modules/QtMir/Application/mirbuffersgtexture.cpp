@@ -153,13 +153,15 @@ MirGlBuffer::MirGlBuffer(const std::shared_ptr<miral::GLBuffer>& buffer) :
 
 MirGlBuffer::~MirGlBuffer()
 {
+    QMutexLocker locker(&m_mutex);
+
     auto cc = QOpenGLContext::currentContext();
     if (!cc) {
         qWarning() << "WARNING: MirGlBuffer::~MirGlBuffer: no context. This should not happen!";
     }
     if (m_textureId && cc) {
         auto f = cc->functions();
-        f->glDeleteTextures(1, &m_textureId);
+        if (f) f->glDeleteTextures(1, &m_textureId);
     }
 }
 

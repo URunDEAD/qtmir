@@ -38,71 +38,46 @@
 #endif
 #include <private/qsgdefaultinternalimagenode_p.h>
 #include <QTimer>
-#include <QSGTextureProvider>
+#include <QSGTexture>
 #include <QRunnable>
 
 namespace qtmir {
 
 namespace {
 
-class MirSurfaceItemReleaseResourcesJob : public QRunnable
+// Carries shared pointers to the render thread so that ~MirGlBuffer runs with a
+// current GL context.
+class MirSurfaceItemTextureReleaseJob : public QRunnable
 {
 public:
-    MirSurfaceItemReleaseResourcesJob() : textureProvider(nullptr) {}
-    void run() {
-        delete textureProvider;
-        textureProvider = nullptr;
+    void run() override {
+        subSurfaceTextures.clear();
     }
-    QObject *textureProvider;
+    qtmir::MirSurfaceInterface::SubSurfaceTextures subSurfaceTextures;
 };
+
+QSGDefaultInternalImageNode *createImageNode(QQuickWindow *window)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    QSGRenderContext *rc = QQuickWindowPrivate::get(window)->context;
+    auto *node = new QSGDefaultInternalImageNode(static_cast<QSGDefaultRenderContext *>(rc));
+#else
+    Q_UNUSED(window)
+    auto *node = new QSGDefaultInternalImageNode;
+#endif
+    node->setMipmapFiltering(QSGTexture::None);
+    node->setHorizontalWrapMode(QSGTexture::ClampToEdge);
+    node->setVerticalWrapMode(QSGTexture::ClampToEdge);
+    return node;
+}
 
 } // namespace {
-
-class SurfaceItemTextureProvider : public QSGTextureProvider
-{
-    Q_OBJECT
-public:
-    SurfaceItemTextureProvider(const QSharedPointer<QSGTexture> texture)
-        : t(texture)
-    {
-    }
-    QSGTexture *texture() const override {
-        return t.data();
-    }
-
-    void releaseTexture() {
-        t.reset();
-    }
-
-    void setTexture(const QSharedPointer<QSGTexture>& newTexture) {
-        t = newTexture;
-        if (t) {
-            t->setFiltering(m_smooth ? QSGTexture::Linear : QSGTexture::Nearest);
-        }
-
-        Q_EMIT textureChanged();
-    }
-
-public Q_SLOTS:
-    void setSmooth(bool smooth) {
-        m_smooth = smooth;
-        if (t) {
-            t->setFiltering(m_smooth ? QSGTexture::Linear : QSGTexture::Nearest);
-        }
-    }
-
-private:
-    QSharedPointer<QSGTexture> t;
-    bool m_smooth;
-};
 
 MirSurfaceItem::MirSurfaceItem(QQuickItem *parent)
     : MirSurfaceItemInterface(parent)
     , m_surface(nullptr)
     , m_window(nullptr)
-    , m_textureProvider(nullptr)
     , m_lastTouchEvent(nullptr)
-    , m_lastFrameNumberRendered(nullptr)
     , m_surfaceWidth(0)
     , m_surfaceHeight(0)
     , m_orientationAngle(nullptr)
@@ -121,21 +96,32 @@ MirSurfaceItem::MirSurfaceItem(QQuickItem *parent)
     connect(this, &QQuickItem::activeFocusChanged, this, &MirSurfaceItem::updateMirSurfaceActiveFocus);
     connect(this, &QQuickItem::visibleChanged, this, &MirSurfaceItem::updateMirSurfaceExposure);
     connect(this, &QQuickItem::windowChanged, this, &MirSurfaceItem::onWindowChanged);
+    connect(this, &QQuickItem::smoothChanged, this, &QQuickItem::update);
 }
 
 MirSurfaceItem::~MirSurfaceItem()
 {
+    QMutexLocker mutexLocker(&m_mutex);
+
     qCDebug(QTMIR_SURFACES) << "MirSurfaceItem::~MirSurfaceItem - this=" << this;
 
-    setSurface(nullptr);
+    setSurfaceLocked(nullptr);
+
+    // The textures belong to the scene graph thread: ~MirGlBuffer needs a current
+    // GL context, so hand them over instead of destroying them here.
+    auto *job = new MirSurfaceItemTextureReleaseJob;
+    {
+        QMutexLocker textureLocker(&m_textureMutex);
+        job->subSurfaceTextures = std::move(m_subSurfaceTextures);
+    }
+    if (window()) {
+        window()->scheduleRenderJob(job, QQuickWindow::AfterSynchronizingStage);
+    }
+    // Else: no window, so no way to reach a current context. The job, and with it the
+    // textures, is leaked deliberately rather than destroyed on the wrong thread.
 
     delete m_lastTouchEvent;
-    delete m_lastFrameNumberRendered;
     delete m_orientationAngle;
-
-    // Belongs to the scene graph thread. Can't delete here.
-    // Scene graph should call MirSurfaceItem::releaseResources() or invalidateSceneGraph()
-    // delete m_textureProvider;
 }
 
 Mir::Type MirSurfaceItem::type() const
@@ -195,38 +181,44 @@ Mir::ShellChrome MirSurfaceItem::shellChrome() const
     return m_surface ? m_surface->shellChrome() : Mir::NormalChrome;
 }
 
-// Called from the rendering (scene graph) thread
-QSGTextureProvider *MirSurfaceItem::textureProvider() const
+bool MirSurfaceItem::computeTexturePlacement(const QRectF &extent,
+                                             const QRectF &primaryExtent,
+                                             const QSize &primaryTextureSize,
+                                             const QRectF &itemRect,
+                                             FillMode fillMode,
+                                             TexturePlacement *out)
 {
-    QMutexLocker mutexLocker(const_cast<QMutex*>(&m_mutex));
-    const_cast<MirSurfaceItem *>(this)->ensureTextureProvider();
-    return m_textureProvider;
-}
-
-void MirSurfaceItem::ensureTextureProvider()
-{
-    if (!m_surface) {
-        return;
+    if (!out || extent.isEmpty() || itemRect.isEmpty()
+            || primaryExtent.width() <= 0 || primaryExtent.height() <= 0) {
+        return false;
     }
 
-    const qintptr userId = (qintptr)window();
-    if (!userId) return;
-
-    if (!m_textureProvider) {
-        m_textureProvider = new SurfaceItemTextureProvider(m_surface->texture(userId));
-        connect(this, &QQuickItem::smoothChanged, m_textureProvider, &SurfaceItemTextureProvider::setSmooth);
-        m_textureProvider->setSmooth(smooth());
-
-    // Check that the item is indeed using the texture from the MirSurface it currently holds
-    // If until now we were drawing a MirSurface "A" and it replaced with a MirSurface "B",
-    // we will still hold the texture from "A" until the first time we're asked to draw "B".
-    // That's the moment when we finally discard the texture from "A" and get the one from "B".
-    //
-    // Also note that m_surface->weakTexture() will return null if m_surface->texture() was never
-    // called before.
-    } else if (!m_textureProvider->texture() || m_textureProvider->texture() != m_surface->weakTexture(userId)) {
-        m_textureProvider->setTexture(m_surface->texture(userId));
+    // One surface->item scale for every renderable, so subsurfaces move and scale with
+    // the primary. Stretch maps the primary extent onto the whole item. PadOrCrop draws
+    // buffer pixels 1:1, so its scale is the buffer scale - 1 whenever the primary's
+    // extent and its texture agree, which is the usual case.
+    qreal scaleX, scaleY;
+    if (fillMode == PadOrCrop) {
+        if (primaryTextureSize.isEmpty()) return false;
+        scaleX = primaryTextureSize.width() / primaryExtent.width();
+        scaleY = primaryTextureSize.height() / primaryExtent.height();
+    } else {
+        scaleX = itemRect.width() / primaryExtent.width();
+        scaleY = itemRect.height() / primaryExtent.height();
     }
+
+    const QRectF mapped(extent.x() * scaleX, extent.y() * scaleY,
+                        extent.width() * scaleX, extent.height() * scaleY);
+
+    const QRectF clipped = mapped & itemRect;
+    if (clipped.isEmpty()) return false;
+
+    out->targetRect = clipped;
+    out->subSourceRect = QRectF((clipped.x() - mapped.x()) / mapped.width(),
+                                (clipped.y() - mapped.y()) / mapped.height(),
+                                clipped.width() / mapped.width(),
+                                clipped.height() / mapped.height());
+    return true;
 }
 
 QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *)    // called by render thread
@@ -234,18 +226,25 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
     QMutexLocker mutexLocker(&m_mutex);
 
     if (!m_surface) {
-        if (m_textureProvider) {
-            m_textureProvider->releaseTexture();
-        }
+        // Render thread with a current context, so releasing here is fine.
+        QMutexLocker textureLocker(&m_textureMutex);
+        m_subSurfaceTextures.clear();
         delete oldNode;
         return nullptr;
     }
 
-    ensureTextureProvider();
-
     const qintptr userId = (qintptr)window();
+    if (!userId) {
+        delete oldNode;
+        return nullptr;
+    }
 
-    if (!userId || !m_textureProvider->texture() || !m_surface->updateTexture(userId)) {
+    QMutexLocker textureLocker(&m_textureMutex);
+
+    const bool hasContent = m_surface->updateTexture(userId);
+    const auto subtextures = m_surface->textures(userId);
+
+    if (!hasContent || subtextures.empty() || !subtextures[0].texture) {
         delete oldNode;
         return nullptr;
     }
@@ -254,65 +253,73 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         QTimer::singleShot(0, this, &MirSurfaceItem::update);
     }
 
-    QSGDefaultInternalImageNode *node = static_cast<QSGDefaultInternalImageNode*>(oldNode);
-    if (!node) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-        QSGRenderContext *rc = QQuickWindowPrivate::get(window())->context;
-        node = new QSGDefaultInternalImageNode(static_cast<QSGDefaultRenderContext *>(rc));
-#else
-        node = new QSGDefaultInternalImageNode;
-#endif
-        node->setMipmapFiltering(QSGTexture::None);
-        node->setHorizontalWrapMode(QSGTexture::ClampToEdge);
-        node->setVerticalWrapMode(QSGTexture::ClampToEdge);
-    } else {
-        if (!m_lastFrameNumberRendered  || (*m_lastFrameNumberRendered != m_surface->currentFrameNumber(userId))) {
-            node->markDirty(QSGNode::DirtyMaterial);
+    // One node per visible texture, index 0 included with no special case.
+    struct Painted { QSGTexture *texture; TexturePlacement placement; };
+    std::vector<Painted> painted;
+    painted.reserve(subtextures.size());
+
+    // Entry 0 is the surface itself and its extent defines the surface->item mapping for
+    // all of them. textures() reports nothing until a buffer was composited, and the same
+    // step sets the extents, so both are valid here.
+    const QSize primaryTextureSize = subtextures[0].texture->textureSize();
+    const QRectF primaryExtent = subtextures[0].extent;
+
+    for (auto const &sub : subtextures) {
+        if (!sub.texture) continue;
+        TexturePlacement placement;
+        if (!computeTexturePlacement(sub.extent, primaryExtent, primaryTextureSize,
+                                     boundingRect(), m_fillMode, &placement)) {
+            continue;
         }
-    }
-    auto texture = m_textureProvider->texture();
-    node->setTexture(texture);
-
-    if (m_fillMode == PadOrCrop) {
-        const QSize &textureSize = texture->textureSize();
-
-        QRectF targetRect;
-        targetRect.setWidth(qMin(width(), static_cast<qreal>(textureSize.width())));
-        targetRect.setHeight(qMin(height(), static_cast<qreal>(textureSize.height())));
-
-        // x/y from extent is offset
-        auto r = m_surface->windowExtents();
-        targetRect.setX(r.x());
-        targetRect.setY(r.y());
-
-        qreal u = targetRect.width() / textureSize.width();
-        qreal v = targetRect.height() / textureSize.height();
-        node->setSubSourceRect(QRectF(0, 0, u, v));
-
-        node->setTargetRect(targetRect);
-        node->setInnerTargetRect(targetRect);
-    } else {
-        // Stretch
-        node->setSubSourceRect(QRectF(0, 0, 1, 1));
-
-        auto r = m_surface->windowExtents();
-        auto offset_x = r.x();
-        auto offset_y = r.y();
-        node->setTargetRect(QRectF(offset_x, offset_y, width(), height()));
-        node->setInnerTargetRect(QRectF(offset_x, offset_y, width(), height()));
+        painted.push_back({sub.texture.data(), placement});
     }
 
-    node->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
-    node->setAntialiasing(antialiasing());
+    // A plain root: it draws nothing, so children are all equal and drawn in the order
+    // Mir returned them.
+    QSGNode *root = oldNode ? oldNode : new QSGNode;
 
-    node->update();
+    const unsigned int frameNumber = m_surface->currentFrameNumber(userId);
+    const bool frameAdvanced = !m_lastFrameNumberRendered || *m_lastFrameNumberRendered != frameNumber;
 
-    if (!m_lastFrameNumberRendered) {
-        m_lastFrameNumberRendered = new unsigned int;
+    QSGNode *child = root->firstChild();
+    for (auto const &p : painted) {
+        QSGDefaultInternalImageNode *node;
+        if (child) {
+            node = static_cast<QSGDefaultInternalImageNode*>(child);
+            if (frameAdvanced) {
+                node->markDirty(QSGNode::DirtyMaterial);
+            }
+            child = child->nextSibling();
+        } else {
+            node = createImageNode(window());
+            root->appendChildNode(node);
+        }
+
+        // texture is kept alive by m_subSurfaceTextures below
+        node->setTexture(p.texture);
+        node->setTargetRect(p.placement.targetRect);
+        node->setInnerTargetRect(p.placement.targetRect);
+        node->setSubSourceRect(p.placement.subSourceRect);
+        node->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
+        node->setAntialiasing(antialiasing());
+        node->update();
     }
-    *m_lastFrameNumberRendered = m_surface->currentFrameNumber(userId);
 
-    return node;
+    // Trim the surplus: a subsurface went away or became fully clipped.
+    while (child) {
+        QSGNode *next = child->nextSibling();
+        root->removeChildNode(child);
+        delete child;
+        child = next;
+    }
+
+    m_lastFrameNumberRendered = frameNumber;
+
+    // Last: assigning this both keeps the new textures alive past this function and
+    // drops the previous frame's, here on the render thread with a current context.
+    m_subSurfaceTextures = subtextures;
+
+    return root;
 }
 
 void MirSurfaceItem::mousePressEvent(QMouseEvent *event)
@@ -559,8 +566,12 @@ void MirSurfaceItem::updateMirSurfaceActiveFocus()
 
 void MirSurfaceItem::invalidateSceneGraph()
 {
-    delete m_textureProvider;
-    m_textureProvider = nullptr;
+    // Swap out under the lock, destroy outside it.
+    qtmir::MirSurfaceInterface::SubSurfaceTextures textures;
+    {
+        QMutexLocker textureLocker(&m_textureMutex);
+        textures.swap(m_subSurfaceTextures);
+    }
 }
 
 void MirSurfaceItem::TouchEvent::updateTouchPointStatesAndType()
@@ -614,8 +625,12 @@ lomiri::shell::application::MirSurfaceInterface* MirSurfaceItem::surface() const
 
 void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface *lomiriShellSurface)
 {
-    QMutexLocker mutexLocker(&m_mutex);
+    QMutexLocker locker(&m_mutex);
+    setSurfaceLocked(lomiriShellSurface);
+}
 
+void MirSurfaceItem::setSurfaceLocked(lomiri::shell::application::MirSurfaceInterface *lomiriShellSurface)
+{
     auto surface = static_cast<qtmir::MirSurfaceInterface*>(lomiriShellSurface);
     qCDebug(QTMIR_SURFACES).nospace() << "MirSurfaceItem::setSurface surface=" << surface;
 
@@ -630,6 +645,8 @@ void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface 
     }
 
     m_surface = surface;
+    // Frame numbers are per surface, so a colliding one must not skip the next repaint.
+    m_lastFrameNumberRendered.reset();
 
     if (m_surface) {
         m_surface->registerView((qintptr)this);
@@ -679,35 +696,33 @@ void MirSurfaceItem::setSurface(lomiri::shell::application::MirSurfaceInterface 
     Q_EMIT surfaceChanged(m_surface);
 }
 
-void MirSurfaceItem::onCompositorSwappedBuffers()
-{
-    if (Q_LIKELY(m_surface)) {
-        m_surface->onCompositorSwappedBuffers();
-    }
-}
-
 void MirSurfaceItem::onWindowChanged(QQuickWindow *window)
 {
     if (m_window) {
         disconnect(m_window, nullptr, this, nullptr);
     }
     m_window = window;
-    if (m_window) {
-        connect(m_window, &QQuickWindow::frameSwapped, this, &MirSurfaceItem::onCompositorSwappedBuffers,
-                Qt::DirectConnection);
-    }
 }
 
+// Do not take m_mutex here: this is QQuickItemPrivate::derefWindow()'s hook, and it
+// is reachable from setSurfaceLocked()'s QML re-entry while m_mutex is already held.
 void MirSurfaceItem::releaseResources()
 {
-    if (m_textureProvider) {
-        Q_ASSERT(window());
+    auto *job = new MirSurfaceItemTextureReleaseJob;
+    {
+        QMutexLocker textureLocker(&m_textureMutex);
+        if (m_subSurfaceTextures.empty()) {
+            delete job;
+            return;
+        }
+        job->subSurfaceTextures = std::move(m_subSurfaceTextures);
+    }
 
-        MirSurfaceItemReleaseResourcesJob *job = new MirSurfaceItemReleaseResourcesJob;
-        job->textureProvider = m_textureProvider;
-        m_textureProvider = nullptr;
+    if (window()) {
         window()->scheduleRenderJob(job, QQuickWindow::AfterSynchronizingStage);
     }
+    // Else: no window, so no way to reach a current context. The job, and with it the
+    // textures, is leaked deliberately rather than destroyed on the wrong thread.
 }
 
 int MirSurfaceItem::surfaceWidth() const
@@ -757,5 +772,3 @@ void MirSurfaceItem::setFillMode(FillMode value)
 }
 
 } // namespace qtmir
-
-#include "mirsurfaceitem.moc"

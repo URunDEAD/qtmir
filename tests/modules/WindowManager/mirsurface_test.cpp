@@ -32,7 +32,7 @@ struct MirEvent {}; // otherwise won't compile otherwise due to incomplete type
 #include <QtMir/Application/mirsurface.h>
 
 #include <QtMir/Application/timer.h>
-#include <QtMir/Application/compositortextureprovider.h>
+#include <QtMir/Application/mirbuffersgtexture.h>
 
 // mirtest
 #include <mir/test/doubles/stub_session.h>
@@ -70,14 +70,43 @@ struct MockSurface : public StubSurface
     MOCK_CONST_METHOD1(generate_renderables,mir::graphics::RenderableList(mir::compositor::CompositorID id));
 };
 
-struct FakeCompositorTextureProvider: CompositorTextureProvider
+// A MirBufferSGTexture that keeps the buffer instead of wrapping it in GL state,
+// so the texture path can be exercised without a GL context.
+struct FakeBufferTexture : MirBufferSGTexture
 {
-    QSGTexture *createTexture() const override
-    {
-        return nullptr;
-    }
+    void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer) override { m_buffer = buffer; }
+    void freeBuffer() override { m_buffer.reset(); }
+    bool hasBuffer() const override { return m_buffer != nullptr; }
 
+    int textureId() const override { return 1; }
+    QSize textureSize() const override { return QSize(1, 1); }
+    bool hasAlphaChannel() const override { return false; }
+    void bind() override {}
+
+    std::shared_ptr<mir::graphics::Buffer> buffer() const { return m_buffer; }
+
+private:
+    std::shared_ptr<mir::graphics::Buffer> m_buffer;
 };
+
+QSGTexture *fakeTextureFactory()
+{
+    return new FakeBufferTexture;
+}
+
+namespace {
+
+std::shared_ptr<NiceMock<mir::graphics::MockRenderable>> makeRenderable(
+        mir::geometry::Rectangle const& position,
+        std::shared_ptr<mir::graphics::Buffer> const& buffer = std::make_shared<mir::graphics::StubBuffer>())
+{
+    auto renderable = std::make_shared<NiceMock<mir::graphics::MockRenderable>>();
+    ON_CALL(*renderable, screen_position()).WillByDefault(Return(position));
+    ON_CALL(*renderable, buffer()).WillByDefault(Return(buffer));
+    return renderable;
+}
+
+} // namespace
 
 class MirSurfaceTest : public ::testing::Test
 {
@@ -104,11 +133,6 @@ TEST_F(MirSurfaceTest, UpdateTextureBeforeDraw)
     miral::WindowInfo mockWindowInfo(mockWindow, spec);
     auto mockRenderable = std::make_shared<NiceMock<mir::graphics::MockRenderable>>();
 
-    auto fakeTextureProvider = new FakeCompositorTextureProvider;
-    // request multiple textures to simulate multiple screens.
-    fakeTextureProvider->texture((qintptr)123);
-    fakeTextureProvider->texture((qintptr)124);
-
     EXPECT_CALL(*mockSurface.get(),buffers_ready_for_compositor(_))
         .WillRepeatedly(Return(1));
 
@@ -119,7 +143,10 @@ TEST_F(MirSurfaceTest, UpdateTextureBeforeDraw)
         .WillRepeatedly(Return(std::make_shared<mir::graphics::StubBuffer>()));
 
     qtmir::MirSurface surface(mockWindowInfo, nullptr);
-    surface.setTextureProvider(fakeTextureProvider);
+    surface.setTextureFactory(fakeTextureFactory);
+    // Draw once per output, as the frame dropper only cycles outputs it has seen.
+    surface.updateTexture((qintptr)123);
+    surface.updateTexture((qintptr)124);
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(0, 30, 0)
     surface.surfaceObserver()->frame_posted(NULL, 1, mir::geometry::Size{1,1});
 #else
@@ -129,6 +156,186 @@ TEST_F(MirSurfaceTest, UpdateTextureBeforeDraw)
     QSignalSpy spyFrameDropped(&surface, SIGNAL(frameDropped()));
     QTest::qWait(300);
     ASSERT_TRUE(spyFrameDropped.count() > 0);
+}
+
+/*
+ * Two compositors (screens) must not see each other's subsurface state. The third
+ * update finds its own gate closed and must still return its own subsurfaces.
+ */
+TEST_F(MirSurfaceTest, SubSurfaceTexturesArePerCompositorId)
+{
+    int argc = 0;
+    char* argv[0];
+    QCoreApplication qtApp(argc, argv);
+
+    auto mockSurface = std::make_shared<NiceMock<MockSurface>>();
+    miral::Window mockWindow(stubSession, mockSurface);
+    ms::SurfaceCreationParameters spec;
+    miral::WindowInfo mockWindowInfo(mockWindow, spec);
+
+    mir::graphics::RenderableList const renderables123{
+        makeRenderable({{0, 0}, {100, 100}}),
+        makeRenderable({{10, 20}, {30, 40}})
+    };
+    mir::graphics::RenderableList const renderables124{
+        makeRenderable({{0, 0}, {100, 100}}),
+        makeRenderable({{50, 60}, {70, 80}})
+    };
+
+    EXPECT_CALL(*mockSurface.get(), generate_renderables(_))
+        .WillRepeatedly(Invoke([&](mir::compositor::CompositorID id) {
+            return id == (mir::compositor::CompositorID)123 ? renderables123 : renderables124;
+        }));
+
+    // One pending frame per compositor, then none: without per-id state the third
+    // update would hand back whatever the second one stored.
+    std::map<void const*, int> updateCount;
+    EXPECT_CALL(*mockSurface.get(), buffers_ready_for_compositor(_))
+        .WillRepeatedly(Invoke([&updateCount](void const* id) {
+            return updateCount[id]++ == 0 ? 1 : 0;
+        }));
+
+    qtmir::MirSurface surface(mockWindowInfo, nullptr);
+    surface.setTextureFactory(fakeTextureFactory);
+
+    ASSERT_TRUE(surface.updateTexture((qintptr)123));
+    auto const v1 = surface.textures((qintptr)123);
+    ASSERT_TRUE(surface.updateTexture((qintptr)124));
+    auto const v2 = surface.textures((qintptr)124);
+    ASSERT_TRUE(surface.updateTexture((qintptr)123));
+    auto const v3 = surface.textures((qintptr)123);
+
+    ASSERT_EQ(2u, v1.size());
+    ASSERT_EQ(2u, v2.size());
+    ASSERT_EQ(2u, v3.size());
+
+    EXPECT_EQ(QRectF(10, 20, 30, 40), v1[1].extent);
+    EXPECT_EQ(QRectF(50, 60, 70, 80), v2[1].extent);
+    EXPECT_EQ(QRectF(10, 20, 30, 40), v3[1].extent);
+    EXPECT_NE(v1[1].texture.data(), v2[1].texture.data());
+    EXPECT_EQ(v1[1].texture.data(), v3[1].texture.data());
+}
+
+/*
+ * updateTexture() creates this output's textures and must leave them alive for the
+ * separate textures() call that follows. Nothing outside holds a reference before
+ * the first frame.
+ */
+TEST_F(MirSurfaceTest, FirstUpdateSurvivesUntilTexturesIsCalled)
+{
+    int argc = 0;
+    char* argv[0];
+    QCoreApplication qtApp(argc, argv);
+
+    auto mockSurface = std::make_shared<NiceMock<MockSurface>>();
+    miral::Window mockWindow(stubSession, mockSurface);
+    ms::SurfaceCreationParameters spec;
+    miral::WindowInfo mockWindowInfo(mockWindow, spec);
+
+    EXPECT_CALL(*mockSurface.get(), generate_renderables(_))
+        .WillRepeatedly(Return(mir::graphics::RenderableList{
+            makeRenderable({{0, 0}, {100, 100}}),
+            makeRenderable({{10, 20}, {30, 40}})
+        }));
+    EXPECT_CALL(*mockSurface.get(), buffers_ready_for_compositor(_))
+        .WillRepeatedly(Return(1));
+
+    qtmir::MirSurface surface(mockWindowInfo, nullptr);
+    surface.setTextureFactory(fakeTextureFactory);
+
+    ASSERT_TRUE(surface.updateTexture((qintptr)123));
+
+    auto const v = surface.textures((qintptr)123);
+    ASSERT_EQ(2u, v.size());
+    EXPECT_EQ(QRectF(10, 20, 30, 40), v[1].extent);
+}
+
+/*
+ * A subsurface slot keeps its texture between frames and just swaps the buffer.
+ */
+TEST_F(MirSurfaceTest, SubSurfaceTexturesAreReusedAcrossFrames)
+{
+    int argc = 0;
+    char* argv[0];
+    QCoreApplication qtApp(argc, argv);
+
+    auto mockSurface = std::make_shared<NiceMock<MockSurface>>();
+    miral::Window mockWindow(stubSession, mockSurface);
+    ms::SurfaceCreationParameters spec;
+    miral::WindowInfo mockWindowInfo(mockWindow, spec);
+
+    auto const bufferA = std::make_shared<mir::graphics::StubBuffer>();
+    auto const bufferB = std::make_shared<mir::graphics::StubBuffer>();
+
+    auto primaryRenderable = makeRenderable({{0, 0}, {100, 100}});
+    auto subRenderable = makeRenderable({{10, 20}, {30, 40}});
+    EXPECT_CALL(*subRenderable, buffer())
+        .WillOnce(Return(bufferA))
+        .WillRepeatedly(Return(bufferB));
+
+    EXPECT_CALL(*mockSurface.get(), generate_renderables(_))
+        .WillRepeatedly(Return(mir::graphics::RenderableList{primaryRenderable, subRenderable}));
+
+    EXPECT_CALL(*mockSurface.get(), buffers_ready_for_compositor(_))
+        .WillRepeatedly(Return(1));
+
+    qtmir::MirSurface surface(mockWindowInfo, nullptr);
+    surface.setTextureFactory(fakeTextureFactory);
+
+    ASSERT_TRUE(surface.updateTexture((qintptr)123));
+    auto const v1 = surface.textures((qintptr)123);
+    ASSERT_EQ(2u, v1.size());
+    auto *sub = dynamic_cast<FakeBufferTexture*>(v1[1].texture.data());
+    ASSERT_NE(nullptr, sub);
+    EXPECT_EQ(bufferA, sub->buffer());
+
+    ASSERT_TRUE(surface.updateTexture((qintptr)123));
+    auto const v2 = surface.textures((qintptr)123);
+    ASSERT_EQ(2u, v2.size());
+    ASSERT_EQ(v1[1].texture.data(), v2[1].texture.data());
+    EXPECT_EQ(bufferB, sub->buffer());
+}
+
+/*
+ * A vanished subsurface drops its slot, even though no new primary buffer arrived.
+ */
+TEST_F(MirSurfaceTest, SubSurfaceSlotsShrinkWithRenderables)
+{
+    int argc = 0;
+    char* argv[0];
+    QCoreApplication qtApp(argc, argv);
+
+    auto mockSurface = std::make_shared<NiceMock<MockSurface>>();
+    miral::Window mockWindow(stubSession, mockSurface);
+    ms::SurfaceCreationParameters spec;
+    miral::WindowInfo mockWindowInfo(mockWindow, spec);
+
+    mir::graphics::RenderableList renderables{
+        makeRenderable({{0, 0}, {100, 100}}),
+        makeRenderable({{10, 20}, {30, 40}}),
+        makeRenderable({{50, 60}, {70, 80}})
+    };
+
+    EXPECT_CALL(*mockSurface.get(), generate_renderables(_))
+        .WillRepeatedly(Invoke([&renderables](mir::compositor::CompositorID) { return renderables; }));
+
+    std::map<void const*, int> updateCount;
+    EXPECT_CALL(*mockSurface.get(), buffers_ready_for_compositor(_))
+        .WillRepeatedly(Invoke([&updateCount](void const* id) {
+            return updateCount[id]++ == 0 ? 1 : 0;
+        }));
+
+    qtmir::MirSurface surface(mockWindowInfo, nullptr);
+    surface.setTextureFactory(fakeTextureFactory);
+
+    ASSERT_TRUE(surface.updateTexture((qintptr)123));
+    ASSERT_EQ(3u, surface.textures((qintptr)123).size());
+
+    renderables.resize(1);
+    ASSERT_TRUE(surface.updateTexture((qintptr)123));
+    auto const v2 = surface.textures((qintptr)123);
+
+    EXPECT_EQ(1u, v2.size());
 }
 
 /*

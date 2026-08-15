@@ -31,9 +31,10 @@ public:
     MirBufferSGTexture();
     virtual ~MirBufferSGTexture();
 
-    void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
-    void freeBuffer();
-    bool hasBuffer() const;
+    // virtual so tests can substitute a texture that needs no GL context
+    virtual void setBuffer(const std::shared_ptr<mir::graphics::Buffer>& buffer);
+    virtual void freeBuffer();
+    virtual bool hasBuffer() const;
 
     int textureId() const override;
     QSize textureSize() const override;
