@@ -1536,6 +1536,9 @@ TEST_F(ApplicationManagerTests, lifecycleExemptAppIsNotSuspended)
 
     EXPECT_EQ(Application::Running, the_app->state());
     ASSERT_EQ(Application::InternalState::Running, the_app->internalState());
+
+    // A live session now outlives its application, so let its client go away.
+    taskController->onSessionStopping(appInfo);
 }
 
 /*

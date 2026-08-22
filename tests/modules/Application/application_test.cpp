@@ -28,6 +28,7 @@
 #include <QtMir/Application/session.h>
 #include <QtMir/Application/timesource.h>
 
+#include <QPointer>
 #include <QScopedPointer>
 #include <QSignalSpy>
 
@@ -516,4 +517,28 @@ TEST_F(ApplicationTests, dontRespawnIfClosedWhileStillStartingUp)
 
     EXPECT_EQ(Application::InternalState::Stopped, application->internalState());
     EXPECT_EQ(0, spyStartProcess.count());
+}
+
+/*
+   A session stays alive as long as its client is connected, so it must survive
+   the Application it was bound to.
+ */
+TEST_F(ApplicationTests, liveSessionSurvivesItsApplication)
+{
+    using namespace ::testing;
+
+    Application *application = createApplicationWithFakes();
+    application->setProcessState(Application::ProcessRunning);
+
+    FakeSession *session = new FakeSession;
+    QPointer<FakeSession> sessionAlive(session);
+
+    application->addSession(session);
+    delete application;
+
+    ASSERT_FALSE(sessionAlive.isNull());
+    EXPECT_EQ(nullptr, session->application());
+    EXPECT_EQ(nullptr, session->parent());
+
+    delete session;
 }

@@ -104,6 +104,13 @@ Application::~Application()
 
     for (SessionInterface *session : m_sessions) {
         session->setApplication(nullptr);
+        /* A live session belongs to its client, not to us: deleting it would
+         * strand the connection, whose later surfaces could never find a
+         * session again. addSession() made us its parent, so undo that too. */
+        if (session->live()) {
+            session->setParent(nullptr);
+            continue;
+        }
         delete session;
     }
     m_sessions.clear();
