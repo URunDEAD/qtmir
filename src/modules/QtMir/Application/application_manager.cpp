@@ -797,6 +797,7 @@ void ApplicationManager::add(Application* application)
     DEBUG_MSG << "(appId=" << application->appId() << ")";
 
     connect(application, &QObject::destroyed, this, [this, application] {
+        QMutexLocker locker(&m_mutex);
         m_closingApplications.removeAll(application);
     });
 
@@ -868,6 +869,11 @@ void ApplicationManager::add(Application* application)
 void ApplicationManager::remove(Application *application)
 {
     Q_ASSERT(application != nullptr);
+
+    // Reached unlocked from Application::stopped, while a Mir thread can be
+    // walking the list in authorizeSession(). The mutex is recursive, so the
+    // callers that already hold it are fine.
+    QMutexLocker locker(&m_mutex);
 
     int index = m_applications.indexOf(application);
     if (index == -1) {
