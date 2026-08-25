@@ -141,6 +141,11 @@ void Cursor::changeCursor(QCursor *windowCursor, QWindow * /*window*/)
     }
 }
 
+static bool usesMapToGlobalCursorMapping() {
+    static bool ret = qEnvironmentVariableIsSet("LOMIRI_USES_MAP_TO_GLOBAL_CURSOR_MAPPING");
+    return ret;
+}
+
 void Cursor::registerMousePointer(MirMousePointerInterface *mousePointer)
 {
     QMutexLocker locker(&d->m_mutex);
@@ -148,8 +153,14 @@ void Cursor::registerMousePointer(MirMousePointerInterface *mousePointer)
     auto updatePositionFunction = [mousePointer](const QPoint& screenPos) {
         if (!mousePointer->window()) return;
         if (!mousePointer->isEnabled()) return;
+        if (!mousePointer->parentItem()) return;
 
-        QPoint localPos = screenPos - mousePointer->window()->geometry().topLeft();
+        // "Feature-flag" the use of mapToGlobal() because apparently this
+        // causes problem on some devices.
+        // XXX: flag must matches between us and Lomiri, or things will break.
+        QPoint localPos = usesMapToGlobalCursorMapping()
+            ? mousePointer->parentItem()->mapFromGlobal(screenPos).toPoint()
+            : screenPos - mousePointer->window()->geometry().topLeft();
         mousePointer->moveTo(localPos);
     };
 
