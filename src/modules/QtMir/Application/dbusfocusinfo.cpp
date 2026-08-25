@@ -49,11 +49,101 @@ bool DBusFocusInfo::isPidFocused(unsigned int pid)
     }
 }
 
+namespace {
+
+struct CGroupControllerPath {
+    QByteArray path;
+    bool is_v1;
+};
+
+struct CGroupControllerPath getCGroupControllerPath(pid_t pid)
+{
+    QFile procCGroup(QStringLiteral("/proc/%1/cgroup").arg(pid));
+    if (!procCGroup.open(QIODevice::ReadOnly))
+        return { .path = QByteArray(), .is_v1 = false };
+
+    QByteArray line;
+    while (line = procCGroup.readLine(), !line.isEmpty()) {
+        QList<QByteArray> parts = line.split(':');
+
+        // XXX: if Systemd is in hybrid mode, both CGroup v1 and v2 hierarchy
+        // will be available and there's no guarantee what we'll get first. But
+        // I believe they would just give the same answer anyway. So, :shrug:.
+
+        if (parts[0] == "0") {
+            // CGroup v2
+            return { .path = parts[2].trimmed(), .is_v1 = false };
+        } else if (parts[1] == "name=systemd") {
+            // CGroup v1 named hierarchy
+            return { .path = parts[2].trimmed(), .is_v1 = true };
+        }
+    }
+
+    // CGroup not available?
+    return { .path = QByteArray(), .is_v1 = false };
+}
+
+QSet<pid_t> getPidsInCGroup(const struct CGroupControllerPath & cgPath)
+{
+    // XXX: this relies on specifics of Systemd setup. To be fool-proof, one
+    // would want to parse /proc/cgroups and/or /proc/self/mounts, but since
+    // we're tied to Systemd anyway, :shrug:.
+
+    QString cgMnt;
+    if (cgPath.is_v1) {
+        cgMnt = QStringLiteral("/sys/fs/cgroup/systemd");
+    } else if (QDir(QStringLiteral("/sys/fs/cgroup/unified")).exists()) {
+        cgMnt = QStringLiteral("/sys/fs/cgroup/unified");
+    } else {
+        cgMnt = QStringLiteral("/sys/fs/cgroup");
+    }
+
+    QFile cgProcs(
+        QStringLiteral("%1/%2/cgroup.procs")
+            .arg(cgMnt)
+            .arg(QString::fromLocal8Bit(cgPath.path)));
+
+    if (!cgProcs.open(QIODevice::ReadOnly)) {
+        return QSet<pid_t>();
+    }
+
+    QSet<pid_t> pids;
+    QByteArray line;
+    while (line = cgProcs.readLine(), !line.isEmpty()) {
+        bool ok;
+        pid_t pid = line.toInt(&ok, /* base */ 10);
+
+        if (ok) {
+            pids.insert(pid);
+        } else {
+            qCWarning(QTMIR_DBUS) << "DBusFocusInfo: error while parsing PIDs from" << cgProcs.fileName()
+                                  << "- bailing out.";
+            return QSet<pid_t>();
+        }
+    }
+
+    return pids;
+}
+}
+
 QSet<pid_t> DBusFocusInfo::fetchAssociatedPids(pid_t pid)
 {
-    // TODO port me to systemd ubuntu-app-launch
-    qCDebug(QTMIR_DBUS) << "DBusFocusInfo: pid" << pid << "unable to determine cgroup, assuming is not app-specific.";
-    return QSet<pid_t>({pid});
+    QSet<pid_t> pids({pid});
+
+    auto cgPath = getCGroupControllerPath(pid);
+
+    if (cgPath.path.isEmpty()) {
+        qCDebug(QTMIR_DBUS) << "DBusFocusInfo: pid" << pid << "unable to determine cgroup, assuming is not app-specific.";
+        return pids;
+    } else if (!cgPath.path.endsWith(".service")) {
+        qCDebug(QTMIR_DBUS)
+            << "DBusFocusInfo: pid" << pid << "is not in a .service cgroup, "
+                "assuming is not app-specific (got" << cgPath.path << ").";
+        return pids;
+    }
+
+    pids.unite(getPidsInCGroup(cgPath));
+    return pids;
 }
 
 SessionInterface* DBusFocusInfo::findSessionWithPid(const QSet<pid_t> &pidSet)
