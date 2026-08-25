@@ -707,6 +707,39 @@ TEST_F(ApplicationManagerTests,maliitFullPathAccepted)
 }
 
 /*
+ * Test that the Waydroid composer is authorized without getting an application of
+ * its own: it opens one connection per Android task, all from the same pid and all
+ * under the one desktop file hint, and each binds its own application at its first
+ * surface.
+ */
+TEST_F(ApplicationManagerTests,waydroidComposerAuthorizedWithoutApplication)
+{
+    using namespace ::testing;
+    const pid_t procId = 5678;
+    QByteArray cmdLine("/vendor/bin/hw/android.hardware.graphics.composer@2.1-service"
+                       " --desktop_file_hint=Waydroid.desktop");
+
+    EXPECT_CALL(procInfo,command_line(procId))
+        .Times(1)
+        .WillOnce(Return(cmdLine));
+
+    bool authed = false;
+    applicationManager.authorizeSession(procId, authed);
+
+    EXPECT_TRUE(authed);
+    EXPECT_EQ(0, applicationManager.count());
+
+    // and the session that follows is left unbound
+    auto appInfo = createApplicationInfoFor("", procId);
+    taskController->onSessionStarting(appInfo);
+
+    EXPECT_EQ(0, applicationManager.count());
+    SessionInterface *session = applicationManager.findSession(appInfo.application().get());
+    ASSERT_NE(nullptr, session);
+    EXPECT_EQ(nullptr, session->application());
+}
+
+/*
  * Test that an application in the Starting state is not impacted by the lomiri-app-launch "starting" observer event
  * for that application (i.e. the event is effectively useless)
  */

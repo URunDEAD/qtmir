@@ -696,6 +696,15 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
 
     qCDebug(QTMIR_APPLICATIONS) << "Process supplied desktop_file_hint, loading:" << appId;
 
+    /* The Waydroid composer hints Waydroid.desktop on every connection it
+     * opens, and it opens one per Android task it streams. Authorize them, but
+     * do not invent an application here: each connection names its own at its
+     * first surface, including the full UI, whose surface is Waydroid too. */
+    if (appId == QLatin1String("Waydroid")) {
+        authorized = true;
+        return;
+    }
+
     auto appInfo = m_taskController->getInfoForApp(appId);
     if (!appInfo) {
         qCritical() << "ApplicationManager REJECTED connection from app with pid" << pid
