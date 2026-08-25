@@ -197,7 +197,7 @@ void FakeMirSurface::touchEvent(Qt::KeyboardModifiers mods,
     m_touchesReceived.append(TouchEvent(mods, points, states, timestamp));
 }
 
-QString FakeMirSurface::appId() const { return "foo-app"; }
+QString FakeMirSurface::appId() const { return m_appId; }
 
 void FakeMirSurface::setShellChrome(Mir::ShellChrome /*shellChrome*/) {}
 

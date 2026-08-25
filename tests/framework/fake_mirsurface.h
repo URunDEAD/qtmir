@@ -136,6 +136,7 @@ public:
             ulong timestamp) override;
 
     QString appId() const override;
+    void setAppId(const QString &appId) { m_appId = appId; }
 
     QCursor cursor() const override { return QCursor(); }
 
@@ -185,6 +186,7 @@ private:
     QList<TouchEvent> m_touchesReceived;
 
     SessionInterface *m_session{nullptr};
+    QString m_appId{QStringLiteral("foo-app")};
 };
 
 } // namespace qtmir

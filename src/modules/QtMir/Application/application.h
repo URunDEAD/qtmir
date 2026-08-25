@@ -111,6 +111,12 @@ public:
     ProcessState processState() const { return m_processState; }
     void setProcessState(ProcessState value);
 
+    /* An app whose process is not lomiri-app-launch's to manage, e.g. a Waydroid
+     * app running inside the container. Its entry comes from a Wayland
+     * connection, not from a process the shell started. */
+    bool isExternallyManaged() const { return m_externallyManaged; }
+    void setExternallyManaged(bool value) { m_externallyManaged = value; }
+
     QStringList arguments() const { return m_arguments; }
     void setArguments(const QStringList &arguments);
 
@@ -180,6 +186,7 @@ private:
     bool m_exemptFromLifecycle;
     QSize m_initialSurfaceSize;
     bool m_closing{false};
+    bool m_externallyManaged{false};
 
     mutable MirSurfaceListModel m_surfaceList;
     ProxySurfaceListModel *m_proxyPromptSurfaceList;

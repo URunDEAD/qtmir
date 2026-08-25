@@ -738,6 +738,16 @@ shellapp::ApplicationInfoInterface *ApplicationManager::findApplicationWithSurfa
     auto qtmirSurface = static_cast<qtmir::MirSurfaceInterface*>(surface);
 
     QMutexLocker locker(&m_mutex);
+
+    /* A connection bound to an application at its first surface answers for
+     * itself. This is the only answer that tells a live application apart from
+     * a stale row carrying the same app id. */
+    if (auto *session = qtmirSurface->session()) {
+        auto *app = static_cast<Application*>(session->application());
+        if (app && app->appId() == toShortAppIdIfPossible(qtmirSurface->appId()))
+            return app;
+    }
+
     if (auto app = findApplicationWithAppId(qtmirSurface))
         return app;
 
@@ -1028,6 +1038,53 @@ SessionInterface *ApplicationManager::findSession(const mir::scene::Session* ses
 {
     QMutexLocker locker(&m_mutex);
     return m_taskController->findSession(session);
+}
+
+/* A client authorized without an application of its own - the Waydroid composer,
+ * which opens one connection per Android task - names its application with the
+ * app id of its first surface. */
+void ApplicationManager::onSurfaceCreated(SessionInterface *session, qtmir::MirSurfaceInterface *surface)
+{
+    QMutexLocker locker(&m_mutex);
+
+    if (!session || !surface || session->application())
+        return;
+
+    // A prompt session is shown under the session that asked for it.
+    if (m_promptPids.contains(session->pid()))
+        return;
+
+    const QString appId = toShortAppIdIfPossible(surface->appId());
+    if (appId.isEmpty())
+        return;
+
+    /* Reached from a queued slot, so a model change can only be in progress if
+     * one of the shell's own handlers is mid-insert. Adding a row there corrupts
+     * the model; the surface resolves by app id until the connection's next one
+     * binds it. */
+    if (m_modelUnderChange) {
+        qCDebug(QTMIR_APPLICATIONS) << "ApplicationManager::onSurfaceCreated - model is changing,"
+                                    << "not binding" << appId << "yet";
+        return;
+    }
+
+    auto appInfo = m_taskController->getInfoForApp(appId);
+    if (!appInfo)
+        return;
+
+    Application *application = findApplicationMutexHeld(appInfo->appId());
+    if (!application) {
+        application = new Application(
+                    m_sharedWakelock,
+                    appInfo,
+                    QStringList(),
+                    this);
+        application->setExternallyManaged(true);
+        add(application);
+    }
+
+    DEBUG_MSG << "(appId=" << application->appId() << ") - binding its connection";
+    application->addSession(session);
 }
 
 } // namespace qtmir

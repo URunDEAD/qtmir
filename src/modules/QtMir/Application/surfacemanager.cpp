@@ -179,6 +179,8 @@ void SurfaceManager::onWindowAdded(const NewWindow &window)
     if (session)
         session->registerSurface(surface);
 
+    m_sessionMap->onSurfaceCreated(session, surface);
+
     tracepoint(qtmir, surfaceCreated);
     Q_EMIT surfaceCreated(surface);
 }

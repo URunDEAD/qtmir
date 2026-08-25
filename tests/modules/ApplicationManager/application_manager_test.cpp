@@ -740,6 +740,126 @@ TEST_F(ApplicationManagerTests,waydroidComposerAuthorizedWithoutApplication)
 }
 
 /*
+ * Test that a connection with no application of its own is bound to one named by
+ * the app id of its first surface
+ */
+TEST_F(ApplicationManagerTests,sessionBoundToApplicationOnFirstSurface)
+{
+    using namespace ::testing;
+    const pid_t procId = 5678;
+    const QString appId("waydroid.com.example");
+    QByteArray cmdLine("/vendor/bin/hw/android.hardware.graphics.composer@2.1-service"
+                       " --desktop_file_hint=Waydroid.desktop");
+
+    EXPECT_CALL(procInfo,command_line(procId))
+        .Times(1)
+        .WillOnce(Return(cmdLine));
+
+    bool authed = false;
+    applicationManager.authorizeSession(procId, authed);
+    ASSERT_TRUE(authed);
+
+    auto appInfo = createApplicationInfoFor("", procId);
+    taskController->onSessionStarting(appInfo);
+    SessionInterface *session = applicationManager.findSession(appInfo.application().get());
+    ASSERT_NE(nullptr, session);
+
+    FakeMirSurface surface;
+    surface.setAppId(appId);
+    onSessionCreatedSurface(appInfo, &surface);
+    applicationManager.onSurfaceCreated(session, &surface);
+
+    ASSERT_EQ(1, applicationManager.count());
+    Application *application = applicationManager.findApplication(appId);
+    ASSERT_NE(nullptr, application);
+    EXPECT_EQ(1, application->sessions().count());
+    EXPECT_EQ(application, session->application());
+    EXPECT_EQ(Application::InternalState::Starting, application->internalState());
+
+    // the surface drawing its first frame makes the application running
+    surface.setReady();
+    EXPECT_EQ(Application::InternalState::Running, application->internalState());
+
+    taskController->onSessionStopping(appInfo);
+}
+
+/*
+ * Test that a surface whose app id has no desktop file leaves its connection
+ * unbound, rather than inventing a row for it
+ */
+TEST_F(ApplicationManagerTests,sessionWithoutDesktopFileIsLeftUnbound)
+{
+    using namespace ::testing;
+    const pid_t procId = 5678;
+    const QString appId("waydroid.com.example");
+    QByteArray cmdLine("/vendor/bin/hw/android.hardware.graphics.composer@2.1-service"
+                       " --desktop_file_hint=Waydroid.desktop");
+
+    EXPECT_CALL(procInfo,command_line(procId))
+        .Times(1)
+        .WillOnce(Return(cmdLine));
+
+    EXPECT_CALL(*taskController,getInfoForApp(appId))
+        .WillRepeatedly(Return(QSharedPointer<qtmir::ApplicationInfo>()));
+
+    bool authed = false;
+    applicationManager.authorizeSession(procId, authed);
+    ASSERT_TRUE(authed);
+
+    auto appInfo = createApplicationInfoFor("", procId);
+    taskController->onSessionStarting(appInfo);
+    SessionInterface *session = applicationManager.findSession(appInfo.application().get());
+    ASSERT_NE(nullptr, session);
+
+    FakeMirSurface surface;
+    surface.setAppId(appId);
+    onSessionCreatedSurface(appInfo, &surface);
+    applicationManager.onSurfaceCreated(session, &surface);
+
+    EXPECT_EQ(0, applicationManager.count());
+    EXPECT_EQ(nullptr, session->application());
+
+    taskController->onSessionStopping(appInfo);
+}
+
+/*
+ * Test that the application a connection was bound to goes away with the connection
+ */
+TEST_F(ApplicationManagerTests,applicationRemovedWhenComposerConnectionDrops)
+{
+    using namespace ::testing;
+    const pid_t procId = 5678;
+    const QString appId("waydroid.com.example");
+    QByteArray cmdLine("/vendor/bin/hw/android.hardware.graphics.composer@2.1-service"
+                       " --desktop_file_hint=Waydroid.desktop");
+
+    EXPECT_CALL(procInfo,command_line(procId))
+        .Times(1)
+        .WillOnce(Return(cmdLine));
+
+    bool authed = false;
+    applicationManager.authorizeSession(procId, authed);
+    ASSERT_TRUE(authed);
+
+    auto appInfo = createApplicationInfoFor("", procId);
+    taskController->onSessionStarting(appInfo);
+    SessionInterface *session = applicationManager.findSession(appInfo.application().get());
+
+    FakeMirSurface surface;
+    surface.setAppId(appId);
+    onSessionCreatedSurface(appInfo, &surface);
+    applicationManager.onSurfaceCreated(session, &surface);
+    surface.setReady();
+
+    ASSERT_EQ(1, applicationManager.count());
+
+    // the composer drops the task's connection
+    taskController->onSessionStopping(appInfo);
+
+    EXPECT_EQ(0, applicationManager.count());
+}
+
+/*
  * Test that an application in the Starting state is not impacted by the lomiri-app-launch "starting" observer event
  * for that application (i.e. the event is effectively useless)
  */

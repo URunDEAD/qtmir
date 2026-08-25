@@ -21,6 +21,7 @@ namespace mir { namespace scene { class Session; }}
 
 namespace qtmir {
 
+class MirSurfaceInterface;
 class SessionInterface;
 
 
@@ -31,6 +32,9 @@ public:
     virtual ~SessionMapInterface() = default;
 
     virtual SessionInterface *findSession(const mir::scene::Session* session) const = 0;
+
+    // Called once a new surface has been registered with its session, if any.
+    virtual void onSurfaceCreated(SessionInterface */*session*/, MirSurfaceInterface */*surface*/) {}
 };
 
 } // namespace qtmir

@@ -27,6 +27,7 @@ struct MockSessionMap : public qtmir::SessionMapInterface
     virtual ~MockSessionMap() {}
 
     MOCK_CONST_METHOD1(findSession, SessionInterface*(const mir::scene::Session*));
+    MOCK_METHOD2(onSurfaceCreated, void(SessionInterface*, MirSurfaceInterface*));
 };
 
 #endif // MOCK_SESSIONMAP_H
