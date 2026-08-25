@@ -860,6 +860,51 @@ TEST_F(ApplicationManagerTests,applicationRemovedWhenComposerConnectionDrops)
 }
 
 /*
+ * Test that stopping an externally managed app drops its entry instead of asking
+ * lomiri-app-launch to stop it and then signalling its session's process, which
+ * is the compositing client shared by every one of its connections
+ */
+TEST_F(ApplicationManagerTests,externallyManagedAppDoesNotTerminateItsSession)
+{
+    using namespace ::testing;
+    const pid_t procId = 4000000; // no such process, so a stray SIGTERM would be visible
+    const QString appId("waydroid.com.example");
+    QByteArray cmdLine("/vendor/bin/hw/android.hardware.graphics.composer@2.1-service"
+                       " --desktop_file_hint=Waydroid.desktop");
+
+    EXPECT_CALL(procInfo,command_line(procId))
+        .Times(1)
+        .WillOnce(Return(cmdLine));
+
+    bool authed = false;
+    applicationManager.authorizeSession(procId, authed);
+    ASSERT_TRUE(authed);
+
+    auto appInfo = createApplicationInfoFor("", procId);
+    taskController->onSessionStarting(appInfo);
+    SessionInterface *session = applicationManager.findSession(appInfo.application().get());
+
+    FakeMirSurface surface;
+    surface.setAppId(appId);
+    onSessionCreatedSurface(appInfo, &surface);
+    applicationManager.onSurfaceCreated(session, &surface);
+
+    Application *application = applicationManager.findApplication(appId);
+    ASSERT_NE(nullptr, application);
+    ASSERT_TRUE(application->isExternallyManaged());
+
+    // neither lomiri-app-launch nor a signal can stop what the shell did not start
+    EXPECT_CALL(*taskController,stop(_))
+        .Times(0);
+
+    applicationManager.stopApplication(appId);
+
+    EXPECT_EQ(0, applicationManager.count());
+
+    taskController->onSessionStopping(appInfo);
+}
+
+/*
  * Test that an application in the Starting state is not impacted by the lomiri-app-launch "starting" observer event
  * for that application (i.e. the event is effectively useless)
  */

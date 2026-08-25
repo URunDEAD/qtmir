@@ -858,6 +858,15 @@ void ApplicationManager::add(Application* application)
                 Qt::QueuedConnection);
 
         connect(application, &Application::stopProcessRequested, this, [=, this]() {
+            /* The process behind an externally managed app is not ours to stop:
+             * its session's pid is the compositing client's, and the launcher
+             * lomiri-app-launch knows exited long ago. Just drop the entry. */
+            if (application->isExternallyManaged()) {
+                remove(application);
+                application->deleteLater();
+                return;
+            }
+
             if (!m_taskController->stop(appId)) {
                 qWarning() << "FAILED to ask lomiri-app-launch to stop application with appId" << appId
                            << "Sending SIGTERM to process:" << appId;
