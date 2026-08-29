@@ -13,7 +13,6 @@ include_directories(
 
 include_directories(
   SYSTEM
-  ${APPLICATION_API_INCLUDE_DIRS}
   ${MIRAL_INCLUDE_DIRS}
   ${MIRTEST_INCLUDE_DIRS}
 )
