@@ -384,6 +384,31 @@ Copyright: 2014, Alex Merry <alex.merry@kde.org>
   2014, Martin Gräßlin <mgraesslin@kde.org>
 License: BSD-3-clause
 
+Files: include/lomiri/shell/application/ApplicationInfoInterface.h
+ include/lomiri/shell/application/ApplicationManagerInterface.h
+ include/lomiri/shell/application/MirMousePointerInterface.h
+Copyright: 2013, 2015, 2016, Canonical Ltd.
+  2013, 2016, Canonical Ltd.
+  2015-2016, Canonical, Ltd.
+License: LGPL-3
+Comment:
+ Moved from lomiri-api (include/lomiri/shell/application/), which
+ qtmir implements.
+
+Files: include/lomiri/shell/application/Mir.h
+ include/lomiri/shell/application/MirPlatformCursor.h
+ include/lomiri/shell/application/MirSurfaceInterface.h
+ include/lomiri/shell/application/MirSurfaceItemInterface.h
+ include/lomiri/shell/application/MirSurfaceListInterface.h
+ include/lomiri/shell/application/SurfaceManagerInterface.h
+Copyright: 2015, Canonical, Ltd.
+  2015-2016, Canonical, Ltd.
+  2016, Canonical, Ltd.
+License: GPL-3
+Comment:
+ Moved from lomiri-api (include/lomiri/shell/application/), which qtmir
+ implements.
+
 Files: data/xwayland.qtmir.png
 Copyright: 2006, https://commons.wikimedia.org/wiki/User:Sven
   2025, UBports Foundation
