@@ -696,6 +696,15 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
 
     qCDebug(QTMIR_APPLICATIONS) << "Process supplied desktop_file_hint, loading:" << appId;
 
+    /* The Waydroid composer hints Waydroid.desktop on every connection it
+     * opens, and it opens one per Android task it streams. Authorize them, but
+     * do not invent an application here: each connection names its own at its
+     * first surface, including the full UI, whose surface is Waydroid too. */
+    if (appId == QLatin1String("Waydroid")) {
+        authorized = true;
+        return;
+    }
+
     auto appInfo = m_taskController->getInfoForApp(appId);
     if (!appInfo) {
         qCritical() << "ApplicationManager REJECTED connection from app with pid" << pid
@@ -729,6 +738,16 @@ shellapp::ApplicationInfoInterface *ApplicationManager::findApplicationWithSurfa
     auto qtmirSurface = static_cast<qtmir::MirSurfaceInterface*>(surface);
 
     QMutexLocker locker(&m_mutex);
+
+    /* A connection bound to an application at its first surface answers for
+     * itself. This is the only answer that tells a live application apart from
+     * a stale row carrying the same app id. */
+    if (auto *session = qtmirSurface->session()) {
+        auto *app = static_cast<Application*>(session->application());
+        if (app && app->appId() == toShortAppIdIfPossible(qtmirSurface->appId()))
+            return app;
+    }
+
     if (auto app = findApplicationWithAppId(qtmirSurface))
         return app;
 
@@ -743,8 +762,12 @@ Application* ApplicationManager::findApplicationWithAppId(const qtmir::MirSurfac
     if (!surface)
         return nullptr;
 
+    // Surfaces can carry the long form of an app id, while applications are
+    // always kept under the short one.
+    const QString appId = toShortAppIdIfPossible(surface->appId());
+
     for (auto *application : m_applications) {
-        if (application->appId() == surface->appId())
+        if (application->appId() == appId)
             return application;
     }
 
@@ -793,6 +816,7 @@ void ApplicationManager::add(Application* application)
     DEBUG_MSG << "(appId=" << application->appId() << ")";
 
     connect(application, &QObject::destroyed, this, [this, application] {
+        QMutexLocker locker(&m_mutex);
         m_closingApplications.removeAll(application);
     });
 
@@ -834,6 +858,15 @@ void ApplicationManager::add(Application* application)
                 Qt::QueuedConnection);
 
         connect(application, &Application::stopProcessRequested, this, [=, this]() {
+            /* The process behind an externally managed app is not ours to stop:
+             * its session's pid is the compositing client's, and the launcher
+             * lomiri-app-launch knows exited long ago. Just drop the entry. */
+            if (application->isExternallyManaged()) {
+                remove(application);
+                application->deleteLater();
+                return;
+            }
+
             if (!m_taskController->stop(appId)) {
                 qWarning() << "FAILED to ask lomiri-app-launch to stop application with appId" << appId
                            << "Sending SIGTERM to process:" << appId;
@@ -864,6 +897,11 @@ void ApplicationManager::add(Application* application)
 void ApplicationManager::remove(Application *application)
 {
     Q_ASSERT(application != nullptr);
+
+    // Reached unlocked from Application::stopped, while a Mir thread can be
+    // walking the list in authorizeSession(). The mutex is recursive, so the
+    // callers that already hold it are fine.
+    QMutexLocker locker(&m_mutex);
 
     int index = m_applications.indexOf(application);
     if (index == -1) {
@@ -1009,6 +1047,53 @@ SessionInterface *ApplicationManager::findSession(const mir::scene::Session* ses
 {
     QMutexLocker locker(&m_mutex);
     return m_taskController->findSession(session);
+}
+
+/* A client authorized without an application of its own - the Waydroid composer,
+ * which opens one connection per Android task - names its application with the
+ * app id of its first surface. */
+void ApplicationManager::onSurfaceCreated(SessionInterface *session, qtmir::MirSurfaceInterface *surface)
+{
+    QMutexLocker locker(&m_mutex);
+
+    if (!session || !surface || session->application())
+        return;
+
+    // A prompt session is shown under the session that asked for it.
+    if (m_promptPids.contains(session->pid()))
+        return;
+
+    const QString appId = toShortAppIdIfPossible(surface->appId());
+    if (appId.isEmpty())
+        return;
+
+    /* Reached from a queued slot, so a model change can only be in progress if
+     * one of the shell's own handlers is mid-insert. Adding a row there corrupts
+     * the model; the surface resolves by app id until the connection's next one
+     * binds it. */
+    if (m_modelUnderChange) {
+        qCDebug(QTMIR_APPLICATIONS) << "ApplicationManager::onSurfaceCreated - model is changing,"
+                                    << "not binding" << appId << "yet";
+        return;
+    }
+
+    auto appInfo = m_taskController->getInfoForApp(appId);
+    if (!appInfo)
+        return;
+
+    Application *application = findApplicationMutexHeld(appInfo->appId());
+    if (!application) {
+        application = new Application(
+                    m_sharedWakelock,
+                    appInfo,
+                    QStringList(),
+                    this);
+        application->setExternallyManaged(true);
+        add(application);
+    }
+
+    DEBUG_MSG << "(appId=" << application->appId() << ") - binding its connection";
+    application->addSession(session);
 }
 
 } // namespace qtmir

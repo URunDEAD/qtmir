@@ -50,6 +50,7 @@ namespace lomiri {
 
 namespace qtmir {
 
+class MirSurfaceInterface;
 class DBusFocusInfo;
 class DBusWindowStack;
 class ProcInfo;
@@ -88,6 +89,7 @@ public:
     QVariant data(const QModelIndex & index, int role) const override;
 
     SessionInterface *findSession(const mir::scene::Session* session) const override;
+    void onSurfaceCreated(SessionInterface *session, qtmir::MirSurfaceInterface *surface) override;
 
 public Q_SLOTS:
     void authorizeSession(const pid_t pid, bool &authorized);

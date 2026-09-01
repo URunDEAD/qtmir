@@ -28,6 +28,7 @@
 #include <QtMir/Application/session.h>
 #include <QtMir/Application/timesource.h>
 
+#include <QPointer>
 #include <QScopedPointer>
 #include <QSignalSpy>
 
@@ -516,4 +517,63 @@ TEST_F(ApplicationTests, dontRespawnIfClosedWhileStillStartingUp)
 
     EXPECT_EQ(Application::InternalState::Stopped, application->internalState());
     EXPECT_EQ(0, spyStartProcess.count());
+}
+
+/*
+   An app whose process the shell does not manage is closed when it loses its
+   surfaces like any other. Its connection stays up to serve other tasks, so
+   waiting for the session to stop would pin the row forever.
+ */
+TEST_F(ApplicationTests, externallyManagedAppClosesWhenItLosesItsSurfaces)
+{
+    using namespace ::testing;
+
+    QScopedPointer<Application> application(createApplicationWithFakes());
+    application->setExternallyManaged(true);
+
+    QPointer<Session> session(createSessionWithFakes());
+    application->addSession(session);
+
+    FakeMirSurface *surface = new FakeMirSurface;
+    session->registerSurface(surface);
+    surface->setReady();
+    ASSERT_EQ(Application::InternalState::Running, application->internalState());
+    ASSERT_EQ(Application::ProcessUnknown, application->processState());
+
+    QSignalSpy stopProcessRequestedSpy(application.data(), &Application::stopProcessRequested);
+
+    // the task's window goes away while its connection stays up
+    surface->setLive(false);
+    delete surface;
+
+    EXPECT_TRUE(session->live());
+    ASSERT_TRUE(application->stopTimer()->isRunning());
+
+    passTimeUntilTimerTimesOut(application->stopTimer());
+
+    EXPECT_EQ(1, stopProcessRequestedSpy.count());
+}
+
+/*
+   A session stays alive as long as its client is connected, so it must survive
+   the Application it was bound to.
+ */
+TEST_F(ApplicationTests, liveSessionSurvivesItsApplication)
+{
+    using namespace ::testing;
+
+    Application *application = createApplicationWithFakes();
+    application->setProcessState(Application::ProcessRunning);
+
+    FakeSession *session = new FakeSession;
+    QPointer<FakeSession> sessionAlive(session);
+
+    application->addSession(session);
+    delete application;
+
+    ASSERT_FALSE(sessionAlive.isNull());
+    EXPECT_EQ(nullptr, session->application());
+    EXPECT_EQ(nullptr, session->parent());
+
+    delete session;
 }

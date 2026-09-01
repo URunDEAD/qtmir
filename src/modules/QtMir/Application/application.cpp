@@ -104,6 +104,13 @@ Application::~Application()
 
     for (SessionInterface *session : m_sessions) {
         session->setApplication(nullptr);
+        /* A live session belongs to its client, not to us: deleting it would
+         * strand the connection, whose later surfaces could never find a
+         * session again. addSession() made us its parent, so undo that too. */
+        if (session->live()) {
+            session->setParent(nullptr);
+            continue;
+        }
         delete session;
     }
     m_sessions.clear();
@@ -291,18 +298,9 @@ void Application::updateState()
 {
     SessionInterface *singleSession = m_sessions.count() == 1 ? m_sessions[0] : nullptr;
 
-    // Closing an app we don't manage (ProcessUnknown) would orphan its
-    // still-connected session: clients are only authorized at connect time,
-    // so its new surfaces would never be shown again. Keep it until its
-    // session stops.
-    const bool keepAliveWithLiveSession = m_processState == ProcessUnknown
-            && singleSession && singleSession->live();
-
-    if (!keepAliveWithLiveSession
-        &&
-        ((m_sessions.isEmpty() && m_state != InternalState::Starting && m_state != InternalState::StoppedResumable)
+    if ((m_sessions.isEmpty() && m_state != InternalState::Starting && m_state != InternalState::StoppedResumable)
         ||
-        (singleSession && singleSession->surfaceList()->isEmpty() && singleSession->hasClosingSurfaces()))) {
+        (singleSession && singleSession->surfaceList()->isEmpty() && singleSession->hasClosingSurfaces())) {
         // Never allow xwayland connections to be dropped
         if (appId() != QLatin1String("xwayland.qtmir")) {
             // As we might not be able to go to Closing state right now (eg, SuspendingWaitProcess),
@@ -311,8 +309,7 @@ void Application::updateState()
         }
     }
 
-    bool lostAllSurfaces = !keepAliveWithLiveSession
-            && singleSession && singleSession->surfaceList()->isEmpty() && singleSession->hadSurface()
+    bool lostAllSurfaces = singleSession && singleSession->surfaceList()->isEmpty() && singleSession->hadSurface()
             && !singleSession->hasClosingSurfaces();
 
     if (m_closing || (lostAllSurfaces && m_state != InternalState::StoppedResumable)) {

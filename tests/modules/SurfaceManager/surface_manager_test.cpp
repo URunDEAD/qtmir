@@ -153,6 +153,22 @@ TEST_F(SurfaceManagerTests, createdMirSurfaceHasSessionSet)
 }
 
 /*
+ * Test SurfaceManager tells the session map about the new surface, so that a session
+ * can be bound to an application by the app id its first surface carries
+ */
+TEST_F(SurfaceManagerTests, sessionMapIsToldAboutNewSurfaces)
+{
+    // Setup
+    using namespace ::testing;
+    EXPECT_CALL(sessionMap,onSurfaceCreated(&fakeSession, _))
+            .Times(1);
+
+    // Test
+    Q_EMIT wmNotifier.windowAdded(windowInfo);
+    qtApp->sendPostedEvents();
+}
+
+/*
  * Test when MirAL creates a surface with a parent, SurfaceManager correctly associates
  * the parent MirSurface to the MirSurface
  */
