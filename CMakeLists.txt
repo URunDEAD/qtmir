@@ -36,6 +36,8 @@ set (CMAKE_C_STANDARD 17)
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
+# gtest receives only CMAKE_CXX_FLAGS and its C++ version must match
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}")
 
 if ("${CMAKE_CXX_COMPILER}" MATCHES "clang")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-return-type-c-linkage -Wno-mismatched-tags -Wno-inconsistent-missing-override -Wno-implicit-exception-spec-mismatch -Wno-unknown-pragmas")
