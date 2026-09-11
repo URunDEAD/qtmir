@@ -64,13 +64,13 @@ set(QMLMIRPLUGIN_SRC
     settings.cpp
     windowmodel.cpp
 # We need to run moc on these headers
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/ApplicationInfoInterface.h
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/ApplicationManagerInterface.h
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/Mir.h
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/MirSurfaceInterface.h
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/MirSurfaceItemInterface.h
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/MirSurfaceListInterface.h
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/SurfaceManagerInterface.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/ApplicationInfoInterface.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/ApplicationManagerInterface.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/Mir.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/MirSurfaceInterface.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/MirSurfaceItemInterface.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/MirSurfaceListInterface.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/SurfaceManagerInterface.h
 # Feed the automoc monster
     session_interface.h
     applicationinfo.h

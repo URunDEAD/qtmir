@@ -26,8 +26,6 @@ Build-Depends: cmake,
                libqtdbustest1-dev (>= 0.2),
                liblomiri-app-launch-dev,
                libudev-dev,
-               liblomiri-api-dev (>= 0.2.0),
-               liblomiri-shell-api-dev,
                liblomiri-url-dispatcher-dev,
                libxkbcommon-dev,
                libxrender-dev,
@@ -76,7 +74,10 @@ Description: Developer files for QtMir server API
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
  a Mir server. It also exposes some internal Mir functionality.
  .
- This package contains the library headers for developers.
+ This package contains the library headers for developers, including the
+ header-only Application API (lomiri-shell-application pkg-config module)
+ that a Lomiri shell uses to talk to a Mir server implementing it, such as
+ QtMir.
 
 Package: libqt5mir1server1
 Architecture: linux-any

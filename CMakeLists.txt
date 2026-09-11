@@ -128,7 +128,6 @@ pkg_check_modules(GIO gio-2.0)
 pkg_check_modules(GIO_UNIX gio-unix-2.0)
 pkg_check_modules(LTTNG lttng-ust)
 pkg_check_modules(GSETTINGS_QT REQUIRED gsettings-qt)
-pkg_check_modules(APPLICATION_API REQUIRED lomiri-shell-application=28)
 
 if(WITH_VALGRIND)
     pkg_check_modules(VALGRIND valgrind REQUIRED)
@@ -140,7 +139,12 @@ pkg_check_modules(CONTENT_HUB liblomiri-content-hub>=1.0.0 REQUIRED)
 message(STATUS "Bulding with content-hub")
 endif()
 
-include_directories(SYSTEM ${APPLICATION_API_INCLUDE_DIRS})
+include_directories(SYSTEM ${Qt5Core_INCLUDE_DIRS})
+
+# Lomiri shell Application API headers (lomiri/shell/application/*.h, formerly
+# from liblomiri-shell-api-dev) now live in this tree; make them globally
+# available like the pkg-config module used to.
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Disable all deprecated qt functions in and before qt version 5.9
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050900)

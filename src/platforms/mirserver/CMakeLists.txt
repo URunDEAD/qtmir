@@ -77,8 +77,6 @@ include_directories(
     ${Qt5Quick_PRIVATE_INCLUDE_DIRS}
     ${Qt5Qml_INCLUDE_DIRS}
 
-    ${APPLICATION_API_INCLUDE_DIRS}
-
 if(WITH_CONTENTHUB)
     ${CONTENT_HUB_INCLUDE_DIRS}
 endif()
@@ -164,8 +162,8 @@ set(QMIRSERVER_PLUGIN_SRC
     windowmodelnotifier.cpp
 
 # We need to run moc on these headers
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/MirMousePointerInterface.h
-    ${APPLICATION_API_INCLUDEDIR}/lomiri/shell/application/Mir.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/MirMousePointerInterface.h
+    ${CMAKE_SOURCE_DIR}/include/lomiri/shell/application/Mir.h
 
     ${CMAKE_SOURCE_DIR}/include/qtmir/mirserverapplication.h
     ${CMAKE_SOURCE_DIR}/include/qtmir/displayconfigurationpolicy.h
@@ -253,6 +251,26 @@ install(
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${QTMIRSERVER_SONAME}.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)
+
+# Lomiri shell Application API: header-only interfaces that qtmir implements.
+# Kept as its own pkg-config module (versioned independently of qtmirserver's
+# SOVERSION) but shipped in the same libqt5mir1server-dev package, since a
+# shell consuming it already needs to build against a Mir server implementing
+# the interface.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/lomiri-shell-application.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/lomiri-shell-application.pc
+    @ONLY
+)
+
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/include/lomiri
+  DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/lomiri-shell-api
+)
+
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lomiri-shell-application.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
