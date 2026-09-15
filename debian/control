@@ -69,6 +69,10 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: qtmir-qt5-mir1 (= ${binary:Version}),
          ${misc:Depends},
          libmir1al-dev (>= 1.3.0),
+Breaks:
+ liblomiri-shell-api-dev (<< 0.4.0~),
+Replaces:
+ liblomiri-shell-api-dev (<< 0.4.0~),
 Description: Developer files for QtMir server API
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
