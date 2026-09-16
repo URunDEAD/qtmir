@@ -304,8 +304,8 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
 
     // Mode = current resolution & refresh rate
     mir::graphics::DisplayConfigurationMode mode = screen.modes.at(m_currentModeIndex);
-    m_geometry.setWidth(mode.size.width.as_int());
-    m_geometry.setHeight(mode.size.height.as_int());
+    m_geometry.setWidth(screen.extents().size.width.as_int());
+    m_geometry.setHeight(screen.extents().size.height.as_int());
 
     // DPI - unnecessary to calculate, default implementation in QPlatformScreen is sufficient
 
@@ -336,7 +336,7 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
     // Scale, DPR & Form Factor
     // Update the scale & form factor native-interface properties for the windows affected
     // as there is no convenient way to emit signals for those custom properties on a QScreen
-    m_devicePixelRatio = 1.0; //qCeil(m_scale); // FIXME: I need to announce this changing, probably by delete/recreate Screen
+    m_devicePixelRatio = screen.scale; // FIXME: I need to announce this changing, probably by delete/recreate Screen
 
     auto formFactor = static_cast<qtmir::FormFactor>(screen.form_factor);
     if (m_formFactor != formFactor) {
@@ -448,6 +448,7 @@ void PlatformScreen::addWindow(ScreenPlatformWindow *window)
 
     window->setGeometry(geometry());
     window->setActive(m_isActive);
+    window->setDevicePixelRatio(m_devicePixelRatio);
 
     if (m_screenWindows.count() > 1) {
         DEBUG_MSG_SCREENS << "() - secondary window added to screen.";

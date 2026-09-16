@@ -39,6 +39,9 @@ public:
     bool isActive() const override;
     void setExposed(const bool exposed);
 
+    qreal devicePixelRatio() const override { return m_devicePixelRatio; }
+    void setDevicePixelRatio(qreal dpr) { m_devicePixelRatio = dpr; }
+
     WId winId() const override { return m_winId; }
 
     void setScreen(QPlatformScreen *screen);
@@ -59,6 +62,7 @@ private:
     bool m_exposed;
     bool m_primary;
     bool m_active;
+    qreal m_devicePixelRatio;
     WId m_winId;
 };
 
