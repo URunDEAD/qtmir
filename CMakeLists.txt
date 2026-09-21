@@ -207,5 +207,4 @@ endif()
 # add subdirectories to build
 add_subdirectory(src)
 add_subdirectory(demos)
-add_subdirectory(benchmarks)
 add_subdirectory(data)
