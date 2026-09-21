@@ -122,7 +122,6 @@ Pre-Depends: ${misc:Pre-Depends},
 Depends: littler,
          lttng-tools,
          mir-test-tools,
-         python3-autopilot,
          python3-babeltrace,
          python3-evdev,
          python3-mir-perf-framework,
@@ -131,7 +130,6 @@ Depends: littler,
          qtmir-qt5-mir1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
-Recommends: autopilot-qt5,
 Description: QtMir tests and demos
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
