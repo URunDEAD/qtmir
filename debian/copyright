@@ -218,13 +218,9 @@ Files: CMakeLists.txt
  Jenkinsfile
  NEWS
  README
- benchmarks/CMakeLists.txt
- benchmarks/README
- benchmarks/touch_event_latency.R
  cmake/modules/FindGLESv2.cmake
  cmake/modules/QmlTest.cmake
  cmake/modules/UseLttngGenTp.cmake
- cmake/modules/autopilot.cmake
  demos/CMakeLists.txt
  demos/qml-demo-client/CMakeLists.txt
  demos/qml-demo-client/MovingRect.qml
@@ -330,10 +326,7 @@ Copyright: 2012-2015, Canonical, Ltd.
   2016, Canonical, Ltd.
 License: GPL-3
 
-Files: benchmarks/common.py
- benchmarks/report_types.py
- benchmarks/touch_event_latency.py
- include/qtmir/types.h
+Files:  include/qtmir/types.h
 Copyright: 2015, Canonical Ltd.
   2016, Canonical Ltd.
 License: LGPL-3
