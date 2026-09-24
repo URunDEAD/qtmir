@@ -102,7 +102,7 @@ TEST_F(ScreensModelTest, MultipleScreenFound)
 
     ASSERT_EQ(2, screensModel->screens().count());
     EXPECT_EQ(QRect(0, 0, 150, 200), screensModel->screens().at(0)->geometry());
-    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(1)->geometry());
+    EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(1)->geometry());
 }
 
 TEST_F(ScreensModelTest, ScreenAdded)
@@ -123,7 +123,7 @@ TEST_F(ScreensModelTest, ScreenAdded)
 
     ASSERT_EQ(2, screensModel->screens().count());
     EXPECT_EQ(QRect(0, 0, 150, 200), screensModel->screens().at(0)->geometry());
-    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(1)->geometry());
+    EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(1)->geometry());
 }
 
 TEST_F(ScreensModelTest, ScreenRemoved)
@@ -138,13 +138,13 @@ TEST_F(ScreensModelTest, ScreenRemoved)
     display->setFakeConfiguration(config, bufferConfig);
 
     ASSERT_EQ(2, screensModel->screens().count());
-    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(0)->geometry());
+    EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(0)->geometry());
     EXPECT_EQ(QRect(0, 0, 150, 200), screensModel->screens().at(1)->geometry());
 
     screensModel->update();
 
     ASSERT_EQ(1, screensModel->screens().count());
-    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(0)->geometry());
+    EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(0)->geometry());
 }
 
 TEST_F(ScreensModelTest, MatchBufferWithDisplay)
@@ -171,7 +171,7 @@ TEST_F(ScreensModelTest, MultipleMatchBuffersWithDisplays)
     MockGLDisplayBuffer buffer1, buffer2;
     std::vector<MockGLDisplayBuffer*> buffers {&buffer1, &buffer2};
 
-    geom::Rectangle buffer1Geom{{500, 600}, {1500, 2000}};
+    geom::Rectangle buffer1Geom{{500, 600}, {2000, 1500}};
     geom::Rectangle buffer2Geom{{0, 0}, {150, 200}};
     EXPECT_CALL(buffer1, view_area())
             .WillRepeatedly(Return(buffer1Geom));
