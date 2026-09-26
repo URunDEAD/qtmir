@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Canonical Ltd.
+ * Copyright © 2016-2020 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3,
@@ -16,12 +16,12 @@
  * Authored by: Nick Dedekind <nick.dedekind@canonical.com>
  */
 
-#ifndef MIRAL_DISPLAY_CONDIFIGURATION_POLICY_H
-#define MIRAL_DISPLAY_CONDIFIGURATION_POLICY_H
+#ifndef MIROIL_DISPLAY_CONDIFIGURATION_POLICY_H
+#define MIROIL_DISPLAY_CONDIFIGURATION_POLICY_H
 
 namespace mir { namespace graphics { class DisplayConfiguration; } }
 
-namespace miral
+namespace miroil
 {
 
 class DisplayConfigurationPolicy
@@ -29,14 +29,14 @@ class DisplayConfigurationPolicy
 public:
     DisplayConfigurationPolicy();
 
-    virtual ~DisplayConfigurationPolicy() = default;
+    virtual ~DisplayConfigurationPolicy();
     DisplayConfigurationPolicy(DisplayConfigurationPolicy const&) = delete;
     DisplayConfigurationPolicy& operator=(DisplayConfigurationPolicy const&) = delete;
 
     virtual void apply_to(mir::graphics::DisplayConfiguration& conf) = 0;
 };
 
-} // namespace miral
+} // namespace miroil
 
 
-#endif // MIRAL_DISPLAY_CONDIFIGURATION_POLICY_H
+#endif // MIROIL_DISPLAY_CONDIFIGURATION_POLICY_H

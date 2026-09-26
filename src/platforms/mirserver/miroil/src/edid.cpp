@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Canonical Ltd.
+ * Copyright © 2016-2020 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3,
@@ -16,16 +16,16 @@
  * Authored by: Nick Dedekind <nick.dedekind@canonical.com>
  */
 
-#include "qtmir/miral/edid.h"
+#include "miroil/edid.h"
 
 #include <cstring>
 #include <numeric>
 #include <stdexcept>
 
-miral::Edid& miral::Edid::parse_data(std::vector<uint8_t> const& data)
+miroil::Edid& miroil::Edid::parse_data(std::vector<uint8_t> const& data)
 {
     if (data.size() != 128 && data.size() != 256) {
-        throw std::runtime_error(std::string("Incorrect EDID structure size:") + std::to_string(data.size()));
+        throw std::runtime_error("Incorrect EDID structure size");
     }
 
     // check the checksum
@@ -97,7 +97,7 @@ miral::Edid& miral::Edid::parse_data(std::vector<uint8_t> const& data)
     return *this;
 }
 
-std::string miral::Edid::Descriptor::string_value() const
+std::string miroil::Edid::Descriptor::string_value() const
 {
     switch(type) {
     case Type::monitor_name:

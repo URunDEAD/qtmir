@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Canonical Ltd.
+ * Copyright © 2016-2020 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3,
@@ -16,45 +16,42 @@
  * Authored by: Alan Griffiths <alan@octopull.co.uk>
  */
 
-#include "persist_display_config.h"
-#include "qtmir/miral/display_configuration_policy.h"
-#include "qtmir/miral/display_configuration_storage.h"
-#include "qtmir/miral/edid.h"
+#include "miroil/persist_display_config.h"
+#include "miroil/display_configuration_policy.h"
+#include "miroil/display_configuration_storage.h"
 
-#include <mir/graphics/display_configuration_policy.h>
 #include <mir/graphics/display_configuration.h>
 #include <mir/graphics/display_configuration_observer.h>
+#include <mir/graphics/display_configuration_policy.h>
 #include <mir/observer_registrar.h>
 #include <mir/server.h>
-#include <mir/version.h>
+#include <mir/log.h>
+
+#include <boost/throw_exception.hpp>
 
 #include <stdexcept>
-
-// shouldn't really import this
-#include <qglobal.h>
 
 namespace mg = mir::graphics;
 
 namespace
 {
-
 struct PersistDisplayConfigPolicy
 {
-    PersistDisplayConfigPolicy(std::shared_ptr<miral::DisplayConfigurationStorage> const& storage) :
+    PersistDisplayConfigPolicy(std::shared_ptr<miroil::DisplayConfigurationStorage> const& storage) :
         storage(storage) {}
     virtual ~PersistDisplayConfigPolicy() = default;
     PersistDisplayConfigPolicy(PersistDisplayConfigPolicy const&) = delete;
     auto operator=(PersistDisplayConfigPolicy const&) -> PersistDisplayConfigPolicy& = delete;
 
     void apply_to(mg::DisplayConfiguration& conf,
-                  miral::DisplayConfigurationPolicy& wrapped_policy,
-                  miral::DisplayConfigurationPolicy& custom_policy);
+                  miroil::DisplayConfigurationPolicy& wrapped_policy,
+                  miroil::DisplayConfigurationPolicy& custom_policy);
     void save_config(mg::DisplayConfiguration const& base_conf);
 
-    std::shared_ptr<miral::DisplayConfigurationStorage> storage;
+    std::shared_ptr<miroil::DisplayConfigurationStorage> storage;
 };
 
-struct MiralWrappedMirDisplayConfigurationPolicy : miral::DisplayConfigurationPolicy
+struct MiralWrappedMirDisplayConfigurationPolicy : miroil::DisplayConfigurationPolicy
 {
     MiralWrappedMirDisplayConfigurationPolicy(std::shared_ptr<mg::DisplayConfigurationPolicy> const& self) :
         self{self}
@@ -72,8 +69,8 @@ struct DisplayConfigurationPolicyAdapter : mg::DisplayConfigurationPolicy
 {
     DisplayConfigurationPolicyAdapter(
         std::shared_ptr<PersistDisplayConfigPolicy> const& self,
-            std::shared_ptr<miral::DisplayConfigurationPolicy> const& wrapped_policy,
-            std::shared_ptr<miral::DisplayConfigurationPolicy> const& custom_policy) :
+            std::shared_ptr<miroil::DisplayConfigurationPolicy> const& wrapped_policy,
+            std::shared_ptr<miroil::DisplayConfigurationPolicy> const& custom_policy) :
         self{self}, wrapped_policy{wrapped_policy}, custom_policy{custom_policy}
     {}
 
@@ -83,8 +80,8 @@ struct DisplayConfigurationPolicyAdapter : mg::DisplayConfigurationPolicy
     }
 
     std::shared_ptr<PersistDisplayConfigPolicy> const self;
-    std::shared_ptr<miral::DisplayConfigurationPolicy> const wrapped_policy;
-    std::shared_ptr<miral::DisplayConfigurationPolicy> const custom_policy;
+    std::shared_ptr<miroil::DisplayConfigurationPolicy> const wrapped_policy;
+    std::shared_ptr<miroil::DisplayConfigurationPolicy> const custom_policy;
 };
 
 struct DisplayConfigurationObserver : mg::DisplayConfigurationObserver
@@ -101,16 +98,14 @@ struct DisplayConfigurationObserver : mg::DisplayConfigurationObserver
         std::shared_ptr<mg::DisplayConfiguration const> const& /*failed_fallback*/,
         std::exception const& /*error*/) override {}
 
-#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(1, 5, 0)
     void configuration_updated_for_session(
         std::shared_ptr<mir::scene::Session> const&,
         std::shared_ptr<mg::DisplayConfiguration const> const&) override {}
-#endif
 };
 
-miral::DisplayConfigurationOptions::DisplayMode current_mode_of(mg::DisplayConfigurationOutput const& output)
+miroil::DisplayConfigurationOptions::DisplayMode current_mode_of(mg::DisplayConfigurationOutput const& output)
 {
-    miral::DisplayConfigurationOptions::DisplayMode mode;
+    miroil::DisplayConfigurationOptions::DisplayMode mode;
     if (output.current_mode_index >= output.modes.size()) return mode;
 
     auto const& current_mode = output.modes[output.current_mode_index];
@@ -118,9 +113,15 @@ miral::DisplayConfigurationOptions::DisplayMode current_mode_of(mg::DisplayConfi
     mode.refresh_rate = current_mode.vrefresh_hz;
     return mode;
 }
+
+// From Qt
+inline bool qFuzzyCompare(double p1, double p2)
+{
+    return (std::abs(p1 - p2) * 1000000000000. <= std::min(std::abs(p1), std::abs(p2)));
+}
 }
 
-struct miral::PersistDisplayConfig::Self : PersistDisplayConfigPolicy, DisplayConfigurationObserver
+struct miroil::PersistDisplayConfig::Self : PersistDisplayConfigPolicy, DisplayConfigurationObserver
 {
     Self(std::shared_ptr<DisplayConfigurationStorage> const& storage,
          DisplayConfigurationPolicyWrapper const& custom_wrapper) :
@@ -133,36 +134,34 @@ struct miral::PersistDisplayConfig::Self : PersistDisplayConfigPolicy, DisplayCo
     {
         save_config(*base_config);
     }
-#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(1, 5, 0)
+
     void session_configuration_applied(std::shared_ptr<mir::scene::Session> const&,
-                                       std::shared_ptr<mg::DisplayConfiguration> const&){}
-    void session_configuration_removed(std::shared_ptr<mir::scene::Session> const&)  {}
-#else
-    void session_configuration_applied(std::shared_ptr<mir::frontend::Session> const&,
-                                       std::shared_ptr<mg::DisplayConfiguration> const&){}
-    void session_configuration_removed(std::shared_ptr<mir::frontend::Session> const&)  {}
-#endif
+                                       std::shared_ptr<mg::DisplayConfiguration> const&) override {}
+    void session_configuration_removed(std::shared_ptr<mir::scene::Session> const&) override {}
+    void configuration_updated_for_session(
+        std::shared_ptr<mir::scene::Session> const&,
+        std::shared_ptr<mg::DisplayConfiguration const> const&) override {}
 };
 
-miral::PersistDisplayConfig::PersistDisplayConfig(std::shared_ptr<DisplayConfigurationStorage> const& storage,
+miroil::PersistDisplayConfig::PersistDisplayConfig(std::shared_ptr<DisplayConfigurationStorage> const& storage,
                                                   DisplayConfigurationPolicyWrapper const& custom_wrapper) :
     self{std::make_shared<Self>(storage, custom_wrapper)}
 {
 }
 
-miral::PersistDisplayConfig::~PersistDisplayConfig() = default;
+miroil::PersistDisplayConfig::~PersistDisplayConfig() = default;
 
-miral::PersistDisplayConfig::PersistDisplayConfig(PersistDisplayConfig const&) = default;
+miroil::PersistDisplayConfig::PersistDisplayConfig(PersistDisplayConfig const&) = default;
 
-auto miral::PersistDisplayConfig::operator=(PersistDisplayConfig const&) -> PersistDisplayConfig& = default;
+auto miroil::PersistDisplayConfig::operator=(PersistDisplayConfig const&) -> PersistDisplayConfig& = default;
 
-void miral::PersistDisplayConfig::operator()(mir::Server& server)
+void miroil::PersistDisplayConfig::operator()(mir::Server& server)
 {
     server.wrap_display_configuration_policy(
         [this](std::shared_ptr<mg::DisplayConfigurationPolicy> const& wrapped)
         -> std::shared_ptr<mg::DisplayConfigurationPolicy>
         {
-            auto custom_wrapper = self->custom_wrapper();
+            auto custom_wrapper = self->custom_wrapper(wrapped);
             return std::make_shared<DisplayConfigurationPolicyAdapter>(self,
                                                                        std::make_shared<MiralWrappedMirDisplayConfigurationPolicy>(wrapped),
                                                                        custom_wrapper);
@@ -174,8 +173,8 @@ void miral::PersistDisplayConfig::operator()(mir::Server& server)
 
 void PersistDisplayConfigPolicy::apply_to(
     mg::DisplayConfiguration& conf,
-    miral::DisplayConfigurationPolicy& wrapped_policy,
-    miral::DisplayConfigurationPolicy& custom_policy)
+    miroil::DisplayConfigurationPolicy& wrapped_policy,
+    miroil::DisplayConfigurationPolicy& custom_policy)
 {
     // first apply the policy we wrapped by setting a custom policy
     wrapped_policy.apply_to(conf);
@@ -183,14 +182,14 @@ void PersistDisplayConfigPolicy::apply_to(
     custom_policy.apply_to(conf);
 
     if (!storage) {
-        throw std::runtime_error("No display configuration storage supplied.");
+        BOOST_THROW_EXCEPTION(std::runtime_error("No display configuration storage supplied."));
     }
 
     conf.for_each_output([this, &conf](mg::UserDisplayConfigurationOutput& output) {
         if (!output.connected) return;
 
         try {
-            miral::DisplayId display_id;
+            miroil::DisplayId display_id;
             // FIXME - output.edid should be std::vector<uint8_t>, not std::vector<uint8_t const>
             display_id.edid.parse_data(reinterpret_cast<std::vector<uint8_t> const&>(output.edid));
             display_id.output_id = output.id;
@@ -198,7 +197,7 @@ void PersistDisplayConfigPolicy::apply_to(
             // TODO if the h/w profile (by some definition) has changed, then apply corresponding saved config (if any).
             // TODO Otherwise...
 
-            miral::DisplayConfigurationOptions config;
+            miroil::DisplayConfigurationOptions config;
             if (storage->load(display_id, config)) {
 
                 if (config.mode.is_set()) {
@@ -217,7 +216,7 @@ void PersistDisplayConfigPolicy::apply_to(
                 }
 
                 uint output_index = 0;
-                conf.for_each_output([this, &output, config, &output_index](mg::DisplayConfigurationOutput const& find_output) {
+                conf.for_each_output([&output, config, &output_index](mg::DisplayConfigurationOutput const& find_output) {
                     if (output_index == config.clone_output_index.value()) {
                         output.top_left = find_output.top_left;
                     }
@@ -243,15 +242,15 @@ void PersistDisplayConfigPolicy::save_config(mg::DisplayConfiguration const& con
         if (!output.connected) return;
 
         try {
-            miral::DisplayId display_id;
+            miroil::DisplayId display_id;
             // FIXME - output.edid should be std::vector<uint8_t>, not std::vector<uint8_t const>
             display_id.edid.parse_data(reinterpret_cast<std::vector<uint8_t> const&>(output.edid));
             display_id.output_id = output.id;
 
-            miral::DisplayConfigurationOptions config;
+            miroil::DisplayConfigurationOptions config;
 
             uint output_index = 0;
-            conf.for_each_output([this, output, &config, &output_index](mg::DisplayConfigurationOutput const& find_output) {
+            conf.for_each_output([output, &config, &output_index](mg::DisplayConfigurationOutput const& find_output) {
                 if (!config.clone_output_index.is_set() && output.top_left == find_output.top_left) {
                     config.clone_output_index = output_index;
                 }

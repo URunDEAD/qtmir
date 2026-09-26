@@ -1,6 +1,6 @@
 /*
  * Copyright 2021 UBports Foundation.
- * Copyright © 2017 Canonical Ltd.
+ * Copyright © 2017-2020 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3,
@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mirbuffer.h"
+#include "miroil/mirbuffer.h"
 
 #include <mir/graphics/buffer.h>
-#include "mir/graphics/texture.h"
+#include <mir/graphics/texture.h>
 #include <mir/renderer/gl/texture_source.h>
 
 #include <stdexcept>

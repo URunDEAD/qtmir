@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Canonical Ltd.
+ * Copyright © 2016-2020 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3,
@@ -16,6 +16,7 @@
  * Authored by: Nick Dedekind <nick.dedekind@canonical.com>
  */
 
-#include "qtmir/miral/display_configuration_policy.h"
+#include "miroil/display_configuration_policy.h"
 
-miral::DisplayConfigurationPolicy::DisplayConfigurationPolicy() = default;
+miroil::DisplayConfigurationPolicy::DisplayConfigurationPolicy() = default;
+miroil::DisplayConfigurationPolicy::~DisplayConfigurationPolicy() = default;

@@ -1,14 +1,48 @@
-include_directories(SYSTEM ${MIRSERVER_INCLUDE_DIRS} ${MIRRENDERERGLDEV_INCLUDE_DIRS})
-
-include_directories(
-    ${CMAKE_SOURCE_DIR}/include
+set(MIROIL_SRC
+    compositor.cpp ${MIROIL_INCLUDE_DIRS}/miroil/compositor.h
+    edid.cpp ${qtmir_include}/miroil/edid.h
+    persist_display_config.cpp ${MIROIL_INCLUDE_DIRS}/miroil/persist_display_config.h
+    display_configuration_policy.cpp ${qtmir_include}/miroil/display_configuration_policy.h
+    display_configuration_controller_wrapper.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_controller_wrapper.h
+    eventdispatch.cpp ${MIROIL_INCLUDE_DIRS}/miroil/eventdispatch.h
+    event_builder.cpp ${MIROIL_INCLUDE_DIRS}/miroil/event_builder.h
+    input_device.cpp ${MIROIL_INCLUDE_DIRS}/miroil/input_device.h
+    input_device_observer.cpp ${MIROIL_INCLUDE_DIRS}/miroil/input_device_observer.h
+    mir_server_hooks.cpp ${MIROIL_INCLUDE_DIRS}/miroil/mir_server_hooks.h
+    mir_prompt_session.cpp ${MIROIL_INCLUDE_DIRS}/miroil/mir_prompt_session.h
+    open_gl_context.cpp ${MIROIL_INCLUDE_DIRS}/miroil/open_gl_context.h
+    prompt_session_listener.cpp ${MIROIL_INCLUDE_DIRS}/miroil/prompt_session_listener.h
+    prompt_session_manager.cpp ${MIROIL_INCLUDE_DIRS}/miroil/prompt_session_manager.h
+    set_compositor.cpp ${MIROIL_INCLUDE_DIRS}/miroil/set_compositor.h
+    surface.cpp ${MIROIL_INCLUDE_DIRS}/miroil/surface.h
+    ${qtmir_include}/miroil/display_configuration_storage.h
+    ${qtmir_include}/miroil/display_id.h
 )
 
-add_library(miral-prototypes OBJECT
-    persist_display_config.cpp persist_display_config.h
-    mirbuffer.cpp mirbuffer.h
-    ${CMAKE_SOURCE_DIR}/include/qtmir/miral/display_configuration_storage.h
-    edid.cpp ${CMAKE_SOURCE_DIR}/include/qtmir/miral/display_id.h
-    edid.cpp ${CMAKE_SOURCE_DIR}/include/qtmir/miral/edid.h
-    display_configuration_policy.cpp ${CMAKE_SOURCE_DIR}/include/qtmir/miral/display_configuration_policy.h
+if (${mirserver_version} version_less 2.20.0)
+    set(MIROIL_SRC
+        ${MIROIL_SRC}
+        mirbuffer.cpp ${MIROIL_INCLUDE_DIRS}/miroil/mirbuffer.h
+    )
+endif()
+
+add_library(miroil OBJECT
+    ${MIROIL_SRC}
+)
+
+target_include_directories(miroil
+    PUBLIC  "${MIROIL_INCLUDE_DIRS}" "${qtmir_include}" "${qtmir_include}/qtmir"
+    PRIVATE ${MIRAL_INCLUDE_DIRS}
+    ${MIRCOMMON_INCLUDE_DIRS}
+    ${MIRSERVER_INCLUDE_DIRS}
+    ${MIRRENDERERGLDEV_INCLUDE_DIRS}
+    ${MIRSERVER_INCLUDE_DIRS}
+)
+
+target_link_libraries(miroil
+    PRIVATE
+    ${MIRAL_LDFLAGS}
+    ${MIRSERVER_LDFLAGS}
+
+    ${EGL_LDFLAGS}
 )

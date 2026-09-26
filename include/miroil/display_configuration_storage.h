@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016-2017 Canonical Ltd.
+ * Copyright © 2016-2020 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3,
@@ -16,23 +16,24 @@
  * Authored by: Nick Dedekind <nick.dedekind@canonical.com>
  */
 
-#ifndef MIRAL_DISPLAY_CONFIGURATION_STORAGE_H
-#define MIRAL_DISPLAY_CONFIGURATION_STORAGE_H
+#ifndef MIROIL_DISPLAY_CONFIGURATION_STORAGE_H
+#define MIROIL_DISPLAY_CONFIGURATION_STORAGE_H
+
+#include <miroil/display_id.h>
 
 #include <mir/geometry/rectangle.h>
 #include <mir/optional_value.h>
 #include <mir_toolkit/common.h>
 
-#include "display_id.h"
+#include <sys/types.h>
 
-// Prototyping namespace for later incorporation in MirAL
-namespace miral
+namespace miroil
 {
 
 struct DisplayConfigurationOptions
 {
     mir::optional_value<bool> used;
-    mir::optional_value<unsigned int> clone_output_index;
+    mir::optional_value<uint> clone_output_index;
     struct DisplayMode
     {
         mir::geometry::Size size;
@@ -53,6 +54,6 @@ public:
     virtual bool load(const DisplayId&, DisplayConfigurationOptions&) const = 0;
 };
 
-} // namespace miral
+} // namespace miroil
 
-#endif // MIRAL_DISPLAY_CONFIGURATION_STORAGE_H
+#endif // MIROIL_DISPLAY_CONFIGURATION_STORAGE_H
