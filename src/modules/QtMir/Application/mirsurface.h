@@ -221,8 +221,8 @@ private:
     void updatePosition();
 
     // Handling of missing key release events from Qt
-    bool isKeyPressed(quint32 nativeVirtualKey) const;
-    void forgetPressedKey(quint32 nativeVirtualKey);
+    bool isKeyPressed(quint32 nativeScanCode) const;
+    void forgetPressedKey(quint32 nativeScanCode);
     void releaseAllPressedKeys();
 
     // One texture set per rendering output (the userId is the QQuickWindow).

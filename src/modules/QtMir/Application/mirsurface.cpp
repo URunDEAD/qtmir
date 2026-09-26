@@ -826,7 +826,7 @@ void MirSurface::keyPressEvent(QKeyEvent *qtEvent)
 {
     {
         if (!qtEvent->isAutoRepeat()) {
-            Q_ASSERT(!isKeyPressed(qtEvent->nativeVirtualKey()));
+            Q_ASSERT(!isKeyPressed(qtEvent->nativeScanCode()));
             PressedKey pressedKey(qtEvent, msecsSinceReference());
             auto info = EventBuilder::instance()->findInfo(qtEvent->timestamp());
             if (info) {
@@ -844,8 +844,8 @@ void MirSurface::keyPressEvent(QKeyEvent *qtEvent)
 
 void MirSurface::keyReleaseEvent(QKeyEvent *qtEvent)
 {
-    if (isKeyPressed(qtEvent->nativeVirtualKey())) {
-        forgetPressedKey(qtEvent->nativeVirtualKey());
+    if (isKeyPressed(qtEvent->nativeScanCode())) {
+        forgetPressedKey(qtEvent->nativeScanCode());
         auto ev = EventBuilder::instance()->makeMirEvent(qtEvent);
         auto ev1 = reinterpret_cast<MirKeyboardEvent const*>(ev.get());
         m_controller->deliverKeyboardEvent(m_window, ev1);
@@ -1578,20 +1578,20 @@ void MirSurface::updatePosition()
     setPosition(point);
 }
 
-bool MirSurface::isKeyPressed(quint32 nativeVirtualKey) const
+bool MirSurface::isKeyPressed(quint32 nativeScanCode) const
 {
     for (const auto &pressedKey : m_pressedKeys) {
-        if (pressedKey.nativeVirtualKey == nativeVirtualKey) {
+        if (pressedKey.nativeScanCode == nativeScanCode) {
             return true;
         }
     }
     return false;
 }
 
-void MirSurface::forgetPressedKey(quint32 nativeVirtualKey)
+void MirSurface::forgetPressedKey(quint32 nativeScanCode)
 {
     for (int i = 0; i < m_pressedKeys.count(); ++i) {
-        if (m_pressedKeys[i].nativeVirtualKey == nativeVirtualKey) {
+        if (m_pressedKeys[i].nativeScanCode == nativeScanCode) {
             m_pressedKeys.removeAt(i);
             return;
         }
