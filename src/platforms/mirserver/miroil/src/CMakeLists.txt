@@ -19,7 +19,7 @@ set(MIROIL_SRC
     ${qtmir_include}/miroil/display_id.h
 )
 
-if (${mirserver_version} version_less 2.20.0)
+if (MIRSERVER_VERSION VERSION_LESS 2.20.0)
     set(MIROIL_SRC
         ${MIROIL_SRC}
         mirbuffer.cpp ${MIROIL_INCLUDE_DIRS}/miroil/mirbuffer.h

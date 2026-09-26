@@ -18,9 +18,9 @@
 #include <gtest/gtest.h>
 #include <numeric>
 
-#include "qtmir/miral/edid.h"
+#include <miroil/edid.h>
 
-using namespace miral;
+using namespace miroil;
 
 using TestDataParamType =
     std::tuple<std::vector<uint8_t>, std::string, std::string, uint16_t, uint32_t>;

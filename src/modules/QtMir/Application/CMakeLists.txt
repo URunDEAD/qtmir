@@ -5,6 +5,7 @@ add_definitions(-DQPA_MIRSERVER_NAME=\"${QPA_MIRSERVER_NAME}\")
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src/platforms/mirserver
+    ${CMAKE_SOURCE_DIR}/src/platforms/mirserver/miroil/include
     ${CMAKE_SOURCE_DIR}/src/common
     ${CMAKE_CURRENT_BINARY_DIR} # for tracepoints.h
 )

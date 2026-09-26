@@ -17,13 +17,14 @@
 #ifndef QTMIR_DISPLAYCONFIGURATIONPOLICY_H
 #define QTMIR_DISPLAYCONFIGURATIONPOLICY_H
 
-//qtmir
-#include "qtmir/miral/display_configuration_policy.h"
+//miroil
+#include <miroil/display_configuration_policy.h>
 
 // mir
 #include <mir/server.h>
 
 #include <memory>
+#include <functional>
 
 class QMirServer;
 
@@ -44,7 +45,7 @@ namespace qtmir
 
     qtmir::GuiServerApplication app(argc, argv, { SetDisplayConfigurationPolicy<MyDisplayConfigurationPolicy>() });
  */
-class DisplayConfigurationPolicy : public miral::DisplayConfigurationPolicy
+class DisplayConfigurationPolicy : public miroil::DisplayConfigurationPolicy
 {
 public:
     DisplayConfigurationPolicy();
@@ -56,7 +57,7 @@ private:
     std::shared_ptr<Private> d;
 };
 
-using DisplayConfigurationPolicyWrapper = std::function<std::shared_ptr<miral::DisplayConfigurationPolicy>()>;
+using DisplayConfigurationPolicyWrapper = std::function<std::shared_ptr<miroil::DisplayConfigurationPolicy>(std::shared_ptr<mir::graphics::DisplayConfigurationPolicy> const& wrapped)>;
 
 /*
     Base class for access to set the display configuration policy
@@ -84,7 +85,7 @@ public:
     template<typename ...Args>
     explicit SetDisplayConfigurationPolicy(Args const& ...args) :
         BasicSetDisplayConfigurationPolicy{
-            [&args...]() { return std::make_shared<Policy>(args...); }} {}
+            [&args...](auto) { return std::make_shared<Policy>(args...); }} {}
 };
 
 } // namespace qtmir
