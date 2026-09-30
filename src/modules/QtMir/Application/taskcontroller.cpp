@@ -51,7 +51,7 @@ TaskController::TaskController(QObject *parent)
     auto appNotifier = static_cast<AppNotifier*>(nativeInterface->nativeResourceForIntegration("AppNotifier"));
     connectToAppNotifier(appNotifier);
 
-    auto promptSessionListener = static_cast<PromptSessionListener*>(nativeInterface->nativeResourceForIntegration("PromptSessionListener"));
+    auto promptSessionListener = static_cast<qtmir::PromptSessionListener*>(nativeInterface->nativeResourceForIntegration("PromptSessionListener"));
     connectToPromptSessionListener(promptSessionListener);
 
     auto sessionAuthorizer = static_cast<SessionAuthorizer*>(nativeInterface->nativeResourceForIntegration("SessionAuthorizer"));
@@ -170,7 +170,7 @@ void TaskController::connectToAppNotifier(AppNotifier *appNotifier)
                      this, &TaskController::onSessionStopping);
 }
 
-void TaskController::connectToPromptSessionListener(PromptSessionListener *listener)
+void TaskController::connectToPromptSessionListener(qtmir::PromptSessionListener *listener)
 {
     QObject::connect(listener, &PromptSessionListener::promptSessionStarting,
                      this, &TaskController::onPromptSessionStarting);

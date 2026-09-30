@@ -46,13 +46,12 @@ namespace lomiri {
     }
 }
 
-class PromptSessionListener;
-
 namespace qtmir
 {
 
 class AppNotifier;
 class ApplicationInfo;
+class PromptSessionListener;
 class SessionInterface;
 
 class TaskController : public QObject
