@@ -47,6 +47,9 @@
 #include <miroil/mir_server_hooks.h>
 #include <miroil/open_gl_context.h>
 
+// mir
+#include <mir/version.h>
+
 class MirServerThread;
 class QOpenGLContext;
 class QMirServer;
@@ -55,8 +58,10 @@ class QPlatformOpenGLContext;
 namespace qtmir
 {
 class SessionAuthorizer;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 class PromptSessionManager;
 class PromptSessionListener;
+#endif
 }
 
 class QMirServerPrivate
@@ -73,8 +78,10 @@ public:
     void run(const std::function<void()> &startCallback);
     void stop();
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     qtmir::PromptSessionListener *promptSessionListener() const;
     std::shared_ptr<qtmir::PromptSessionManager> promptSessionManager() const;
+#endif
 
     std::shared_ptr<qtmir::SessionAuthorizer> theApplicationAuthorizer() const;
 

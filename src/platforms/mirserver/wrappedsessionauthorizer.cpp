@@ -90,6 +90,7 @@ namespace qtmir {
         return true;
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     bool SessionAuthorizer::promptSessionIsAllowed(miral::ApplicationCredentials const& creds)
     {
         qCDebug(QTMIR_MIR_MESSAGES) << "SessionAuthorizer::prompt_session_is_allowed - this="
@@ -99,6 +100,7 @@ namespace qtmir {
         Q_UNUSED(creds)
         return true;
     }
+#endif
 
     bool SessionAuthorizer::configureInputIsAllowed(miral::ApplicationCredentials const& creds)
     {
@@ -167,10 +169,17 @@ bool WrappedSessionAuthorizer::screencast_is_allowed(const miral::ApplicationCre
     return impl->screencastIsAllowed(creds);
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 bool WrappedSessionAuthorizer::prompt_session_is_allowed(const miral::ApplicationCredentials &creds)
 {
     return impl->promptSessionIsAllowed(creds);
 }
+#elif MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 29, 0)
+bool WrappedSessionAuthorizer::prompt_session_is_allowed(const miral::ApplicationCredentials &)
+{
+    return false;
+}
+#endif
 
 bool WrappedSessionAuthorizer::configure_input_is_allowed(const miral::ApplicationCredentials &creds)
 {

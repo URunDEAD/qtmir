@@ -23,8 +23,10 @@
 // QPA mirserver
 #include "logging.h"
 #include "nativeinterface.h"
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 #include "promptsessionlistener.h"
 #include "promptsession.h"
+#endif
 #include "qtmir/sessionauthorizer.h"
 
 // Linux
@@ -46,31 +48,41 @@ TaskController::TaskController(QObject *parent)
         qFatal("ERROR: QtMir.Application QML plugin requires use of the '" QPA_MIRSERVER_NAME "' QPA plugin");
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     m_promptSessionManager = nativeInterface->thePromptSessionManager();
+#endif
 
     auto appNotifier = static_cast<AppNotifier*>(nativeInterface->nativeResourceForIntegration("AppNotifier"));
     connectToAppNotifier(appNotifier);
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     auto promptSessionListener = static_cast<qtmir::PromptSessionListener*>(nativeInterface->nativeResourceForIntegration("PromptSessionListener"));
     connectToPromptSessionListener(promptSessionListener);
+#endif
 
     auto sessionAuthorizer = static_cast<SessionAuthorizer*>(nativeInterface->nativeResourceForIntegration("SessionAuthorizer"));
     QObject::connect(sessionAuthorizer, &SessionAuthorizer::requestAuthorizationForSession,
                      this, &TaskController::authorizationRequestedForSession, Qt::DirectConnection);
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 TaskController::TaskController(std::shared_ptr<PromptSessionManager> &promptSessionManager, QObject *parent)
     : QObject(parent)
     , m_promptSessionManager(promptSessionManager)
 {
 }
+#endif
 
 void TaskController::onSessionStarting(const miral::ApplicationInfo &appInfo)
 {
     DEBUG_MSG << " - sessionName=" <<  appInfo.name().c_str();
 
     const auto &session = appInfo.application();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     Session* qmlSession = new Session(session, m_promptSessionManager);
+#else
+    Session* qmlSession = new Session(session);
+#endif
     m_sessionList.prepend(qmlSession);
 
     // need to remove if we've destroyed outside
@@ -94,6 +106,7 @@ void TaskController::onSessionStopping(const miral::ApplicationInfo &appInfo)
     Q_EMIT sessionStopping(qmlSession);
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 void TaskController::onPromptSessionStarting(const qtmir::PromptSession &promptSession)
 {
     DEBUG_MSG << " - promptSession=" << promptSession.get();
@@ -150,6 +163,7 @@ void TaskController::onPromptProviderRemoved(const qtmir::PromptSession &promptS
     }
     qmlPromptProvider->setLive(false);
 }
+#endif
 
 SessionInterface *TaskController::findSession(const mir::scene::Session* session) const
 {
@@ -170,6 +184,7 @@ void TaskController::connectToAppNotifier(AppNotifier *appNotifier)
                      this, &TaskController::onSessionStopping);
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 void TaskController::connectToPromptSessionListener(qtmir::PromptSessionListener *listener)
 {
     QObject::connect(listener, &PromptSessionListener::promptSessionStarting,
@@ -181,3 +196,4 @@ void TaskController::connectToPromptSessionListener(qtmir::PromptSessionListener
     QObject::connect(listener, &PromptSessionListener::promptProviderRemoved,
                      this, &TaskController::onPromptProviderRemoved);
 }
+#endif

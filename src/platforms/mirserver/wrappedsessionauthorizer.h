@@ -19,6 +19,8 @@
 
 #include "qtmir/sessionauthorizer.h"
 
+#include <mir/version.h>
+
 class WrappedSessionAuthorizer : public miral::ApplicationAuthorizer
 {
 public:
@@ -28,7 +30,9 @@ public:
     virtual bool configure_display_is_allowed(miral::ApplicationCredentials const& creds) override;
     virtual bool set_base_display_configuration_is_allowed(miral::ApplicationCredentials const& creds) override;
     virtual bool screencast_is_allowed(miral::ApplicationCredentials const& creds) override;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 29, 0)
     virtual bool prompt_session_is_allowed(miral::ApplicationCredentials const& creds) override;
+#endif
     virtual bool configure_input_is_allowed(miral::ApplicationCredentials const& creds) override;
     virtual bool set_base_input_configuration_is_allowed(miral::ApplicationCredentials const& creds) override;
 

@@ -20,7 +20,9 @@
 #include "session.h"
 #include "mirsurfaceinterface.h"
 #include "mirsurfaceitem.h"
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 #include "promptsession.h"
+#endif
 
 // mirserver
 #include "logging.h"
@@ -64,7 +66,9 @@ const char *sessionStateToString(SessionInterface::State state)
 }
 
 Session::Session(const std::shared_ptr<ms::Session>& session,
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
                  const std::shared_ptr<PromptSessionManager>& promptSessionManager,
+#endif
                  QObject *parent)
     : SessionInterface(parent)
     , m_session(session)
@@ -73,7 +77,9 @@ Session::Session(const std::shared_ptr<ms::Session>& session,
     , m_fullscreen(false)
     , m_state(State::Starting)
     , m_live(true)
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     , m_promptSessionManager(promptSessionManager)
+#endif
 {
     DEBUG_MSG << "()";
 
@@ -85,7 +91,9 @@ Session::Session(const std::shared_ptr<ms::Session>& session,
 Session::~Session()
 {
     DEBUG_MSG << "()";
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     stopPromptSessions();
+#endif
 
     const QList<SessionInterface*> children(m_children->list());
     for (SessionInterface* child : children) {
@@ -303,9 +311,11 @@ void Session::suspend()
         miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_will_suspend);
         m_suspendTimer->start();
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
         foreachPromptSession([this](const qtmir::PromptSession &promptSession) {
             m_promptSessionManager->suspendPromptSession(promptSession);
         });
+#endif
 
         foreachChildSession([](SessionInterface* session) {
             session->suspend();
@@ -335,9 +345,11 @@ void Session::doResume()
 
     miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_resumed);
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     foreachPromptSession([this](const qtmir::PromptSession &promptSession) {
         m_promptSessionManager->resumePromptSession(promptSession);
     });
+#endif
 
     foreachChildSession([](SessionInterface* session) {
         session->resume();
@@ -366,7 +378,9 @@ void Session::stop()
 
     if (m_state != Stopped) {
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
         stopPromptSessions();
+#endif
 
         {
             for (int i = 0; i < m_surfaceList.count(); ++i) {
@@ -469,6 +483,7 @@ SessionModel* Session::childSessions() const
     return m_children;
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 void Session::appendPromptSession(const qtmir::PromptSession &promptSession)
 {
     DEBUG_MSG << "(promptSession=" << promptSession.get() << ")";
@@ -513,6 +528,7 @@ void Session::foreachPromptSession(const std::function<void(const qtmir::PromptS
         f(promptSession);
     }
 }
+#endif
 
 void Session::deleteIfZombieAndEmpty()
 {

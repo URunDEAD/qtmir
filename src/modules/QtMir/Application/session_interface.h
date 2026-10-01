@@ -30,6 +30,9 @@
 // Qt
 #include <QQmlListProperty>
 
+// Mir
+#include <mir/version.h>
+
 namespace mir {
     namespace scene {
         class Session;
@@ -40,7 +43,9 @@ namespace qtmir {
 
 class MirSurfaceInterface;
 class MirSurfaceListModel;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 class PromptSession;
+#endif
 
 class SessionInterface : public QObject {
     Q_OBJECT
@@ -107,13 +112,17 @@ public:
     virtual void removeChildSession(SessionInterface* session) = 0;
     virtual void foreachChildSession(const std::function<void(SessionInterface* session)>& f) const = 0;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     virtual PromptSession activePromptSession() const = 0;
     virtual void foreachPromptSession(const std::function<void(const PromptSession&)>& f) const = 0;
+#endif
 
     virtual void setFullscreen(bool fullscreen) = 0;
     virtual void setLive(const bool) = 0;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     virtual void appendPromptSession(const PromptSession& session) = 0;
     virtual void removePromptSession(const PromptSession& session) = 0;
+#endif
 
 Q_SIGNALS:
     void applicationChanged(lomiri::shell::application::ApplicationInfoInterface* application);

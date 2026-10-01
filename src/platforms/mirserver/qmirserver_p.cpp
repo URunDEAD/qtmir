@@ -21,16 +21,18 @@
 #include "logging.h"
 #include "wrappedwindowmanagementpolicy.h"
 #include "inputdeviceobserver.h"
-#include "promptsessionmanager.h"
 #include "qteventfeeder.h"
 #include "qtmir/sessionauthorizer.h"
 #include "miropenglcontext.h"
 #include "mirglconfig.h"
 #include "screenscontroller.h"
 #include "namedcursor.h"
-#include "promptsessionlistener.h"
 #include "qtcompositor.h"
 #include "qtwindowmanager.h"
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+#include "promptsessionmanager.h"
+#include "promptsessionlistener.h"
+#endif
 
 // prototyping for later incorporation in miral
 #include <miroil/persist_display_config.h>
@@ -130,10 +132,12 @@ QPlatformOpenGLContext *QMirServerPrivate::createPlatformOpenGLContext(QOpenGLCo
     return new MirOpenGLContext(*mirDisplay, *gl_config, format);
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 std::shared_ptr<qtmir::PromptSessionManager> QMirServerPrivate::promptSessionManager() const
 {
     return std::make_shared<qtmir::PromptSessionManager>(m_mirServerHooks.the_prompt_session_manager());
 }
+#endif
 
 std::shared_ptr<qtmir::SessionAuthorizer> QMirServerPrivate::theApplicationAuthorizer() const
 {
@@ -151,10 +155,12 @@ QMirServerPrivate::QMirServerPrivate()
 {
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 qtmir::PromptSessionListener *QMirServerPrivate::promptSessionListener() const
 {
     return dynamic_cast<qtmir::PromptSessionListener*>(m_mirServerHooks.the_prompt_session_listener());
 }
+#endif
 
 inline void exportEnvVarToDbus(const std::string& key, const std::string& value)
 {
@@ -175,7 +181,9 @@ inline void exportEnvVarToSystemd(const std::string& key, const std::string& val
 
 void QMirServerPrivate::run(const std::function<void()> &startCallback)
 {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     m_mirServerHooks.create_prompt_session_listener(std::make_shared<qtmir::PromptSessionListener>());
+#endif
     m_mirServerHooks.create_named_cursor([](std::string const & name)
         {
             // We are not responsible for loading cursors. This is left for shell to do as it's drawing its own QML cursor.

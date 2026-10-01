@@ -22,6 +22,7 @@
 
 // mir
 #include <miral/application_authorizer.h>
+#include <mir/version.h>
 
 class QMirServer;
 
@@ -41,7 +42,9 @@ public:
     virtual bool configureDisplayIsAllowed(miral::ApplicationCredentials const& creds);
     virtual bool setBaseDisplayConfigurationIsAllowed(miral::ApplicationCredentials const& creds);
     virtual bool screencastIsAllowed(miral::ApplicationCredentials const& creds);
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     virtual bool promptSessionIsAllowed(miral::ApplicationCredentials const& creds);
+#endif
     virtual bool configureInputIsAllowed(miral::ApplicationCredentials const& creds);
     virtual bool setBaseInputConfigurationIsAllowed(miral::ApplicationCredentials const& creds);
 Q_SIGNALS:

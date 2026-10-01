@@ -118,8 +118,10 @@ void *QMirServer::nativeResourceForIntegration(const QByteArray &resource) const
         result = d->theApplicationAuthorizer().get();
     else if (resource == "AppNotifier")
         result = d->appNotifier();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     else if (resource == "PromptSessionListener")
         result = d->promptSessionListener();
+#endif
     else if (resource == "WindowController")
         result = d->windowController();
     else if (resource == "WorkspaceController")
@@ -134,11 +136,13 @@ void *QMirServer::nativeResourceForIntegration(const QByteArray &resource) const
     return result;
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 std::shared_ptr<qtmir::PromptSessionManager> QMirServer::thePromptSessionManager() const
 {
     Q_D(const QMirServer);
     return d->promptSessionManager();
 }
+#endif
 
 qtmir::WindowModelNotifier *QMirServer::windowModelNotifier() const
 {
