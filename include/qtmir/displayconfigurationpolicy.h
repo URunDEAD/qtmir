@@ -20,8 +20,7 @@
 //miroil
 #include <miroil/display_configuration_policy.h>
 
-// mir
-#include <mir/server.h>
+namespace mir { namespace graphics { class DisplayConfigurationPolicy; } }
 
 #include <memory>
 #include <functional>
