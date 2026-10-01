@@ -15,7 +15,7 @@
  */
 
 #include "qmirserver_p.h"
-#include "qtmir/miral/display_configuration_storage.h"
+#include <miroil/display_configuration_storage.h>
 
 // local
 #include "logging.h"
@@ -27,7 +27,7 @@
 #include "qtwindowmanager.h"
 
 // prototyping for later incorporation in miral
-#include <miral/persist_display_config.h>
+#include <miroil/persist_display_config.h>
 
 // miral
 #include <miral/add_init_callback.h>
@@ -58,19 +58,14 @@ public:
     {}
 };
 
-struct DefaultDisplayConfigurationStorage : miral::DisplayConfigurationStorage
+struct DefaultDisplayConfigurationStorage : miroil::DisplayConfigurationStorage
 {
-    void save(const miral::DisplayId&, const miral::DisplayConfigurationOptions&) override {}
+    void save(const miroil::DisplayId&, const miroil::DisplayConfigurationOptions&) override {}
 
-    bool load(const miral::DisplayId&, miral::DisplayConfigurationOptions&) const override { return false; }
+    bool load(const miroil::DisplayId&, miroil::DisplayConfigurationOptions&) const override { return false; }
 };
 
-std::shared_ptr<miral::DisplayConfigurationPolicy> buildDisplayConfigurationPolicy()
-{
-    return std::make_shared<qtmir::DisplayConfigurationPolicy>();
-}
-
-std::shared_ptr<miral::DisplayConfigurationStorage> buildDisplayConfigurationStorage()
+std::shared_ptr<miroil::DisplayConfigurationStorage> buildDisplayConfigurationStorage()
 {
     return std::make_shared<DefaultDisplayConfigurationStorage>();
 }
@@ -132,7 +127,7 @@ std::shared_ptr<qtmir::SessionAuthorizer> QMirServerPrivate::theApplicationAutho
 }
 
 QMirServerPrivate::QMirServerPrivate()
-    : m_displayConfigurationPolicy(buildDisplayConfigurationPolicy)
+    : m_displayConfigurationPolicy{[](auto) { return std::make_shared<qtmir::DisplayConfigurationPolicy>(); }}
     , m_windowManagementPolicy(buildWindowManagementPolicy)
     , m_displayConfigurationStorage(buildDisplayConfigurationStorage)
     , m_wrappedSessionAuthorizer(buildSessionAuthorizer)
@@ -229,8 +224,8 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             addInitCallback,
             qtmir::SetQtCompositor{screensModel},
             setTerminator,
-            miral::PersistDisplayConfig{displayStorageBuilder(),
-                                        m_displayConfigurationPolicy},
+            miroil::PersistDisplayConfig{displayStorageBuilder(),
+                                         m_displayConfigurationPolicy},
             waylandExtensions,
         });
 }

@@ -238,7 +238,7 @@ Files: CMakeLists.txt
  demos/qml-demo-shell/WindowModelDebugView.qml
  demos/qml-demo-shell/qml-demo-shell.qml
  demos/qml-demo-shell/qml-demo-shell.qmlproject
- include/qtmir/miral/display_id.h
+ include/miroil/display_id.h
  include/qtmir/qtmir.h
  src/CMakeLists.txt
  src/common/timestamp.cpp
@@ -251,7 +251,9 @@ Files: CMakeLists.txt
  src/modules/QtMir/CMakeLists.txt
  src/platforms/CMakeLists.txt
  src/platforms/mirserver/CMakeLists.txt
- src/platforms/mirserver/miral/CMakeLists.txt
+ src/platforms/mirserver/miroil/CMakeLists.txt
+ src/platforms/mirserver/miroil/src/CMakeLists.txt
+ src/platforms/mirserver/miroil/src/mir_prompt_session.cpp
  src/platforms/mirserver/mirserver.json
  src/platforms/mirserver/qtmir.cpp
  src/platforms/mirserver/qtmirserver.pc.in
@@ -284,17 +286,31 @@ Comment:
  Assuming same license as for the majority of code files,
  assuming same copyright holders.
 
-Files: include/qtmir/miral/display_configuration_policy.h
- include/qtmir/miral/display_configuration_storage.h
- include/qtmir/miral/edid.h
+Files: include/miroil/display_configuration_policy.h
+ include/miroil/display_configuration_storage.h
+ include/miroil/edid.h
  src/platforms/mirserver/eventdispatch.cpp
  src/platforms/mirserver/eventdispatch.h
- src/platforms/mirserver/miral/display_configuration_policy.cpp
- src/platforms/mirserver/miral/edid.cpp
- src/platforms/mirserver/miral/mirbuffer.cpp
- src/platforms/mirserver/miral/mirbuffer.h
- src/platforms/mirserver/miral/persist_display_config.cpp
- src/platforms/mirserver/miral/persist_display_config.h
+ src/platforms/mirserver/miroil/include/miroil/compositor.h
+ src/platforms/mirserver/miroil/include/miroil/eventdispatch.h
+ src/platforms/mirserver/miroil/include/miroil/mir_server_hooks.h
+ src/platforms/mirserver/miroil/include/miroil/mirbuffer.h
+ src/platforms/mirserver/miroil/include/miroil/open_gl_context.h
+ src/platforms/mirserver/miroil/include/miroil/persist_display_config.h
+ src/platforms/mirserver/miroil/include/miroil/prompt_session_listener.h
+ src/platforms/mirserver/miroil/include/miroil/prompt_session_manager.h
+ src/platforms/mirserver/miroil/include/miroil/set_compositor.h
+ src/platforms/mirserver/miroil/include/miroil/surface_observer.h
+ src/platforms/mirserver/miroil/src/display_configuration_policy.cpp
+ src/platforms/mirserver/miroil/src/edid.cpp
+ src/platforms/mirserver/miroil/src/eventdispatch.cpp
+ src/platforms/mirserver/miroil/src/input_device.cpp
+ src/platforms/mirserver/miroil/src/mir_server_hooks.cpp
+ src/platforms/mirserver/miroil/src/mirbuffer.cpp
+ src/platforms/mirserver/miroil/src/open_gl_context.cpp
+ src/platforms/mirserver/miroil/src/persist_display_config.cpp
+ src/platforms/mirserver/miroil/src/prompt_session_manager.cpp
+ src/platforms/mirserver/miroil/src/set_compositor.cpp
  src/platforms/mirserver/mirserverhooks.cpp
  src/platforms/mirserver/mirserverhooks.h
  src/platforms/mirserver/openglcontextfactory.cpp
@@ -306,10 +322,8 @@ Files: include/qtmir/miral/display_configuration_policy.h
  src/platforms/mirserver/setqtcompositor.h
  tests/framework/fake_surface.h
  tests/framework/stub_scene_surface.h
-Copyright: 2014, 2016, Canonical Ltd.
-  2016, Canonical Ltd.
-  2016-2017, Canonical Ltd.
-  2017, Canonical Ltd.
+Copyright: 2014-2021, Canonical Ltd.
+  2021, UBports Foundation.
 License: GPL-3
 
 Files: demos/paths.h.in
@@ -326,9 +340,20 @@ Copyright: 2012-2015, Canonical, Ltd.
   2016, Canonical, Ltd.
 License: GPL-3
 
-Files:  include/qtmir/types.h
-Copyright: 2015, Canonical Ltd.
-  2016, Canonical Ltd.
+Files: include/qtmir/types.h
+ src/platforms/mirserver/miroil/include/miroil/display_configuration_controller_wrapper.h
+ src/platforms/mirserver/miroil/include/miroil/mir_prompt_session.h
+ src/platforms/mirserver/miroil/include/miroil/event_builder.h
+ src/platforms/mirserver/miroil/include/miroil/input_device.h
+ src/platforms/mirserver/miroil/include/miroil/input_device_observer.h
+ src/platforms/mirserver/miroil/include/miroil/surface.h
+ src/platforms/mirserver/miroil/src/compositor.cpp
+ src/platforms/mirserver/miroil/src/display_configuration_controller_wrapper.cpp
+ src/platforms/mirserver/miroil/src/event_builder.cpp
+ src/platforms/mirserver/miroil/src/input_device_observer.cpp
+ src/platforms/mirserver/miroil/src/prompt_session_listener.cpp
+ src/platforms/mirserver/miroil/src/surface.cpp
+Copyright: 2016-2021, Canonical Ltd.
 License: LGPL-3
 
 Files: src/modules/QtMir/Application/application_manager.cpp
@@ -862,4 +887,3 @@ License: CC-BY-SA-3.0
     this trademark restriction does not form part of the License.
  .
     Creative Commons may be contacted at https://creativecommons.org/.
-

@@ -22,7 +22,13 @@ else()
     set(QTMIRSERVER_ABI 1)
 endif()
 
-add_subdirectory(miral)
+set(qtmir_include ${CMAKE_SOURCE_DIR}/include)
+
+if(NOT WITH_MIR2)
+    set(MIROIL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
+    add_subdirectory(miroil)
+endif()
+
 add_subdirectory(wayland-generated)
 
 # Hacks for the QPA privates monster.
@@ -63,6 +69,7 @@ include_directories(
     ${MIRSERVER_INCLUDE_DIRS}
     ${MIRRENDERERGLDEV_INCLUDE_DIRS}
     ${MIRSERVER_INCLUDE_DIRS}
+    ${MIROIL_INCLUDE_DIRS}
     ${MIRWAYLAND_INCLUDE_DIRS}
 
     ${URL_DISPATCHER_INCLUDE_DIRS}
@@ -181,17 +188,22 @@ set(QMIRSERVER_PLUGIN_SRC
     ${CMAKE_SOURCE_DIR}/src/common/appnotifier.h
 )
 
+if(NOT WITH_MIR2)
+    set(MIROIL_OBJ $<TARGET_OBJECTS:miroil>)
+endif()
+
 add_library(qtmirserver SHARED
     ${QMIRSERVER_PLUGIN_SRC}
     $<TARGET_OBJECTS:qtmirserver-nomirserver>
     $<TARGET_OBJECTS:qtmirserver-mirserver>
-    $<TARGET_OBJECTS:miral-prototypes>
+    ${MIROIL_OBJ}
     $<TARGET_OBJECTS:wayland-protocols>
 )
 
 target_link_libraries(qtmirserver
     PUBLIC
         ${MIRAL_LDFLAGS}
+        ${MIROIL_LDFLAGS}
         ${MIRSERVER_LDFLAGS}
         Qt5::Core
         Qt5::Gui
@@ -227,7 +239,7 @@ set_target_properties(qtmirserver
 set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
 set(INCLUDEDIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${INCLUDE_NAME}")
 if(WITH_MIR2)
-    set(QTMIRSERVER_PCREQUIRES "miral >= 3.0")
+    set(QTMIRSERVER_PCREQUIRES "miral >= 3.0, miroil")
 else()
     set(QTMIRSERVER_PCREQUIRES "${MIRAL_MODULE_NAME} >= 1.1")
     set(QTMIRSERVER_PCCONFLICTS "miral >= 3.0")
@@ -248,6 +260,13 @@ install(
   DIRECTORY ${CMAKE_SOURCE_DIR}/include/qtmir
   DESTINATION ${INCLUDEDIR}
 )
+
+if(NOT WITH_MIR2)
+    install(
+      DIRECTORY ${CMAKE_SOURCE_DIR}/include/miroil
+      DESTINATION ${INCLUDEDIR}
+    )
+endif()
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/${QTMIRSERVER_SONAME}.pc

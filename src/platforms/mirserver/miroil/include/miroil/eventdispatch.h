@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Canonical Ltd.
+ * Copyright © 2017 Canonical Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3,
@@ -12,10 +12,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Authored by: Nick Dedekind <nick.dedekind@canonical.com>
  */
 
-#include "qtmir/miral/display_configuration_policy.h"
+#ifndef MIROIL_EVENTDISPATCH_H
+#define MIROIL_EVENTDISPATCH_H
 
-miral::DisplayConfigurationPolicy::DisplayConfigurationPolicy() = default;
+namespace miral { class Window; }
+
+struct MirInputEvent;
+
+namespace miroil
+{
+void dispatch_input_event(const miral::Window& window, const MirInputEvent* event);
+}
+
+#endif //MIROIL_EVENTDISPATCH_H

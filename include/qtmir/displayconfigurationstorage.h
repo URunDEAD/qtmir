@@ -17,7 +17,7 @@
 #ifndef DISPLAYCONFIGURATIONSTORAGE_H
 #define DISPLAYCONFIGURATIONSTORAGE_H
 
-#include "qtmir/miral/display_configuration_storage.h"
+#include <miroil/display_configuration_storage.h>
 
 #include <functional>
 #include <memory>
@@ -27,7 +27,7 @@ class QMirServer;
 namespace qtmir
 {
 
-using DisplayConfigurationStorageBuilder = std::function<std::shared_ptr<miral::DisplayConfigurationStorage>()>;
+using DisplayConfigurationStorageBuilder = std::function<std::shared_ptr<miroil::DisplayConfigurationStorage>()>;
 
 class BasicSetDisplayConfigurationStorage
 {
