@@ -196,7 +196,7 @@ bool miroil::Surface::is_confined_to_window()
     return (wrapped->confine_pointer_state() == mir_pointer_confined_oneshot ||
             wrapped->confine_pointer_state() == mir_pointer_confined_persistent);
 #else
-    return false;
+    return wrapped->confine_pointer_state() == mir_pointer_confined_to_window;
 #endif
 }
 
@@ -259,9 +259,9 @@ int miroil::Surface::query(MirWindowAttrib attrib) const
     return wrapped->query(attrib);
 }
 
-void miroil::Surface::set_keymap(MirInputDeviceId /*id*/, const std::string& /*model*/,
-                         const std::string& /*layout*/, const std::string& /*variant*/,
-                         const std::string& /*options*/)
+void miroil::Surface::set_keymap(MirInputDeviceId id, const std::string& model,
+                         const std::string& layout, const std::string& variant,
+                         const std::string& options)
 {
-    fprintf(stderr, "Stubbed function miroil::Surface::set_keymap() called - per-surface keymaps no longer supported");
+    wrapped->set_keymap(id, model, layout, variant, options);
 }
