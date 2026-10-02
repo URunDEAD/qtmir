@@ -78,10 +78,6 @@ Files: demos/qml-demo-shell/screens.cpp
  src/platforms/mirserver/inputdeviceobserver.h
  src/platforms/mirserver/logging.cpp
  src/platforms/mirserver/logging.h
- src/platforms/mirserver/mircursorimages.cpp
- src/platforms/mirserver/mircursorimages.h
- src/platforms/mirserver/mirdisplayconfigurationobserver.cpp
- src/platforms/mirserver/mirdisplayconfigurationobserver.h
  src/platforms/mirserver/mirglconfig.h
  src/platforms/mirserver/miropenglcontext.cpp
  src/platforms/mirserver/miropenglcontext.h
@@ -289,8 +285,6 @@ Comment:
 Files: include/miroil/display_configuration_policy.h
  include/miroil/display_configuration_storage.h
  include/miroil/edid.h
- src/platforms/mirserver/eventdispatch.cpp
- src/platforms/mirserver/eventdispatch.h
  src/platforms/mirserver/miroil/include/miroil/compositor.h
  src/platforms/mirserver/miroil/include/miroil/eventdispatch.h
  src/platforms/mirserver/miroil/include/miroil/mir_server_hooks.h
@@ -311,15 +305,9 @@ Files: include/miroil/display_configuration_policy.h
  src/platforms/mirserver/miroil/src/persist_display_config.cpp
  src/platforms/mirserver/miroil/src/prompt_session_manager.cpp
  src/platforms/mirserver/miroil/src/set_compositor.cpp
- src/platforms/mirserver/mirserverhooks.cpp
- src/platforms/mirserver/mirserverhooks.h
- src/platforms/mirserver/openglcontextfactory.cpp
- src/platforms/mirserver/openglcontextfactory.h
  src/platforms/mirserver/promptsession.h
  src/platforms/mirserver/promptsessionmanager.cpp
  src/platforms/mirserver/promptsessionmanager.h
- src/platforms/mirserver/setqtcompositor.cpp
- src/platforms/mirserver/setqtcompositor.h
  tests/framework/fake_surface.h
  tests/framework/stub_scene_surface.h
 Copyright: 2014-2021, Canonical Ltd.
@@ -342,6 +330,7 @@ License: GPL-3
 
 Files: include/qtmir/types.h
  src/platforms/mirserver/miroil/include/miroil/display_configuration_controller_wrapper.h
+ src/platforms/mirserver/miroil/include/miroil/display_listener_wrapper.h
  src/platforms/mirserver/miroil/include/miroil/mir_prompt_session.h
  src/platforms/mirserver/miroil/include/miroil/event_builder.h
  src/platforms/mirserver/miroil/include/miroil/input_device.h
@@ -349,6 +338,7 @@ Files: include/qtmir/types.h
  src/platforms/mirserver/miroil/include/miroil/surface.h
  src/platforms/mirserver/miroil/src/compositor.cpp
  src/platforms/mirserver/miroil/src/display_configuration_controller_wrapper.cpp
+ src/platforms/mirserver/miroil/src/display_listener_wrapper.cpp
  src/platforms/mirserver/miroil/src/event_builder.cpp
  src/platforms/mirserver/miroil/src/input_device_observer.cpp
  src/platforms/mirserver/miroil/src/prompt_session_listener.cpp
