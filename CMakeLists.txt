@@ -71,7 +71,7 @@ add_custom_target(cppcheck COMMAND cppcheck --enable=all -q --error-exitcode=2
 
 option(WITH_CONTENTHUB "Build with content-hub" OFF)
 option(WITH_VALGRIND "Build with Valgrind detection" ON)
-option(WITH_MIR2 "Build with Mir 2.x (not yet possible, must be OFF)" OFF)
+option(WITH_MIR2 "Build with Mir 2" OFF)
 
 include(FindPkgConfig)
 find_package(Qt5Core 5.9 REQUIRED)
@@ -87,16 +87,13 @@ set(QT_VERSION_MAJOR 5)
 find_package(Threads REQUIRED)
 
 if(WITH_MIR2)
-    message(FATAL_ERROR "Building with Mir 2 is not yet supported, but this option is added to ensure consistency with WIP patch.")
-    # But when Mir 2 is supported, package lookup will look like this:
-    pkg_check_modules(MIRSERVER mirserver>=2.0 REQUIRED)
-    pkg_check_modules(MIRRENDERERGLDEV mir-renderer-gl-dev>=2.0 REQUIRED)
-    pkg_check_modules(MIRAL miral>=3.0 REQUIRED)
+    pkg_check_modules(MIRSERVER mirserver>=2.25 REQUIRED)
+    pkg_check_modules(MIRAL miral>=5.6 REQUIRED)
     pkg_search_module(MIRCOMMON mircommon REQUIRED)
     pkg_search_module(MIRCORE mircore REQUIRED)
 
     # Mir 2-specific
-    pkg_check_modules(MIROIL miroil>=2.0 REQUIRED)
+    pkg_check_modules(MIROIL miroil>=8.0 REQUIRED)
 
     # Wayland extension qt-windowmanager support
     pkg_search_module(MIRWAYLAND mirwayland>=1.2 REQUIRED)
@@ -111,6 +108,9 @@ else()
 
     # Wayland extension qt-windowmanager support
     pkg_search_module(MIRWAYLAND mir1wayland>=1.2 REQUIRED)
+
+    # Bundled miroil for Mir1
+    set(MIROIL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/src/platforms/mirserver/miroil/include)
 
     set(MIR_VERSION_MAJOR 1)
 endif()
