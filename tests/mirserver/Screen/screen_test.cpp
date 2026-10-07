@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "mir/graphics/display_configuration.h"
+#include <mir/version.h>
 #include "fake_displayconfigurationoutput.h"
 
 #include <platformscreen.h>
@@ -100,8 +101,13 @@ TEST_F(ScreenTest, ReadDifferentConfigurationFromDisplayConfig)
 {
     PlatformScreen *screen = new PlatformScreen(fakeOutput2, std::make_shared<OrientationSensor>());
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     EXPECT_EQ(screen->geometry(), QRect(500, 600, 2000, 1500));
     EXPECT_EQ(screen->availableGeometry(), QRect(500, 600, 2000, 1500));
+#else
+    EXPECT_EQ(screen->geometry(), QRect(500, 600, 1500, 2000));
+    EXPECT_EQ(screen->availableGeometry(), QRect(500, 600, 1500, 2000));
+#endif
     EXPECT_EQ(screen->depth(), 32);
     EXPECT_EQ(screen->format(), QImage::Format_RGBX8888);
     EXPECT_EQ(screen->refreshRate(), 75);

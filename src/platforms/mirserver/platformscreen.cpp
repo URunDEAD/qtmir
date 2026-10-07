@@ -28,6 +28,7 @@
 #include "mir/graphics/display.h"
 #include <mir/graphics/display_configuration.h>
 #include <mir/renderer/gl/render_target.h>
+#include <mir/version.h>
 
 // Qt
 #include <QGuiApplication>
@@ -304,8 +305,13 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
 
     // Mode = current resolution & refresh rate
     mir::graphics::DisplayConfigurationMode mode = screen.modes.at(m_currentModeIndex);
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     m_geometry.setWidth(screen.extents().size.width.as_int());
     m_geometry.setHeight(screen.extents().size.height.as_int());
+#else
+    m_geometry.setWidth(mode.size.width.as_int());
+    m_geometry.setHeight(mode.size.height.as_int());
+#endif
 
     // DPI - unnecessary to calculate, default implementation in QPlatformScreen is sufficient
 
@@ -336,7 +342,11 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
     // Scale, DPR & Form Factor
     // Update the scale & form factor native-interface properties for the windows affected
     // as there is no convenient way to emit signals for those custom properties on a QScreen
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     m_devicePixelRatio = screen.scale; // FIXME: I need to announce this changing, probably by delete/recreate Screen
+#else
+    m_devicePixelRatio = 1.0;
+#endif
 
     auto formFactor = static_cast<qtmir::FormFactor>(screen.form_factor);
     if (m_formFactor != formFactor) {
