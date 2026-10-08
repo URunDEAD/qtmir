@@ -23,6 +23,7 @@
 #include "fake_displayconfigurationoutput.h"
 
 #include <mir/test/doubles/stub_display_buffer.h>
+#include <mir/version.h>
 
 #include "testable_screensmodel.h"
 #include "platformscreen.h"
@@ -102,7 +103,11 @@ TEST_F(ScreensModelTest, MultipleScreenFound)
 
     ASSERT_EQ(2, screensModel->screens().count());
     EXPECT_EQ(QRect(0, 0, 150, 200), screensModel->screens().at(0)->geometry());
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(1)->geometry());
+#else
+    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(1)->geometry());
+#endif
 }
 
 TEST_F(ScreensModelTest, ScreenAdded)
@@ -123,7 +128,11 @@ TEST_F(ScreensModelTest, ScreenAdded)
 
     ASSERT_EQ(2, screensModel->screens().count());
     EXPECT_EQ(QRect(0, 0, 150, 200), screensModel->screens().at(0)->geometry());
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(1)->geometry());
+#else
+    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(1)->geometry());
+#endif
 }
 
 TEST_F(ScreensModelTest, ScreenRemoved)
@@ -138,13 +147,21 @@ TEST_F(ScreensModelTest, ScreenRemoved)
     display->setFakeConfiguration(config, bufferConfig);
 
     ASSERT_EQ(2, screensModel->screens().count());
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(0)->geometry());
+#else
+    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(0)->geometry());
+#endif
     EXPECT_EQ(QRect(0, 0, 150, 200), screensModel->screens().at(1)->geometry());
 
     screensModel->update();
 
     ASSERT_EQ(1, screensModel->screens().count());
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     EXPECT_EQ(QRect(500, 600, 2000, 1500), screensModel->screens().at(0)->geometry());
+#else
+    EXPECT_EQ(QRect(500, 600, 1500, 2000), screensModel->screens().at(0)->geometry());
+#endif
 }
 
 TEST_F(ScreensModelTest, MatchBufferWithDisplay)
@@ -171,7 +188,11 @@ TEST_F(ScreensModelTest, MultipleMatchBuffersWithDisplays)
     MockGLDisplayBuffer buffer1, buffer2;
     std::vector<MockGLDisplayBuffer*> buffers {&buffer1, &buffer2};
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
     geom::Rectangle buffer1Geom{{500, 600}, {2000, 1500}};
+#else
+    geom::Rectangle buffer1Geom{{500, 600}, {1500, 2000}};
+#endif
     geom::Rectangle buffer2Geom{{0, 0}, {150, 200}};
     EXPECT_CALL(buffer1, view_area())
             .WillRepeatedly(Return(buffer1Geom));
