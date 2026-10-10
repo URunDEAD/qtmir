@@ -33,6 +33,7 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QTimer>
+#include <QUuid>
 
 using namespace mir::geometry;
 
@@ -287,7 +288,11 @@ namespace qtmir
     {
         // TODO: attach surface observer here
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
         getExtraInfo(windowInfo)->persistentId = QString::fromStdString(tools.id_for_window(windowInfo.window()));
+#else
+        getExtraInfo(windowInfo)->persistentId = QUuid::createUuid().toString();
+#endif
 
         // FIXME: remove when possible
         getExtraInfo(windowInfo)->state = toQtState(windowInfo.state());
