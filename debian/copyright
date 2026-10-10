@@ -234,7 +234,6 @@ Files: CMakeLists.txt
  demos/qml-demo-shell/WindowModelDebugView.qml
  demos/qml-demo-shell/qml-demo-shell.qml
  demos/qml-demo-shell/qml-demo-shell.qmlproject
- include/miroil/display_id.h
  include/qtmir/qtmir.h
  src/CMakeLists.txt
  src/common/timestamp.cpp
@@ -248,6 +247,7 @@ Files: CMakeLists.txt
  src/platforms/CMakeLists.txt
  src/platforms/mirserver/CMakeLists.txt
  src/platforms/mirserver/miroil/CMakeLists.txt
+ src/platforms/mirserver/miroil/include/miroil/display_id.h
  src/platforms/mirserver/miroil/src/CMakeLists.txt
  src/platforms/mirserver/miroil/src/mir_prompt_session.cpp
  src/platforms/mirserver/mirserver.json
@@ -282,10 +282,10 @@ Comment:
  Assuming same license as for the majority of code files,
  assuming same copyright holders.
 
-Files: include/miroil/display_configuration_policy.h
- include/miroil/display_configuration_storage.h
- include/miroil/edid.h
- src/platforms/mirserver/miroil/include/miroil/compositor.h
+Files: src/platforms/mirserver/miroil/include/miroil/compositor.h
+ src/platforms/mirserver/miroil/include/miroil/display_configuration_policy.h
+ src/platforms/mirserver/miroil/include/miroil/display_configuration_storage.h
+ src/platforms/mirserver/miroil/include/miroil/edid.h
  src/platforms/mirserver/miroil/include/miroil/eventdispatch.h
  src/platforms/mirserver/miroil/include/miroil/mir_server_hooks.h
  src/platforms/mirserver/miroil/include/miroil/mirbuffer.h
