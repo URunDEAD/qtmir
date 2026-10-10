@@ -1382,7 +1382,7 @@ MirSurface::SurfaceObserverImpl::SurfaceObserverImpl()
     m_cursorNameToShape[mir_diagonal_resize_bottom_to_top_cursor_name] = Qt::SizeBDiagCursor;
     m_cursorNameToShape[mir_diagonal_resize_top_to_bottom_cursor_name] = Qt::SizeFDiagCursor;
     m_cursorNameToShape[mir_omnidirectional_resize_cursor_name] = Qt::SizeAllCursor;
-    m_cursorNameToShape[mir_disabled_cursor_name] = Qt::BlankCursor;
+    m_cursorNameToShape["none"] = Qt::BlankCursor; // Mir2 forgot to export the symbol?
     m_cursorNameToShape[mir_vsplit_resize_cursor_name] = Qt::SplitVCursor;
     m_cursorNameToShape[mir_hsplit_resize_cursor_name] = Qt::SplitHCursor;
     m_cursorNameToShape[mir_pointing_hand_cursor_name] = Qt::PointingHandCursor;
