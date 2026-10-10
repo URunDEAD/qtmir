@@ -261,8 +261,12 @@ install(
 
 if(NOT WITH_MIR2)
     install(
-      DIRECTORY ${CMAKE_SOURCE_DIR}/include/miroil
-      DESTINATION ${INCLUDEDIR}
+      FILES
+        ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_policy.h
+        ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_storage.h
+        ${MIROIL_INCLUDE_DIRS}/miroil/display_id.h
+        ${MIROIL_INCLUDE_DIRS}/miroil/edid.h
+      DESTINATION ${INCLUDEDIR}/miroil
     )
 endif()
 
