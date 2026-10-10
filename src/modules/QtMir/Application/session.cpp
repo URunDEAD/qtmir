@@ -315,7 +315,9 @@ void Session::suspend()
 {
     DEBUG_MSG << " state=" << sessionStateToString(m_state);
     if (m_state == Running) {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
         miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_will_suspend);
+#endif
         m_suspendTimer->start();
 
 #if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
@@ -353,9 +355,9 @@ void Session::doResume()
         // TODO: Investigate surface suspension for Wayland
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_resumed);
 
-#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     foreachPromptSession([this](const qtmir::PromptSession &promptSession) {
         m_promptSessionManager->resumePromptSession(promptSession);
     });
