@@ -83,7 +83,6 @@ void ScreenAdaptorModel::onScreenRemoved(QScreen *qscreen)
 {
     DEBUG_MSG << "(screen=" << qscreen << ")";
 
-    int index = 0;
     QMutableVectorIterator<qtmir::Screen*> iter(m_screenList);
     while(iter.hasNext()) {
         auto adaptor = qobject_cast<ScreenAdaptor*>(iter.next());
@@ -94,6 +93,5 @@ void ScreenAdaptorModel::onScreenRemoved(QScreen *qscreen)
             delete adaptor;
             break;
         }
-        index++;
     }
 }
