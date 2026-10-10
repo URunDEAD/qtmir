@@ -29,9 +29,14 @@
 #include "qtmir/displayconfigurationpolicy.h"
 #include "qtmir/displayconfigurationstorage.h"
 
+// mir
+#include <mir/version.h>
+
 // qtmir
 namespace qtmir {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     class PromptSessionManager;
+#endif
     class WindowModelNotifier;
     class AppNotifier;
 }
@@ -59,7 +64,9 @@ public:
     std::shared_ptr<ScreensModel> screensModel() const;
     QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;
     void *nativeResourceForIntegration(const QByteArray &resource) const;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     std::shared_ptr<qtmir::PromptSessionManager> thePromptSessionManager() const;
+#endif
 
     qtmir::WindowModelNotifier *windowModelNotifier() const;
     qtmir::AppNotifier *appNotifier() const;

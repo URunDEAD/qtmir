@@ -14,9 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <mir/input/device.h>
-#include <mir/input/mir_keyboard_config.h>
-
 #include <Qt>
 #include <QTimer>
 
@@ -49,12 +46,12 @@ void MirInputDeviceObserver::setKeymap(const QString &keymap)
 
 void MirInputDeviceObserver::applyKeymap()
 {
-    Q_FOREACH(const auto &device, m_devices) {
+    Q_FOREACH(auto &device, m_devices) {
         applyKeymap(device);
     }
 }
 
-void MirInputDeviceObserver::applyKeymap(const std::shared_ptr<mi::Device> &device)
+void MirInputDeviceObserver::applyKeymap(miroil::InputDevice device)
 {
     if (!m_keymap.isEmpty()) {
         const QStringList stringList = m_keymap.split('+', Qt::SkipEmptyParts);
@@ -66,25 +63,38 @@ void MirInputDeviceObserver::applyKeymap(const std::shared_ptr<mi::Device> &devi
             variant = stringList.at(1);
         }
 
-        qCDebug(QTMIR_MIR_KEYMAP) << "Applying keymap" <<  layout << variant << "on" << device->id() << QString::fromStdString(device->name());
-        MirKeyboardConfig oldConfig;
-        mi::Keymap keymap;
-        if (device->keyboard_configuration().is_set()) { // preserve the model and options
-            oldConfig = device->keyboard_configuration().value();
-            keymap.model = oldConfig.device_keymap().model;
-            keymap.options = oldConfig.device_keymap().options;
-        }
-        keymap.layout = layout.toStdString();
-        keymap.variant = variant.toStdString();
+        qCDebug(QTMIR_MIR_KEYMAP) << "Applying keymap" <<  layout << variant << "on" << device.get_device_id() << QString::fromStdString(device.get_device_name());
 
         try
         {
-            device->apply_keyboard_configuration(std::move(keymap));
+            device.apply_keymap(layout.toStdString(), variant.toStdString());
             qCDebug(QTMIR_MIR_KEYMAP) << "Keymap applied";
         }
         catch(std::exception const& e)
         {
             qCWarning(QTMIR_MIR_KEYMAP) << "Keymap could not be applied:" << e.what();
         }
+    }
+}
+
+void MirInputDeviceObserver::device_added(miroil::InputDevice device)
+{
+    QMutexLocker locker(&m_mutex);  // lock so that Qt and Mir don't apply the keymap at the same time
+    
+    if (device.is_keyboard() && device.is_alpha_numeric()) {
+        qCDebug(QTMIR_MIR_KEYMAP) << "Device added" << device.get_device_id();
+        m_devices.append(device);
+        applyKeymap(device);
+    }
+}
+
+void MirInputDeviceObserver::device_removed(miroil::InputDevice device)
+{
+    QMutexLocker locker(&m_mutex);  // lock so that Qt and Mir don't apply the keymap at the same time
+
+    auto i = m_devices.indexOf(device);
+    if (i >= 0) {
+        qCDebug(QTMIR_MIR_KEYMAP) << "Device removed" << device.get_device_id();
+        m_devices.remove(i);
     }
 }

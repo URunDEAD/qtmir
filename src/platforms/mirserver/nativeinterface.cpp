@@ -86,7 +86,9 @@ void NativeInterface::setWindowProperty(QPlatformWindow */*window*/, const QStri
     }
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 std::shared_ptr<qtmir::PromptSessionManager> NativeInterface::thePromptSessionManager() const
 {
     return m_qMirServer->thePromptSessionManager();
 }
+#endif

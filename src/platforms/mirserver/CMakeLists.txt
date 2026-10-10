@@ -107,6 +107,11 @@ if(WITH_CONTENTHUB)
     set(CLIPBOARD_SRC clipboard.cpp)
 endif()
 
+if(NOT WITH_MIR2)
+    set(PROMPTSESSION_NOMIRSERVER_SRC promptsessionlistener.cpp)
+    set(PROMPTSESSION_MIRSERVER_SRC promptsessionmanager.cpp promptsessionmanager.h promptsession.h)
+endif()
+
 # These files will compile without mirserver-dev
 add_library(qtmirserver-nomirserver OBJECT
     ${CMAKE_SOURCE_DIR}/src/common/timestamp.cpp
@@ -115,7 +120,7 @@ add_library(qtmirserver-nomirserver OBJECT
     shelluuid.cpp
     mirsingleton.cpp
     wrappedsessionauthorizer.cpp
-    promptsessionlistener.cpp
+    ${PROMPTSESSION_NOMIRSERVER_SRC}
     displayconfigurationstorage.cpp
     nativeinterface.cpp
     services.cpp
@@ -136,17 +141,11 @@ include_directories(SYSTEM ${MIRSERVER_INCLUDE_DIRS})
 
 # These files will only compile with mirserver-dev
 add_library(qtmirserver-mirserver OBJECT
-    openglcontextfactory.cpp openglcontextfactory.h
-    mircursorimages.cpp
     screenscontroller.cpp
     qtcompositor.cpp
     displayconfigurationpolicy.cpp
     wrappedwindowmanagementpolicy.cpp
-    mirdisplayconfigurationobserver.cpp
-    mirserverhooks.cpp mirserverhooks.h
-    setqtcompositor.cpp setqtcompositor.h
-    eventdispatch.cpp eventdispatch.h
-    promptsessionmanager.cpp promptsessionmanager.h promptsession.h
+    ${PROMPTSESSION_MIRSERVER_SRC}
 )
 add_dependencies(qtmirserver-mirserver MirServer_LTTNG)
 

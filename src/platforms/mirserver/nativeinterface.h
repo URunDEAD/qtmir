@@ -23,11 +23,16 @@
 
 #include <memory>
 
+#include <mir/version.h>
+
 // local
 class QMirServer;
 
 // mir
-namespace qtmir { class PromptSessionManager; class Seats; }
+namespace qtmir { class Seats; }
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+namespace qtmir { class PromptSessionManager; }
+#endif
 namespace mir { namespace shell { class PersistentSurfaceStore; }}
 
 class NativeInterface : public QPlatformNativeInterface
@@ -41,7 +46,9 @@ public:
 
     void setWindowProperty(QPlatformWindow *, const QString &name, const QVariant &value) override;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     std::shared_ptr<qtmir::PromptSessionManager> thePromptSessionManager() const;
+#endif
     std::shared_ptr<mir::shell::PersistentSurfaceStore> thePersistentSurfaceStore() const;
     std::shared_ptr<qtmir::Seats> theSeats() const;
 

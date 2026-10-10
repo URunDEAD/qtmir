@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Canonical, Ltd.
+ * Copyright (C) 2026 UBports Foundation
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License version 3, as published by
@@ -14,15 +14,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mircursorimages.h"
-#include "namedcursor.h"
+#ifndef QTMIR_MIRTOOLKITEVENT_H
+#define QTMIR_MIRTOOLKITEVENT_H
 
-using namespace qtmir;
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+#include <miral/toolkit_event.h>
+using namespace miral::toolkit;
+#else
+#include <mir_toolkit/event.h>
+#endif
 
-std::shared_ptr<mir::graphics::CursorImage> MirCursorImages::image(const std::string &cursor_name,
-        const mir::geometry::Size &)
-{
-    // We are not responsible for loading cursors. This is left for shell to do as it's drawing its own QML cursor.
-    // So here we work around Mir API by storing just the cursor name in the CursorImage.
-    return std::make_shared<NamedCursor>(cursor_name.c_str());
-}
+#endif // QTMIR_MIRTOOLKITEVENT_H

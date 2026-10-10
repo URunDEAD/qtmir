@@ -19,8 +19,7 @@
 
 #include <QString>
 
-#include <mir_toolkit/common.h>
-#include <mir_toolkit/event.h>
+#include "mirtoolkitevent.h"
 
 class QTouchEvent;
 

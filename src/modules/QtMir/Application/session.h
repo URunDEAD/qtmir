@@ -23,7 +23,9 @@
 // local
 #include "session_interface.h"
 #include "mirsurfacelistmodel.h"
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 #include "promptsessionmanager.h"
+#endif
 #include "timer.h"
 
 // Qt
@@ -32,7 +34,9 @@
 
 namespace qtmir {
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 class PromptSessionManager;
+#endif
 
 class Application;
 
@@ -41,7 +45,9 @@ class Session : public SessionInterface
     Q_OBJECT
 public:
     explicit Session(const std::shared_ptr<mir::scene::Session>& session,
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
                      const std::shared_ptr<PromptSessionManager>& promptSessionManager,
+#endif
                      QObject *parent = 0);
     virtual ~Session();
 
@@ -77,15 +83,19 @@ public:
 
     std::shared_ptr<mir::scene::Session> session() const override;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     PromptSession activePromptSession() const override;
     void foreachPromptSession(const std::function<void(const PromptSession&)> &f) const override;
+#endif
 
     SessionModel* childSessions() const override;
 
     void setFullscreen(bool fullscreen) override;
     void setLive(const bool) override;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     void appendPromptSession(const PromptSession& session) override;
     void removePromptSession(const PromptSession& session) override;
+#endif
 
     // useful for tests
     void setSuspendTimer(AbstractTimer *timer);
@@ -104,7 +114,9 @@ protected:
     void doResume();
     void removeSurface(MirSurfaceInterface* surface);
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     void stopPromptSessions();
+#endif
 
     void prependSurface(MirSurfaceInterface* surface);
 
@@ -118,8 +130,10 @@ protected:
     State m_state;
     bool m_live;
     AbstractTimer* m_suspendTimer{nullptr};
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     QVector<PromptSession> m_promptSessions;
     std::shared_ptr<PromptSessionManager> const m_promptSessionManager;
+#endif
     QList<MirSurfaceInterface*> m_closingSurfaces;
     bool m_hadSurface{false};
 };

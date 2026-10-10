@@ -36,7 +36,6 @@ namespace mir {
     namespace scene {
         class Session;
         class Surface;
-        class PromptSession;
     }
 }
 
@@ -124,7 +123,6 @@ private:
     void resumeApplication(Application *application);
     QString toString() const;
 
-    Application* findApplicationWithPromptSession(const mir::scene::PromptSession* promptSession);
     Application *findClosingApplication(const QString &inputAppId) const;
 
     SessionInterface* findSessionForPid(const pid_t pid);

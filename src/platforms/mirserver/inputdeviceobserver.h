@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INPUTDEVICEOBSERVER_H
-#define INPUTDEVICEOBSERVER_H
+#ifndef QTMIR_MIR_INPUT_DEVICE_OBSERVER_H
+#define QTMIR_MIR_INPUT_DEVICE_OBSERVER_H
 
 #include <QObject>
 #include <QString>
@@ -23,11 +23,13 @@
 #include <QMutex>
 #include <memory>
 
+#include "miroil/input_device_observer.h"
+
 namespace mir { namespace input { class Device; }}
 
 namespace qtmir {
 
-class MirInputDeviceObserver: public QObject
+class MirInputDeviceObserver: public QObject, public miroil::InputDeviceObserver
 {
     Q_OBJECT
 public:
@@ -39,10 +41,12 @@ private Q_SLOTS:
 
 protected:
     void applyKeymap();
-    void applyKeymap(const std::shared_ptr<mir::input::Device> &device);
+    void applyKeymap(miroil::InputDevice device);
+    void device_added(miroil::InputDevice device);
+    void device_removed(miroil::InputDevice device);
 
     QString m_keymap;
-    QVector<std::shared_ptr<mir::input::Device>> m_devices;
+    QVector<miroil::InputDevice> m_devices;
     QMutex m_mutex;
 };
 

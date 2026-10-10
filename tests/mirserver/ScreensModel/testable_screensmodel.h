@@ -31,7 +31,7 @@ public:
                  const std::shared_ptr<QtCompositor> &compositor,
                  const std::shared_ptr<mir::compositor::DisplayListener> &displayListener)
     {
-        init(display, compositor, displayListener);
+        init(display, compositor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
     }
 
     void do_terminate() { terminate(); }

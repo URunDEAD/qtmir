@@ -35,10 +35,12 @@
 
 // Mir
 #include <mir/geometry/rectangle.h>
-#include <mir/scene/surface.h>
-#include <mir/scene/surface_observer.h>
 #include <mir/version.h>
 #include <mir_toolkit/cursors.h>
+
+// miroil
+#include <miroil/surface.h>
+#include <miroil/surface_observer.h>
 
 // mirserver
 #include <logging.h>
@@ -81,7 +83,7 @@ qint64 msecsSinceReference()
 
 } // namespace {
 
-class MirSurface::SurfaceObserverImpl : public SurfaceObserver, public mir::scene::SurfaceObserver
+class MirSurface::SurfaceObserverImpl : public SurfaceObserver, public miroil::SurfaceObserver
 {
 public:
     SurfaceObserverImpl();
@@ -105,7 +107,6 @@ public:
 
     void alpha_set_to(mir::scene::Surface const*, float) override {}
     void transformation_set_to(mir::scene::Surface const*, glm::mat4 const&) override {}
-    void reception_mode_set_to(mir::scene::Surface const*, mir::input::InputReceptionMode) override {}
     void cursor_image_set_to(mir::scene::Surface const*, mir::graphics::CursorImage const&) override;
     void orientation_set_to(mir::scene::Surface const*, MirOrientation) override {}
     void client_surface_close_requested(mir::scene::Surface const*) override {}
@@ -129,6 +130,10 @@ public:
 
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(1, 5, 0)
     void application_id_set_to(mir::scene::Surface const* /* surf */, std::string const& /* application_id */) override {};
+#endif
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 22, 0)
+    void mirror_mode_set_to(mir::scene::Surface const*, MirMirrorMode) override {}
 #endif
 
 #else
@@ -209,7 +214,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     , m_maxHeight{newWindowInfo.windowInfo.max_height().as_int()}
     , m_incWidth{newWindowInfo.windowInfo.width_inc().as_int()}
     , m_incHeight{newWindowInfo.windowInfo.height_inc().as_int()}
-    , m_surface(newWindowInfo.surface)
+    , m_surface(std::make_shared<miroil::Surface>(newWindowInfo.surface))
     , m_session(session)
     , m_controller(controller)
     , m_orientationAngle(Mir::Angle0)
@@ -233,7 +238,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
 
     m_position = convertDisplayToLocalCoords(toQPoint(m_window.top_left()));
 
-    SurfaceObserver::registerObserverForSurface(m_surfaceObserver.get(), m_surface.get());
+    SurfaceObserver::registerObserverForSurface(m_surfaceObserver.get(), m_surface->get_wrapped());
     m_surface->add_observer(m_surfaceObserver);
 
     connect(m_surfaceObserver.get(), &SurfaceObserver::framesPosted, this, &MirSurface::onFramesPostedObserved);
@@ -765,7 +770,7 @@ bool MirSurface::visible() const
 {
     return m_visible;
 }
-#include <mir_toolkit/event.h>
+
 void MirSurface::mousePressEvent(QMouseEvent *event)
 {
     auto ev = EventBuilder::instance()->reconstructMirEvent(event);
@@ -828,9 +833,9 @@ void MirSurface::keyPressEvent(QKeyEvent *qtEvent)
         if (!qtEvent->isAutoRepeat()) {
             Q_ASSERT(!isKeyPressed(qtEvent->nativeScanCode()));
             PressedKey pressedKey(qtEvent, msecsSinceReference());
-            auto info = EventBuilder::instance()->findInfo(qtEvent->timestamp());
+            auto info = EventBuilder::instance()->find_info(qtEvent->timestamp());
             if (info) {
-                pressedKey.deviceId = info->deviceId;
+                pressedKey.deviceId = info->device_id;
             }
             m_pressedKeys.append(std::move(pressedKey));
         }
@@ -1107,7 +1112,7 @@ QRect MirSurface::inputBounds() const
 
 bool MirSurface::confinesMousePointer() const
 {
-    return m_surface->confine_pointer_state() == mir_pointer_confined_to_window;
+    return m_surface->is_confined_to_window();
 }
 
 bool MirSurface::allowClientResize() const
@@ -1541,7 +1546,7 @@ QPoint MirSurface::convertDisplayToLocalCoords(const QPoint &displayPos) const
     QPoint localPos = displayPos;
 
     if (m_surface->parent()) {
-        auto parentPos = m_surface->parent()->top_left();
+        auto parentPos = miroil::Surface(m_surface->parent()).top_left();
         localPos.rx() -= parentPos.x.as_int();
         localPos.ry() -= parentPos.y.as_int();
     }
@@ -1554,7 +1559,7 @@ QPoint MirSurface::convertLocalToDisplayCoords(const QPoint &localPos) const
     QPoint displayPos = localPos;
 
     if (m_surface->parent()) {
-        auto parentPos = m_surface->parent()->top_left();
+        auto parentPos = miroil::Surface(m_surface->parent()).top_left();
         displayPos.rx() += parentPos.x.as_int();
         displayPos.ry() += parentPos.y.as_int();
     }
@@ -1603,11 +1608,13 @@ void MirSurface::releaseAllPressedKeys()
     for (auto &pressedKey : m_pressedKeys) {
         auto deltaMs = (ulong)(msecsSinceReference() - pressedKey.msecsSinceReference);
         ulong timestamp = pressedKey.timestamp + deltaMs;
-        std::vector<uint8_t> cookie{};
 
-        auto ev = mir::events::make_event(pressedKey.deviceId,
+        auto ev = EventBuilder::instance()->make_key_event(pressedKey.deviceId,
                 uncompressTimestamp<qtmir::Timestamp>(qtmir::Timestamp(timestamp)),
-                cookie, mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
+                std::vector<uint8_t>{},
+#endif
+                mir_keyboard_action_up, pressedKey.nativeVirtualKey, pressedKey.nativeScanCode,
                 mir_input_event_modifier_none);
 
         auto ev1 = reinterpret_cast<MirKeyboardEvent const*>(ev.get());

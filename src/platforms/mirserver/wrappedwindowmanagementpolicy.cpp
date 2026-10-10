@@ -16,7 +16,8 @@
 
 #include "wrappedwindowmanagementpolicy.h"
 
-#include "eventdispatch.h"
+#include <miroil/eventdispatch.h>
+
 #include "initialsurfacesizes.h"
 #include "screensmodel.h"
 #include "surfaceobserver.h"
@@ -25,6 +26,7 @@
 #include "miral/window_specification.h"
 
 #include "mirqtconversion.h"
+#include "mirtoolkitevent.h"
 #include "qmirserver.h"
 #include "tracepoints.h"
 
@@ -589,7 +591,7 @@ void WrappedWindowManagementPolicy::deliver_keyboard_event(const MirKeyboardEven
         });
     }
 
-    qtmir::dispatchInputEvent(window, mir_keyboard_event_input_event(event));
+    miroil::dispatch_input_event(window, mir_keyboard_event_input_event(event));
 }
 
 void WrappedWindowManagementPolicy::deliver_touch_event(const MirTouchEvent *event, const miral::Window &window)
@@ -602,7 +604,7 @@ void WrappedWindowManagementPolicy::deliver_touch_event(const MirTouchEvent *eve
         }
     });
 
-    qtmir::dispatchInputEvent(window, mir_touch_event_input_event(event));
+    miroil::dispatch_input_event(window, mir_touch_event_input_event(event));
 }
 
 void WrappedWindowManagementPolicy::deliver_pointer_event(const MirPointerEvent *event, const miral::Window &window)
@@ -618,7 +620,7 @@ void WrappedWindowManagementPolicy::deliver_pointer_event(const MirPointerEvent 
         });
     }
 
-    qtmir::dispatchInputEvent(window, mir_pointer_event_input_event(event));
+    miroil::dispatch_input_event(window, mir_pointer_event_input_event(event));
 }
 
 void WrappedWindowManagementPolicy::advise_adding_to_workspace(const std::shared_ptr<miral::Workspace> &workspace,

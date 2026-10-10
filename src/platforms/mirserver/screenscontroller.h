@@ -26,6 +26,7 @@
 #include "qtmir/screen.h"
 
 #include <memory>
+#include <miroil/display_configuration_controller_wrapper.h>
 
 class ScreensModel;
 
@@ -54,7 +55,13 @@ public:
 private:
     const std::shared_ptr<ScreensModel> m_screensModel;
     const std::shared_ptr<mir::graphics::Display> m_display;
-    const std::shared_ptr<mir::shell::DisplayConfigurationController> m_displayConfigurationController;
+    // DisplayConfigurationControllerWrapper stores a reference to a shared
+    // pointer to the DisplayConfigurationController. That's not ideal and
+    // should be fixed in the miroil API. In the meantime, the shared_ptr is
+    // stored here so that we have some guarantee that the referenced object
+    // doesn't go away.
+    const std::shared_ptr<mir::shell::DisplayConfigurationController> m_mirDisplayConfigurationController;
+    const std::shared_ptr<miroil::DisplayConfigurationControllerWrapper> m_displayConfigurationController;
 };
 
 #endif // SCREENSCONTROLLER_H

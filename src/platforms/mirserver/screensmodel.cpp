@@ -27,7 +27,7 @@
 #include <mir/graphics/display.h>
 #include <mir/graphics/display_buffer.h>
 #include <mir/graphics/display_configuration.h>
-#include <mir/compositor/display_listener.h>
+#include <miroil/display_listener_wrapper.h>
 
 // Qt
 #include <QScreen>
@@ -43,7 +43,7 @@ namespace mg = mir::graphics;
 #define DEBUG_MSG qCDebug(QTMIR_SCREENS).nospace() << "ScreensModel[" << this <<"]::" << __func__
 
 ScreensModel::ScreensModel(QObject *parent)
-    : MirDisplayConfigurationObserver(parent)
+    : QObject(parent)
     , m_compositing(false)
     , m_orientationSensor(std::make_shared<OrientationSensor>(this))
 {
@@ -54,7 +54,7 @@ ScreensModel::ScreensModel(QObject *parent)
 void ScreensModel::init(
     const std::shared_ptr<mir::graphics::Display>& display,
     const std::shared_ptr<QtCompositor>& compositor,
-    const std::shared_ptr<mir::compositor::DisplayListener>& displayListener)
+    std::shared_ptr<miroil::DisplayListenerWrapper> displayListener)
 {
     m_display = display;
     m_compositor = compositor;
@@ -68,9 +68,6 @@ void ScreensModel::init(
             this, &ScreensModel::onCompositorStarting, Qt::AutoConnection);
     connect(qtCompositor, &QtCompositor::stopping,
             this, &ScreensModel::onCompositorStopping, Qt::BlockingQueuedConnection);
-
-    connect(this, &MirDisplayConfigurationObserver::configurationApplied,
-            this, &ScreensModel::update, Qt::BlockingQueuedConnection);
 }
 
 // terminate before shutting down the Mir server, or else liable to deadlock with the blocking connection above

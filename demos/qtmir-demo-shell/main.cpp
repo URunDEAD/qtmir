@@ -164,11 +164,13 @@ struct DemoSessionAuthorizer : qtmir::SessionAuthorizer
         qDebug() << "OVERRIDE qtmir::SessionAuthorizer::screencastIsAllowed";
         return qtmir::SessionAuthorizer::screencastIsAllowed(creds);
     }
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     bool promptSessionIsAllowed(miral::ApplicationCredentials const& creds) override
     {
         qDebug() << "OVERRIDE qtmir::SessionAuthorizer::promptSessionIsAllowed";
         return qtmir::SessionAuthorizer::promptSessionIsAllowed(creds);
     }
+#endif
 };
 
 int main(int argc, const char *argv[])

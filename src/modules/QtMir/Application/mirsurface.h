@@ -40,6 +40,7 @@
 
 // mir
 #include <mir_toolkit/common.h>
+#include <miroil/surface.h>
 
 
 class SurfaceObserver;
@@ -246,7 +247,7 @@ private:
     int m_incWidth;
     int m_incHeight;
 
-    const std::shared_ptr<mir::scene::Surface> m_surface; // keep copy of the Surface for lifecycle
+    const std::shared_ptr<miroil::Surface> m_surface; // keep copy of the Surface for lifecycle
     QPointer<SessionInterface> m_session;
     WindowControllerInterface *const m_controller;
 

@@ -20,14 +20,24 @@
 // local
 #include "logging.h"
 #include "wrappedwindowmanagementpolicy.h"
-#include "promptsessionmanager.h"
-#include "setqtcompositor.h"
+#include "inputdeviceobserver.h"
 #include "qteventfeeder.h"
 #include "qtmir/sessionauthorizer.h"
+#include "miropenglcontext.h"
+#include "mirglconfig.h"
+#include "screenscontroller.h"
+#include "namedcursor.h"
+#include "qtcompositor.h"
 #include "qtwindowmanager.h"
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+#include "promptsessionmanager.h"
+#include "promptsessionlistener.h"
+#endif
 
 // prototyping for later incorporation in miral
 #include <miroil/persist_display_config.h>
+#include <miroil/set_compositor.h>
+#include <miroil/display_listener_wrapper.h>
 
 // miral
 #include <miral/add_init_callback.h>
@@ -112,13 +122,22 @@ bool MirServerThread::waitForMirStartup()
 
 QPlatformOpenGLContext *QMirServerPrivate::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
-    return m_openGLContextFactory.createPlatformOpenGLContext(context->format(), *m_mirServerHooks.theMirDisplay());
+    QSurfaceFormat            format     = context->format();
+    mir::graphics::Display  * mirDisplay = m_mirServerHooks.the_mir_display().get();
+    mir::graphics::GLConfig * gl_config  = m_openGLContext.the_open_gl_config().get();
+
+    if (!gl_config)
+        throw std::logic_error("No gl config available. Server not running?");
+
+    return new MirOpenGLContext(*mirDisplay, *gl_config, format);
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 std::shared_ptr<qtmir::PromptSessionManager> QMirServerPrivate::promptSessionManager() const
 {
-    return std::make_shared<qtmir::PromptSessionManager>(m_mirServerHooks.thePromptSessionManager());
+    return std::make_shared<qtmir::PromptSessionManager>(m_mirServerHooks.the_prompt_session_manager());
 }
+#endif
 
 std::shared_ptr<qtmir::SessionAuthorizer> QMirServerPrivate::theApplicationAuthorizer() const
 {
@@ -131,14 +150,17 @@ QMirServerPrivate::QMirServerPrivate()
     , m_windowManagementPolicy(buildWindowManagementPolicy)
     , m_displayConfigurationStorage(buildDisplayConfigurationStorage)
     , m_wrappedSessionAuthorizer(buildSessionAuthorizer)
+    , m_openGLContext(new MirGLConfig())
     , runner(qtmirArgc, qtmirArgv)
 {
 }
 
-PromptSessionListener *QMirServerPrivate::promptSessionListener() const
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+qtmir::PromptSessionListener *QMirServerPrivate::promptSessionListener() const
 {
-    return m_mirServerHooks.promptSessionListener();
+    return dynamic_cast<qtmir::PromptSessionListener*>(m_mirServerHooks.the_prompt_session_listener());
 }
+#endif
 
 inline void exportEnvVarToDbus(const std::string& key, const std::string& value)
 {
@@ -159,6 +181,16 @@ inline void exportEnvVarToSystemd(const std::string& key, const std::string& val
 
 void QMirServerPrivate::run(const std::function<void()> &startCallback)
 {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+    m_mirServerHooks.create_prompt_session_listener(std::make_shared<qtmir::PromptSessionListener>());
+#endif
+    m_mirServerHooks.create_named_cursor([](std::string const & name)
+        {
+            // We are not responsible for loading cursors. This is left for shell to do as it's drawing its own QML cursor.
+            // So here we work around Mir API by storing just the cursor name in the CursorImage.
+            return std::make_shared<qtmir::NamedCursor>(name.c_str());
+        }
+    );
 
     miral::AddInitCallback addInitCallback{[&, this]
     {
@@ -187,8 +219,9 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
 
     runner.add_start_callback([&]
     {
-        screensController = m_mirServerHooks.createScreensController(screensModel);
-        m_mirServerHooks.createInputDeviceObserver();
+        screensController = QSharedPointer<ScreensController>(new ScreensController(screensModel, m_mirServerHooks.the_mir_display(), m_mirServerHooks.the_display_configuration_controller()));
+        std::shared_ptr<miroil::InputDeviceObserver> ptr = std::make_shared<qtmir::MirInputDeviceObserver>();
+        m_mirServerHooks.create_input_device_observer(ptr);
         if (auto const x11_display = runner.x11_display())
         {
             const auto displayVar = x11_display.value();
@@ -212,7 +245,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
         {
             miral::X11Support{},
             m_wrappedSessionAuthorizer,
-            m_openGLContextFactory,
+            m_openGLContext,
             m_mirServerHooks,
             miral::set_window_management_policy<WrappedWindowManagementPolicy>(m_windowModelNotifier,
                                                                                m_windowController,
@@ -222,7 +255,23 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
                                                                                eventFeeder,
                                                                                m_windowManagementPolicy),
             addInitCallback,
-            qtmir::SetQtCompositor{screensModel},
+            miroil::SetCompositor(
+                // Create the the QtCompositor
+                []() -> std::shared_ptr<miroil::Compositor>
+                {
+                    std::shared_ptr<miroil::Compositor> result = std::make_shared<QtCompositor>();
+                    return result;
+                },
+                // Initialization called by mir when the new compositor is setup up
+                [this](const std::shared_ptr<mir::graphics::Display>& display,
+                        const std::shared_ptr<miroil::Compositor> & compositor,
+                        const std::shared_ptr<mir::compositor::DisplayListener>& displayListener)
+                {
+                    std::shared_ptr<QtCompositor> qtCompsitor = std::dynamic_pointer_cast<QtCompositor>(compositor);
+                    qCDebug(QTMIR_MIR_MESSAGES) << "Initializing screens model";
+                    this->screensModel->init(display, qtCompsitor, std::make_shared<miroil::DisplayListenerWrapper>(displayListener));
+                }
+            ),
             setTerminator,
             miroil::PersistDisplayConfig{displayStorageBuilder(),
                                          m_displayConfigurationPolicy},

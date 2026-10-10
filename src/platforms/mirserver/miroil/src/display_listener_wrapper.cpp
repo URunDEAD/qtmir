@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Canonical, Ltd.
+ * Copyright (C) Canonical, Ltd.
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License version 3, as published by
@@ -13,21 +13,29 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <miroil/display_listener_wrapper.h>
+#include <mir/compositor/display_listener.h>
 
-#ifndef QTMIR_MIRCURSORIMAGES_H_
-#define QTMIR_MIRCURSORIMAGES_H_
-
-#include <mir/input/cursor_images.h>
-
-namespace qtmir {
-
-class MirCursorImages : public mir::input::CursorImages
+namespace miroil
 {
-public:
-    std::shared_ptr<mir::graphics::CursorImage> image(const std::string &cursor_name,
-            const mir::geometry::Size &size) override;
-};
 
+DisplayListenerWrapper::DisplayListenerWrapper(std::shared_ptr<mir::compositor::DisplayListener> const & display_listener)
+ : display_listener(display_listener)
+{
 }
 
-#endif // QTMIR_MIRCURSORIMAGES_H_
+DisplayListenerWrapper::~DisplayListenerWrapper()
+{
+}
+
+void DisplayListenerWrapper::add_display(mir::geometry::Rectangle const& area)
+{
+    display_listener->add_display(area);
+}
+
+void DisplayListenerWrapper::remove_display(mir::geometry::Rectangle const& area)
+{
+    display_listener->remove_display(area);
+}
+
+}

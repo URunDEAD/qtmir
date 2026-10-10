@@ -28,13 +28,20 @@
 #include <miral/application.h>
 #include <miral/application_info.h>
 
+// mir
+#include <mir/version.h>
+
 // mirserver
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
 #include "promptsessionmanager.h"
+#endif
 
 namespace mir {
     namespace scene {
         class Session;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
         class PromptSession;
+#endif
     }
 }
 
@@ -46,13 +53,14 @@ namespace lomiri {
     }
 }
 
-class PromptSessionListener;
-
 namespace qtmir
 {
 
 class AppNotifier;
 class ApplicationInfo;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+class PromptSessionListener;
+#endif
 class SessionInterface;
 
 class TaskController : public QObject
@@ -102,22 +110,28 @@ public Q_SLOTS:
     void onSessionStarting(const miral::ApplicationInfo &appInfo);
     void onSessionStopping(const miral::ApplicationInfo &appInfo);
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     void onPromptSessionStarting(const PromptSession& promptSession);
     void onPromptSessionStopping(const PromptSession& promptSession);
     void onPromptProviderAdded(const qtmir::PromptSession &promptSession, const miral::Application &);
     void onPromptProviderRemoved(const qtmir::PromptSession &promptSession, const miral::Application &);
+#endif
 
 protected:
     TaskController(QObject *parent = nullptr);
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     TaskController(std::shared_ptr<PromptSessionManager>&, QObject *parent = nullptr);
+#endif
 
 private:
     void connectToAppNotifier(AppNotifier *);
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     void connectToPromptSessionListener(PromptSessionListener *);
 
     std::shared_ptr<PromptSessionManager> m_promptSessionManager;
 
     QHash<const mir::scene::PromptSession *, SessionInterface *> m_mirPromptToSessionHash;
+#endif
     QList<SessionInterface*> m_sessionList;
 };
 
