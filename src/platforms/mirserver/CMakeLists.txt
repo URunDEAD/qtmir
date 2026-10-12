@@ -25,7 +25,6 @@ endif()
 set(qtmir_include ${CMAKE_SOURCE_DIR}/include)
 
 if(NOT WITH_MIR2)
-    set(MIROIL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/miroil/include)
     add_subdirectory(miroil)
 endif()
 
@@ -238,9 +237,9 @@ set_target_properties(qtmirserver
 set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
 set(INCLUDEDIR "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${INCLUDE_NAME}")
 if(WITH_MIR2)
-    set(QTMIRSERVER_PCREQUIRES "miral >= 3.0, miroil")
+    set(QTMIRSERVER_PCREQUIRES "miral >= 5.6, miroil >= 8.0, mirserver >= 2.25")
 else()
-    set(QTMIRSERVER_PCREQUIRES "${MIRAL_MODULE_NAME} >= 1.1")
+    set(QTMIRSERVER_PCREQUIRES "${MIRAL_MODULE_NAME} >= 1.1, ${MIRSERVER_MODULE_NAME} >= 0.26")
     set(QTMIRSERVER_PCCONFLICTS "miral >= 3.0")
 endif()
 
@@ -262,8 +261,12 @@ install(
 
 if(NOT WITH_MIR2)
     install(
-      DIRECTORY ${CMAKE_SOURCE_DIR}/include/miroil
-      DESTINATION ${INCLUDEDIR}
+      FILES
+        ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_policy.h
+        ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_storage.h
+        ${MIROIL_INCLUDE_DIRS}/miroil/display_id.h
+        ${MIROIL_INCLUDE_DIRS}/miroil/edid.h
+      DESTINATION ${INCLUDEDIR}/miroil
     )
 endif()
 

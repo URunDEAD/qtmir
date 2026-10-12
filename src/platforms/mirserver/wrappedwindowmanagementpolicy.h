@@ -77,7 +77,9 @@ public:
     void advise_delete_window(const miral::WindowInfo &windowInfo) override;
     void advise_raise(const std::vector<miral::Window> &windows) override;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 15, 0)
     void handle_request_drag_and_drop(miral::WindowInfo &window_info) override;
+#endif
     void handle_request_move(miral::WindowInfo &window_info, const MirInputEvent *input_event) override;
     void handle_request_resize(miral::WindowInfo &window_info, const MirInputEvent *input_event, MirResizeEdge edge) override;
 

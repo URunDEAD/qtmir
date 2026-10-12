@@ -42,9 +42,11 @@ inline QString stringFromEdid(const miroil::Edid& edid)
     str += QString::fromStdString(edid.vendor);
     str += QString("%1%2").arg(edid.product_code).arg(edid.serial_number);
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     for (int i = 0; i < 4; i++) {
         str += QString::fromStdString(edid.descriptors[i].string_value());
     }
+#endif
     return str;
 }
 

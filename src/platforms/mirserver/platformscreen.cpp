@@ -24,11 +24,23 @@
 // Mir
 #include "mir/geometry/size.h"
 #include "mir/graphics/buffer.h"
-#include "mir/graphics/display_buffer.h"
 #include "mir/graphics/display.h"
 #include <mir/graphics/display_configuration.h>
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+#include "mirglconfig.h"
+
+#include <mir/graphics/platform.h>
+#include <mir/renderer/gl/gl_surface.h>
+#include <mir/graphics/display_sink.h>
+
+#else
+
+#include <mir/graphics/display_buffer.h>
 #include <mir/renderer/gl/render_target.h>
 #include <mir/version.h>
+
+#endif
 
 // Qt
 #include <QGuiApplication>
@@ -55,6 +67,8 @@ bool isLittleEndian() {
     char *c = (char*)&i;
     return *c == 1;
 }
+
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 static mir::renderer::gl::RenderTarget *as_render_target(
     mir::graphics::DisplayBuffer *displayBuffer)
 {
@@ -66,6 +80,7 @@ static mir::renderer::gl::RenderTarget *as_render_target(
 
     return render_target;
 }
+#endif
 
 enum QImage::Format qImageFormatFromMirPixelFormat(MirPixelFormat mirPixelFormat) {
     switch (mirPixelFormat) {
@@ -160,7 +175,11 @@ PlatformScreen::PlatformScreen(const mir::graphics::DisplayConfigurationOutput &
     , m_formFactor(qtmir::FormFactorUnknown)
     , m_sensorEnabled(false)
     , m_isActive(false)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    , m_outputSurface(nullptr)
+#else
     , m_renderTarget(nullptr)
+#endif
     , m_displayGroup(nullptr)
 {
     // Hack to make signals work
@@ -242,11 +261,19 @@ void PlatformScreen::setMirDisplayConfiguration(const mir::graphics::DisplayConf
 
     // Output data - each output has a unique id and corresponding type. Can be multiple cards.
     m_displayId.output_id = screen.id;
+
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 22, 0)
     try {
         m_displayId.edid.parse_data(reinterpret_cast<std::vector<uint8_t> const&>(screen.edid));
     } catch (std::runtime_error const& e) {
         printf("Failed to parse EDID - %s\n", e.what());
     }
+#else
+    m_displayId.edid.vendor = screen.display_info.vendor.value_or("");
+    m_displayId.edid.product_code = screen.display_info.product_code.value_or(0);
+    m_displayId.edid.serial_number = screen.display_info.serial_number.value_or(0);
+    m_displayId.edid.size = {screen.physical_size_mm.width.as_int(), screen.physical_size_mm.height.as_int()};
+#endif
 
     auto type = static_cast<qtmir::OutputTypes>(screen.type); //FIXME: need compile time check these are equivalent
     if (m_type != type) {
@@ -479,6 +506,16 @@ void PlatformScreen::removeWindow(ScreenPlatformWindow *window)
     }
 }
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+void PlatformScreen::setMirDisplaySink(mir::graphics::GLRenderingProvider &glProvider, mir::graphics::DisplaySink *sink, mir::graphics::DisplaySyncGroup *group)
+{
+    m_outputSurface = glProvider.surface_for_sink(*sink, MirGLConfig{});
+    DEBUG_MSG_SCREENS << "(outputSurface=" << m_outputSurface.get() << ", outputSink=" << sink <<  ", displayGroup=" << group << ")";
+    // This operation should only be performed while rendering is stopped
+    m_displaySink = sink;
+    m_displayGroup = group;
+}
+#else
 void PlatformScreen::setMirDisplayBuffer(mir::graphics::DisplayBuffer *buffer, mir::graphics::DisplaySyncGroup *group)
 {
     DEBUG_MSG_SCREENS << "(renderTarget=" << as_render_target(buffer) << ", displayGroup=" << group << ")";
@@ -486,10 +523,15 @@ void PlatformScreen::setMirDisplayBuffer(mir::graphics::DisplayBuffer *buffer, m
     m_renderTarget = as_render_target(buffer);
     m_displayGroup = group;
 }
+#endif
 
 void PlatformScreen::swapBuffers()
 {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_displaySink->set_next_image(m_outputSurface->commit());
+#else
     m_renderTarget->swap_buffers();
+#endif
 
     /* FIXME this exposes a QtMir architecture problem, as Screen is supposed to wrap a mg::DisplayBuffer.
      * We use Qt's multithreaded renderer, where each Screen is rendered to relatively independently, and
@@ -507,12 +549,20 @@ void PlatformScreen::swapBuffers()
 
 void PlatformScreen::makeCurrent()
 {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_outputSurface->make_current();
+#else
     m_renderTarget->make_current();
+#endif
 }
 
 void PlatformScreen::doneCurrent()
 {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_outputSurface->release_current();
+#else
     m_renderTarget->release_current();
+#endif
 }
 
 bool PlatformScreen::internalDisplay() const

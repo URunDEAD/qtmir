@@ -81,6 +81,19 @@ qint64 msecsSinceReference()
     return elapsedTimer.msecsSinceReference();
 }
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+// Mir creates a new buffer for every frame
+bool renderableBufferChanged(const MirSurfaceInterface::SubSurfaceTextures &slots,
+                             const mir::graphics::RenderableList &renderables)
+{
+    for (size_t i = 0; i < renderables.size() && i < slots.size(); i++) {
+        auto texture = qSharedPointerDynamicCast<MirBufferSGTexture>(slots[i].texture);
+        if (texture && texture->buffer() != renderables[i]->buffer()) return true;
+    }
+    return false;
+}
+#endif
+
 } // namespace {
 
 class MirSurface::SurfaceObserverImpl : public SurfaceObserver, public miroil::SurfaceObserver
@@ -201,6 +214,9 @@ public:
 
 MirSurface::MirSurface(NewWindow newWindowInfo,
         WindowControllerInterface* controller,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+        mir::graphics::GLRenderingProvider& glProvider,
+#endif
         SessionInterface *session,
         MirSurface *parentSurface)
     : MirSurfaceInterface()
@@ -217,6 +233,9 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     , m_surface(std::make_shared<miroil::Surface>(newWindowInfo.surface))
     , m_session(session)
     , m_controller(controller)
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    , m_glProvider(glProvider)
+#endif
     , m_orientationAngle(Mir::Angle0)
     , m_visible(newWindowInfo.windowInfo.is_visible())
     , m_live(true)
@@ -266,6 +285,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
         }
     });
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     connect(&m_frameDropperTimer, &QTimer::timeout,
             this, &MirSurface::dropPendingBuffer);
     // Rationale behind the frame dropper and its interval value:
@@ -282,6 +302,7 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     // in practice rarely happen.
     m_frameDropperTimer.setInterval(200);
     m_frameDropperTimer.setSingleShot(false);
+#endif
 
     QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);
 
@@ -307,8 +328,10 @@ MirSurface::~MirSurface()
 
 void MirSurface::onFramesPostedObserved()
 {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     // restart the frame dropper so that items have enough time to render the next frame.
     m_frameDropperTimer.start();
+#endif
 
     Q_EMIT framesPosted();
 }
@@ -360,6 +383,7 @@ Mir::Type MirSurface::type() const
     }
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 void MirSurface::dropPendingBuffer()
 {
     QMutexLocker locker(&m_mutex);
@@ -434,6 +458,7 @@ void MirSurface::startFrameDropper()
         m_frameDropperTimer.start();
     }
 }
+#endif
 
 bool MirSurface::updateTexture(qintptr userId)
 {
@@ -471,7 +496,11 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
     auto renderables = m_surface->generate_renderables((void*)userId);
 
     if (renderables.size() > 0 &&
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
             (m_surface->buffers_ready_for_compositor((void*)userId) > 0
+#else
+            (renderableBufferChanged(output.slots, renderables)
+#endif
              || !primaryTexture() || !primaryTexture()->hasBuffer()
              // a subsurface appearing or disappearing must refresh even without a new buffer
              || output.slots.size() != renderables.size())
@@ -501,7 +530,11 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
             // Avoid holding two buffers for the compositor at the same time. Thus
             // free the current before acquiring the next
             texture->freeBuffer();
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
             texture->setBuffer(renderables[i]->buffer());
+#else
+            texture->setBuffer(renderables[i]->buffer(), m_glProvider);
+#endif
             slot.extent = extentOf(renderables[i]->screen_position());
 
             if (i == 0) {
@@ -518,21 +551,25 @@ bool MirSurface::updateTextureLocked(qintptr userId, OutputTextures &output)
         }
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     if (m_surface->buffers_ready_for_compositor((void*)userId) > 0) {
         // restart the frame dropper to give MirSurfaceItems enough time to render the next frame.
         // queued since the timer lives in a different thread
         QMetaObject::invokeMethod(&m_frameDropperTimer, "start", Qt::QueuedConnection);
     }
+#endif
 
     auto const primary = primaryTexture();
     return primary && primary->hasBuffer();
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
 bool MirSurface::numBuffersReadyForCompositor(qintptr userId)
 {
     QMutexLocker locker(&m_mutex);
     return m_surface->buffers_ready_for_compositor((void*)userId);
 }
+#endif
 
 void MirSurface::setFocused(bool value)
 {
@@ -619,7 +656,7 @@ void MirSurface::updateVisible()
 
 void MirSurface::close()
 {
-    if (m_closingState != NotClosing) {
+    if (m_closingState == Closing) {
         return;
     }
 
@@ -1056,6 +1093,12 @@ void MirSurface::setReady()
     if (!m_ready) {
         DEBUG_MSG << "()";
         m_ready = true;
+        // X11 override-redirect windows (e.g. GTK menus) are created hidden miral-side but
+        // BasicSurface::hidden stays false, so Mir never fires advise_state_change to restore them.
+        if (m_state == Mir::HiddenState && m_surface->visible()) {
+            m_state = Mir::RestoredState;
+            Q_EMIT stateChanged(state());
+        }
         updateVisible(); // as Mir can change m_surface->visible() to true after first frame swap
         Q_EMIT ready();
         updateExposure();
@@ -1339,7 +1382,7 @@ MirSurface::SurfaceObserverImpl::SurfaceObserverImpl()
     m_cursorNameToShape[mir_diagonal_resize_bottom_to_top_cursor_name] = Qt::SizeBDiagCursor;
     m_cursorNameToShape[mir_diagonal_resize_top_to_bottom_cursor_name] = Qt::SizeFDiagCursor;
     m_cursorNameToShape[mir_omnidirectional_resize_cursor_name] = Qt::SizeAllCursor;
-    m_cursorNameToShape[mir_disabled_cursor_name] = Qt::BlankCursor;
+    m_cursorNameToShape["none"] = Qt::BlankCursor; // Mir2 forgot to export the symbol?
     m_cursorNameToShape[mir_vsplit_resize_cursor_name] = Qt::SplitVCursor;
     m_cursorNameToShape[mir_hsplit_resize_cursor_name] = Qt::SplitHCursor;
     m_cursorNameToShape[mir_pointing_hand_cursor_name] = Qt::PointingHandCursor;

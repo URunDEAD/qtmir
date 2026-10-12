@@ -22,6 +22,15 @@
 #include "mirsurface.h"
 #include "windowmodelnotifier.h"
 
+#include <mir/version.h>
+
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+namespace mir::graphics
+{
+class GLRenderingProvider;
+}
+#endif
+
 namespace qtmir {
 
 class WindowControllerInterface;
@@ -72,6 +81,9 @@ private:
 
     QVector<MirSurface*> m_windowModel;
     WindowControllerInterface *m_windowController;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    mir::graphics::GLRenderingProvider *m_glProvider{nullptr};
+#endif
     MirSurface* m_inputMethodSurface{nullptr};
 };
 

@@ -592,7 +592,11 @@ void QtEventFeeder::dispatchKey(const MirKeyboardEvent *kev)
                 std::chrono::nanoseconds(mir_input_event_get_event_time(iev)));
     EventBuilder::instance()->store(iev, timestamp.count());
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 15, 0)
     xkb_keysym_t xk_sym = mir_keyboard_event_key_code(kev);
+#else
+    xkb_keysym_t xk_sym = mir_keyboard_event_keysym(kev);
+#endif
 
     // Key modifier and unicode index mapping.
     auto modifiers = getQtModifiersFromMir(mir_keyboard_event_modifiers(kev));

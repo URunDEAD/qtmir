@@ -30,26 +30,49 @@
 #include <QtGui/private/qopenglcontext_p.h>
 
 // Mir
+#include <mir/version.h>
 #include <mir/graphics/display.h>
 #include <mir/renderer/gl/context.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+#include <mir/graphics/platform.h>
+#include <mir/graphics/gl_config.h>
+#else
 #include <mir/renderer/gl/context_source.h>
+#endif
 
-// Qt supports one GL context per screen, but also shared contexts.
-// The Mir "Display" generates a shared GL context for all DisplayBuffers
-// (i.e. individual display output buffers) to use as a common base context.
-
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+MirOpenGLContext::MirOpenGLContext(const QSurfaceFormat &format, mir::graphics::GLConfig const& gl_config)
+#else
 MirOpenGLContext::MirOpenGLContext(
     mir::graphics::Display &display,
     mir::graphics::GLConfig &gl_config,
     const QSurfaceFormat &format)
+#endif
     : m_currentWindow(nullptr)
 #ifdef QGL_DEBUG
       , m_logger(new QOpenGLDebugLogger(this))
 #endif
 {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_format = format;
+
+    m_format.setDepthBufferSize(gl_config.depth_buffer_bits());
+    m_format.setStencilBufferSize(gl_config.stencil_buffer_bits());
+    m_format.setSamples(-1);
+
+    m_format.setRenderableType(QSurfaceFormat::OpenGLES);
+#ifdef QGL_DEBUG
+    // Query the glGetString function pointer manually to avoid linking to libGL or libGLES.
+    const GLubyte *(*qtmir_glGetString) (GLenum name) =
+        (const GLubyte *(*) (GLenum name)) eglGetProcAddress("glGetString");
+
+    QObject::connect(m_logger, &QOpenGLDebugLogger::messageLogged,
+                     this, &MirOpenGLContext::onGlDebugMessageLogged, Qt::DirectConnection);
+#endif // debug
+#else // MIR_SERVER_VERSION < 2.20.0
     // create a temporary GL context to fetch the EGL display and config, so Qt can determine the surface format
     std::unique_ptr<mir::renderer::gl::Context> mirContext = dynamic_cast<mir::renderer::gl::ContextSource*>(
-                                                                display.native_display())->create_gl_context();
+                                                                &display)->create_gl_context();
     mirContext->make_current();
 
     EGLDisplay eglDisplay = eglGetCurrentDisplay();
@@ -66,6 +89,7 @@ MirOpenGLContext::MirOpenGLContext(
     if (result != EGL_TRUE || eglConfigId < 0) {
         qFatal("Unable to determine current EGL Config ID");
     }
+    m_format = format;
 
     EGLConfig eglConfig;
     EGLint matchingEglConfigCount;
@@ -110,6 +134,7 @@ MirOpenGLContext::MirOpenGLContext(
                      this, &MirOpenGLContext::onGlDebugMessageLogged, Qt::DirectConnection);
 #endif // debug
     mirContext->release_current(); // Need to release as it doesn't happen when GLContext goes out of scope
+#endif // MIR_SERVER_VERSION < 2.20.0
 }
 
 QSurfaceFormat MirOpenGLContext::format() const

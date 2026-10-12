@@ -24,10 +24,16 @@
 #include "orientationsensor.h"
 
 // Mir
+#include <mir/version.h>
 #include <mir/graphics/display.h>
-#include <mir/graphics/display_buffer.h>
 #include <mir/graphics/display_configuration.h>
 #include <miroil/display_listener_wrapper.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+#include <mir/graphics/display_sink.h>
+#include <mir/graphics/platform.h>
+#else
+#include <mir/graphics/display_buffer.h>
+#endif
 
 // Qt
 #include <QScreen>
@@ -53,10 +59,16 @@ ScreensModel::ScreensModel(QObject *parent)
 // init only after MirServer has initialized - runs on MirServerThread!!!
 void ScreensModel::init(
     const std::shared_ptr<mir::graphics::Display>& display,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    std::shared_ptr<mir::graphics::GLRenderingProvider> glProvider,
+#endif
     const std::shared_ptr<QtCompositor>& compositor,
     std::shared_ptr<miroil::DisplayListenerWrapper> displayListener)
 {
     m_display = display;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    m_glProvider = std::move(glProvider);
+#endif
     m_compositor = compositor;
     m_displayListener = displayListener;
 
@@ -177,6 +189,26 @@ void ScreensModel::updateInternal()
         haltRenderer();
     }
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    // Match up the new Mir DisplaySinks with each Screen
+    // Do this first so that the sinks are valid before we announce to Qt.
+    display->for_each_display_sync_group([&](mg::DisplaySyncGroup &group) {
+        group.for_each_display_sink([&](mg::DisplaySink &sink) {
+            // only way to match Screen to a DisplaySink is by matching the geometry
+            QRect dbGeom(sink.view_area().top_left.x.as_int(),
+                         sink.view_area().top_left.y.as_int(),
+                         sink.view_area().size.width.as_int(),
+                         sink.view_area().size.height.as_int());
+
+            Q_FOREACH (auto screen, m_screenList) {
+                if (dbGeom == screen->geometry()) {
+                    screen->setMirDisplaySink(*m_glProvider, &sink, &group);
+                    break;
+                }
+            }
+        });
+    });
+#else
     // Match up the new Mir DisplayBuffers with each Screen
     // Do this first so that the buffers are valid before we announce to Qt.
     display->for_each_display_sync_group([&](mg::DisplaySyncGroup &group) {
@@ -195,6 +227,7 @@ void ScreensModel::updateInternal()
             }
         });
     });
+#endif
 
     // Announce new Screens to Qt
     Q_FOREACH (auto screen, newScreenList) {

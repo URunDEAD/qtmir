@@ -17,6 +17,8 @@
 
 #include "mirbuffersgtexture.h"
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
+
 // Mir
 #include <mir/geometry/size.h>
 
@@ -300,3 +302,98 @@ void MirBufferSGTexture::bind()
     m_mirBuffer->bind();
     updateBindOptions(true/* force */);
 }
+
+#else
+
+/*
+ * Copyright 2021 UBports Foundation.
+ * Copyright (C) 2013-2015 Canonical, Ltd.
+ *
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranties of MERCHANTABILITY,
+ * SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "mirbuffersgtexture.h"
+
+// Mir
+#include <mir/geometry/size.h>
+#include <mir/graphics/platform.h>
+#include <mir/graphics/texture.h>
+#include <mir/graphics/drm_formats.h>
+
+MirBufferSGTexture::MirBufferSGTexture()
+    : QSGTexture()
+{
+    setFiltering(QSGTexture::Linear);
+    setHorizontalWrapMode(QSGTexture::ClampToEdge);
+    setVerticalWrapMode(QSGTexture::ClampToEdge);
+}
+
+MirBufferSGTexture::~MirBufferSGTexture() = default;
+
+void MirBufferSGTexture::freeBuffer()
+{
+    m_mirBuffer.reset();
+    m_mirTexture.reset();
+}
+
+void MirBufferSGTexture::setBuffer(
+    const std::shared_ptr<mir::graphics::Buffer>& buffer,
+    mir::graphics::GLRenderingProvider& glProvider)
+{
+    m_mirBuffer = buffer;
+    m_mirTexture = glProvider.as_texture(buffer);
+}
+
+bool MirBufferSGTexture::hasBuffer() const
+{
+    return m_mirBuffer && m_mirTexture;
+}
+
+std::shared_ptr<mir::graphics::Buffer> MirBufferSGTexture::buffer() const
+{
+    return m_mirBuffer;
+}
+
+int MirBufferSGTexture::textureId() const
+{
+    return m_mirTexture->tex_id();
+}
+
+QSize MirBufferSGTexture::textureSize() const
+{
+    auto const size = m_mirBuffer->size();
+    return QSize{size.width.as_value(), size.height.as_value()};
+}
+
+bool MirBufferSGTexture::hasAlphaChannel() const
+{
+    /* Mir will probably move towards DRMFormat as the
+     * common format information; it already covers many more
+     * formats than MirPixelFormat, and has more information
+     * easily available.
+     */
+    auto format = mir::graphics::DRMFormat::from_mir_format(m_mirBuffer->pixel_format());
+    if (format.info())
+    {
+        return format.info().value().has_alpha();
+    }
+    return false;
+}
+
+void MirBufferSGTexture::bind()
+{
+    m_mirTexture->bind();
+    updateBindOptions(true/* force */);
+}
+
+#endif

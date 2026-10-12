@@ -132,6 +132,10 @@ void *QMirServer::nativeResourceForIntegration(const QByteArray &resource) const
         result = d->screensController.data();
     else if (resource == "InputDispatcher")
         result = d->eventFeeder.get();
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
+    else if (resource == "GLRenderingProvider")
+        result = d->renderingProvider.get();
+#endif
 
     return result;
 }

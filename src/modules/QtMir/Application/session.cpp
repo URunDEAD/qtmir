@@ -117,10 +117,17 @@ void Session::doSuspend()
     if (m_surfaceList.count() == 0) {
         DEBUG_MSG << " no surface to call stopFrameDropper() on!";
     } else {
+        /* TODO: Investigate surface suspension for Wayland clients
+         *
+         * This might already happen with frame events only being triggered
+         * on buffer consumption, or we may need to do something else
+         */
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         for (int i = 0; i < m_surfaceList.count(); ++i) {
             auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
             surface->stopFrameDropper();
         }
+#endif
     }
     setState(Suspended);
 }
@@ -308,7 +315,9 @@ void Session::suspend()
 {
     DEBUG_MSG << " state=" << sessionStateToString(m_state);
     if (m_state == Running) {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
         miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_will_suspend);
+#endif
         m_suspendTimer->start();
 
 #if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
@@ -337,15 +346,18 @@ void Session::resume()
 void Session::doResume()
 {
     if (m_state == Suspended) {
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         for (int i = 0; i < m_surfaceList.count(); ++i) {
             auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
             surface->startFrameDropper();
         }
+#endif
+        // TODO: Investigate surface suspension for Wayland
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     miral::apply_lifecycle_state_to(session(), mir_lifecycle_state_resumed);
 
-#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
     foreachPromptSession([this](const qtmir::PromptSession &promptSession) {
         m_promptSessionManager->resumePromptSession(promptSession);
     });
@@ -382,12 +394,14 @@ void Session::stop()
         stopPromptSessions();
 #endif
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
         {
             for (int i = 0; i < m_surfaceList.count(); ++i) {
                 auto surface = static_cast<MirSurfaceInterface*>(m_surfaceList.get(i));
                 surface->stopFrameDropper();
             }
         }
+#endif
 
         foreachChildSession([](SessionInterface* session) {
             session->stop();

@@ -1,8 +1,8 @@
 set(MIROIL_SRC
     compositor.cpp ${MIROIL_INCLUDE_DIRS}/miroil/compositor.h
-    edid.cpp ${qtmir_include}/miroil/edid.h
+    edid.cpp ${MIROIL_INCLUDE_DIRS}/miroil/edid.h
     persist_display_config.cpp ${MIROIL_INCLUDE_DIRS}/miroil/persist_display_config.h
-    display_configuration_policy.cpp ${qtmir_include}/miroil/display_configuration_policy.h
+    display_configuration_policy.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_policy.h
     display_configuration_controller_wrapper.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_controller_wrapper.h
     display_listener_wrapper.cpp ${MIROIL_INCLUDE_DIRS}/miroil/display_listener_wrapper.h
     eventdispatch.cpp ${MIROIL_INCLUDE_DIRS}/miroil/eventdispatch.h
@@ -16,8 +16,8 @@ set(MIROIL_SRC
     prompt_session_manager.cpp ${MIROIL_INCLUDE_DIRS}/miroil/prompt_session_manager.h
     set_compositor.cpp ${MIROIL_INCLUDE_DIRS}/miroil/set_compositor.h
     surface.cpp ${MIROIL_INCLUDE_DIRS}/miroil/surface.h
-    ${qtmir_include}/miroil/display_configuration_storage.h
-    ${qtmir_include}/miroil/display_id.h
+    ${MIROIL_INCLUDE_DIRS}/miroil/display_configuration_storage.h
+    ${MIROIL_INCLUDE_DIRS}/miroil/display_id.h
 )
 
 if (MIRSERVER_VERSION VERSION_LESS 2.20.0)

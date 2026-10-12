@@ -249,9 +249,11 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
         return nullptr;
     }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     if (m_surface->numBuffersReadyForCompositor(userId) > 0) {
         QTimer::singleShot(0, this, &MirSurfaceItem::update);
     }
+#endif
 
     // One node per visible texture, index 0 included with no special case.
     struct Painted { QSGTexture *texture; TexturePlacement placement; };

@@ -39,6 +39,10 @@
 #include "windowmodelnotifier.h"
 
 // mir
+#include <mir/version.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 19, 0)
+#include <mir/graphics/platform.h>
+#endif
 #include <mir_toolkit/common.h>
 #include <miroil/surface.h>
 
@@ -56,10 +60,18 @@ class MirSurface : public MirSurfaceInterface
     Q_OBJECT
 
 public:
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 19, 0)
     MirSurface(qtmir::NewWindow windowInfo,
                WindowControllerInterface *controller,
                SessionInterface *session = nullptr,
                MirSurface *parentSurface = nullptr);
+#else
+    MirSurface(qtmir::NewWindow windowInfo,
+               WindowControllerInterface *controller,
+               mir::graphics::GLRenderingProvider& glProvider,
+               SessionInterface *session = nullptr,
+               MirSurface *parentSurface = nullptr);
+#endif
     virtual ~MirSurface();
 
     ////
@@ -119,8 +131,10 @@ public:
 
     bool isReady() const override { return m_ready; }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     void stopFrameDropper() override;
     void startFrameDropper() override;
+#endif
 
     bool isBeingDisplayed() const override;
 
@@ -132,7 +146,9 @@ public:
     bool updateTexture(qintptr userId) override;
     SubSurfaceTextures textures(qintptr userId) const override;
     unsigned int currentFrameNumber(qintptr userId) const override;
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     bool numBuffersReadyForCompositor(qintptr userId) override;
+#endif
     // end of methods called from the rendering (scene graph) thread
 
     void setFocused(bool focus) override;
@@ -195,7 +211,9 @@ public Q_SLOTS:
     void setShellChrome(Mir::ShellChrome shellChrome) override;
 
 private Q_SLOTS:
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     void dropPendingBuffer();
+#endif
     void onAttributeChanged(const MirWindowAttrib, const int);
     void onFramesPostedObserved();
     void emitSizeChanged();
@@ -250,11 +268,16 @@ private:
     const std::shared_ptr<miroil::Surface> m_surface; // keep copy of the Surface for lifecycle
     QPointer<SessionInterface> m_session;
     WindowControllerInterface *const m_controller;
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 19, 0)
+    mir::graphics::GLRenderingProvider& m_glProvider;
+#endif
 
     //FIXME -  have to save the state as Mir has no getter for it (bug:1357429)
     Mir::OrientationAngle m_orientationAngle;
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 20, 0)
     QTimer m_frameDropperTimer;
+#endif
 
     mutable QMutex m_mutex;
 
