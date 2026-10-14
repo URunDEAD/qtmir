@@ -41,6 +41,9 @@
 
 // miral
 #include <miral/add_init_callback.h>
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+#include <miral/decorations.h>
+#endif
 #include <miral/set_terminator.h>
 #include <miral/wayland_extensions.h>
 #include <miral/x11_support.h>
@@ -296,6 +299,9 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
             miroil::PersistDisplayConfig{displayStorageBuilder(),
                                          m_displayConfigurationPolicy},
             waylandExtensions,
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+            miral::Decorations::always_ssd(),
+#endif
         });
 }
 
