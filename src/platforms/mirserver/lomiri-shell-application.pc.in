@@ -5,5 +5,4 @@ Name: lomiri-shell-application
 Description: Lomiri shell Application APIs
 Version: 28
 
-Requires: Qt5Core
 Cflags: -I${includedir}
