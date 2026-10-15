@@ -24,6 +24,7 @@
 #include <QWindow>
 
 #include "mir/events/event_builders.h"
+#include <mir/version.h>
 
 #include "mock_qtwindowsystem.h"
 
@@ -127,7 +128,11 @@ TEST_F(QtEventFeederTest, GenerateMissingTouchEnd)
                                                               Contains(AllOf(HasId(0),
                                                                              IsPressed()))),_)).Times(1);
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev1 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(123), 0);
+#else
     auto ev1 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(123), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     mev::add_touch(*ev1, 0 /* touch ID */, mir_touch_action_down, mir_touch_tooltype_unknown,
                    10, 10, 10 /* x, y, pressure */,
                    1, 1, 10 /* touch major, minor, size */);
@@ -152,7 +157,11 @@ TEST_F(QtEventFeederTest, GenerateMissingTouchEnd)
                                                ),_)).Times(1);
     }
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev2 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(125), 0);
+#else
     auto ev2 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(125), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     mev::add_touch(*ev2, 1 /* touch ID */, mir_touch_action_down, mir_touch_tooltype_unknown,
                    20, 20, 10 /* x, y, pressure*/,
                    1, 1, 10 /* touch major, minor, size */);
@@ -166,7 +175,11 @@ TEST_F(QtEventFeederTest, GenerateMissingTouchEnd2)
 
     setIrrelevantMockWindowSystemExpectations();
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev1 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(123), 0);
+#else
     auto ev1 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(123), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     mev::add_touch(*ev1, 0 /* touch ID */, mir_touch_action_down, mir_touch_tooltype_unknown,
                    10, 10, 10 /* x, y, pressure*/,
                    1, 1, 10 /* touch major, minor, size */);
@@ -182,7 +195,11 @@ TEST_F(QtEventFeederTest, GenerateMissingTouchEnd2)
 
     setIrrelevantMockWindowSystemExpectations();
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev2 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(124), 0);
+#else
     auto ev2 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(124), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     mev::add_touch(*ev2, 0 /* touch ID */, mir_touch_action_change, mir_touch_tooltype_unknown,
                    10, 10, 10 /* x, y, pressure*/,
                    1, 1, 10 /* touch major, minor, size */);
@@ -204,7 +221,11 @@ TEST_F(QtEventFeederTest, GenerateMissingTouchEnd2)
     setIrrelevantMockWindowSystemExpectations();
 
     // touch 0 disappeared and touch 2 got pressed
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev3 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(125), 0);
+#else
     auto ev3 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(125), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     mev::add_touch(*ev3, 1 /* touch ID */, mir_touch_action_change, mir_touch_tooltype_unknown,
                    20, 20, 10 /* x, y, pressure*/,
                    1, 1, 10 /* touch major, minor, size */);
@@ -244,7 +265,11 @@ TEST_F(QtEventFeederTest, PressSameTouchTwice)
                                                               Contains(AllOf(HasId(0),
                                                                              IsPressed()))),_)).Times(1);
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev1 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(123), 0);
+#else
     auto ev1 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(123), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     mev::add_touch(*ev1, /* touch ID */ 0, mir_touch_action_down, mir_touch_tooltype_unknown,
                    10, 10, 10, 1, 1, 10);
     qtEventFeeder->dispatch(*ev1);
@@ -257,7 +282,11 @@ TEST_F(QtEventFeederTest, PressSameTouchTwice)
                                                               Contains(AllOf(HasId(0), StateIsMoved()))
                                                              ),_)).Times(1);
 
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev2 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(123), 0);
+#else
     auto ev2 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(123), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     mev::add_touch(*ev2, /* touch ID */ 0, mir_touch_action_down, mir_touch_tooltype_unknown,
                    10, 10, 10, 1, 1, 10);
     qtEventFeeder->dispatch(*ev2);
@@ -269,13 +298,21 @@ TEST_F(QtEventFeederTest, TimestampInMilliseconds)
 {
     setIrrelevantMockWindowSystemExpectations();
     EXPECT_CALL(*mockWindowSystem, handleTouchEvent(_,0,_,_,_)).Times(1);
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev1 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(123), 0);
+#else
     auto ev1 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(123), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     qtEventFeeder->dispatch(*ev1);
     ASSERT_TRUE(Mock::VerifyAndClearExpectations(mockWindowSystem));
 
     setIrrelevantMockWindowSystemExpectations();
     EXPECT_CALL(*mockWindowSystem, handleTouchEvent(_,2,_,_,_)).Times(1);
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+    auto ev2 = mev::make_touch_event(MirInputDeviceId(), std::chrono::milliseconds(125), 0);
+#else
     auto ev2 = mev::make_event(MirInputDeviceId(), std::chrono::milliseconds(125), std::vector<uint8_t>{} /* cookie */, 0);
+#endif
     qtEventFeeder->dispatch(*ev2);
     ASSERT_TRUE(Mock::VerifyAndClearExpectations(mockWindowSystem));
 }
@@ -287,9 +324,15 @@ TEST_F(QtEventFeederTest, composeKeysNotFilteredOut)
 
     auto dispatch_key_event = [&](MirKeyboardAction action, int scan_code, xkb_keysym_t key_sym)
     {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+        qtEventFeeder->dispatch(*mev::make_key_event(
+                MirInputDeviceId{0}, std::chrono::nanoseconds{0},
+                action, key_sym, scan_code, mir_input_event_modifier_none));
+#else
         qtEventFeeder->dispatch(*mev::make_event(
                 MirInputDeviceId{0}, std::chrono::nanoseconds{0}, std::vector<uint8_t>{},
                 action, key_sym, scan_code, mir_input_event_modifier_none));
+#endif
     };
 
     InSequence seq;
