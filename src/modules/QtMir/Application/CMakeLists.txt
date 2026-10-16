@@ -116,6 +116,5 @@ target_link_libraries(
 
 
 # install
-set(QML_VERSION "0.${MIR_VERSION_MAJOR}")
-add_qml_plugin(QtMir.Application ${QML_VERSION} QtMir.${QML_VERSION}/Application TARGETS qtmirapplicationplugin)
+add_qml_plugin(QtMir.Application 0.1 QtMir/Application TARGETS qtmirapplicationplugin)
 install(FILES com.canonical.qtmir.gschema.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas)
