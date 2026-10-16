@@ -42,6 +42,7 @@
 // miral
 #include <miral/add_init_callback.h>
 #include <miral/set_terminator.h>
+#include <miral/wayland_extensions.h>
 #include <miral/x11_support.h>
 
 // Qt
@@ -212,6 +213,7 @@ void QMirServerPrivate::run(const std::function<void()> &startCallback)
 
     miral::WaylandExtensions waylandExtensions{};
     waylandExtensions.add_extension(qtmir::qtWindowmanagerExtension());
+    waylandExtensions.enable(miral::WaylandExtensions::zxdg_output_manager_v1);
 
     runner.set_exception_handler([this]
     {
