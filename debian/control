@@ -108,7 +108,7 @@ Depends: qtmir-qt5-mir1 (= ${binary:Version}),
 Conflicts: qml-module-qtmir,
 Replaces: qml-module-qtmir,
 Provides: lomiri-application-impl,
-          lomiri-application-impl-28,
+          lomiri-application-impl-${LomiriShellAppApiVersion},
 Description: Qt/QML module for Lomiri specific Mir APIs (Mir 1)
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
@@ -174,7 +174,7 @@ Depends: qtmir-qt5-mir2 (= ${binary:Version}),
 Conflicts: qml-module-qtmir0.1,
 Replaces: qml-module-qtmir0.1,
 Provides: lomiri-application-impl,
-          lomiri-application-impl-28,
+          lomiri-application-impl-${LomiriShellAppApiVersion},
 Description: Qt/QML module for Lomiri specific Mir APIs (Mir 2)
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages

@@ -24,6 +24,10 @@ ifeq ($(filter $(DEB_HOST_ARCH), $(valgrind_architectures)),)
 	FLAGS += -DWITH_VALGRIND=OFF
 endif
 
+override_dh_gencontrol:
+	dh_gencontrol -- -VLomiriShellAppApiVersion=\
+	$(shell pkg-config --modversion debian/tmp-mir2-qt5/usr/share/pkgconfig/lomiri-shell-application.pc)
+
 override_dh_auto_configure:
 	dh_auto_configure --builddirectory=build-mir1-qt5 -- $(FLAGS)
 	dh_auto_configure --builddirectory=build-mir2-qt5 -- $(FLAGS) -DWITH_MIR2=ON
