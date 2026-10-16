@@ -84,11 +84,6 @@ add_library(qtmirapplicationplugin SHARED
 )
 add_dependencies(qtmirapplicationplugin QtMirApplication_LTTNG)
 
-target_compile_definitions(qtmirapplicationplugin
-    PRIVATE
-    -DMIR_VERSION_MAJOR=${MIR_VERSION_MAJOR}
-)
-
 # Frig for files that still rely on mirserver-dev
 string(REPLACE ";" " -I" QTMIR_ADD_MIRSERVER "-I ${MIRSERVER_INCLUDE_DIRS}")
 set_source_files_properties(mirsurface.cpp         PROPERTIES COMPILE_FLAGS "${CMAKE_CXXFLAGS} ${QTMIR_ADD_MIRSERVER}")

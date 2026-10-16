@@ -74,20 +74,20 @@ class QtMirApplicationPlugin : public QQmlExtensionPlugin {
         qRegisterMetaType<std::shared_ptr<miral::Workspace>>("std::shared_ptr<miral::Workspace>");
 
         qmlRegisterUncreatableType<lomiri::shell::application::ApplicationManagerInterface>(
-                    uri, 0, MIR_VERSION_MAJOR, "ApplicationManagerInterface", "Abstract interface. Cannot be created in QML");
+                    uri, 0, 1, "ApplicationManagerInterface", "Abstract interface. Cannot be created in QML");
         qmlRegisterSingletonType<qtmir::ApplicationManager>(
-                    uri, 0, MIR_VERSION_MAJOR, "ApplicationManager", applicationManagerSingleton);
+                    uri, 0, 1, "ApplicationManager", applicationManagerSingleton);
         qmlRegisterUncreatableType<lomiri::shell::application::ApplicationInfoInterface>(
-                    uri, 0, MIR_VERSION_MAJOR, "ApplicationInfoInterface", "Abstract interface. Cannot be created in QML");
+                    uri, 0, 1, "ApplicationInfoInterface", "Abstract interface. Cannot be created in QML");
         qmlRegisterUncreatableType<qtmir::Application>(
-                    uri, 0, MIR_VERSION_MAJOR, "ApplicationInfo", "Application can't be instantiated");
+                    uri, 0, 1, "ApplicationInfo", "Application can't be instantiated");
         qmlRegisterUncreatableType<lomiri::shell::application::MirSurfaceInterface>(
-                    uri, 0, MIR_VERSION_MAJOR, "MirSurface", "MirSurface can't be instantiated from QML");
-        qmlRegisterType<qtmir::MirSurfaceItem>(uri, 0, MIR_VERSION_MAJOR, "MirSurfaceItem");
-        qmlRegisterSingletonType<qtmir::Mir>(uri, 0, MIR_VERSION_MAJOR, "Mir", mirSingleton);
-        qmlRegisterSingletonType<qtmir::SurfaceManager>(uri, 0, MIR_VERSION_MAJOR, "SurfaceManager", surfaceManagerSingleton);
+                    uri, 0, 1, "MirSurface", "MirSurface can't be instantiated from QML");
+        qmlRegisterType<qtmir::MirSurfaceItem>(uri, 0, 1, "MirSurfaceItem");
+        qmlRegisterSingletonType<qtmir::Mir>(uri, 0, 1, "Mir", mirSingleton);
+        qmlRegisterSingletonType<qtmir::SurfaceManager>(uri, 0, 1, "SurfaceManager", surfaceManagerSingleton);
 
-        qmlRegisterType<qtmir::WindowModel>(uri, 0, MIR_VERSION_MAJOR, "WindowModel");
+        qmlRegisterType<qtmir::WindowModel>(uri, 0, 1, "WindowModel");
     }
 
     virtual void initializeEngine(QQmlEngine *engine, const char *uri)
