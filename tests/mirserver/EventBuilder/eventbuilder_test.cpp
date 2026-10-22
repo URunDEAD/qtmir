@@ -21,7 +21,10 @@
 #include <QScopedPointer>
 
 #include "mir/events/event_builders.h"
+#include <mir/version.h>
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
 #include "mir_toolkit/mir_cookie.h"
+#endif
 
 using namespace qtmir;
 
@@ -45,24 +48,42 @@ TEST_F(EventBuilderTest, ReconstructPointerEvent)
 
     // Store the event whose data we will get later when reconstructing it.
     {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+        mir::EventUPtr mirEvent = mir::events::make_pointer_event(0 /*DeviceID */, std::chrono::nanoseconds(111)/*timestamp*/,
+                mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
+                0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, relativeX, relativeY);
+#else
         mir::EventUPtr mirEvent = mir::events::make_event(0 /*DeviceID */, std::chrono::nanoseconds(111)/*timestamp*/,
                 std::vector<uint8_t>{} /* cookie */, mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
                 0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, relativeX, relativeY);
+#endif
 
         eventBuilder->store(mir_event_get_input_event(mirEvent.get()), qtTimestamp);
     }
 
     // And store some other unrelated events in between
     {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+        mir::EventUPtr mirEvent = mir::events::make_pointer_event(0 /*DeviceID */, std::chrono::nanoseconds(222)/*timestamp*/,
+            mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
+            0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, relativeX + 3.3, relativeY + 3.3);
+#else
         mir::EventUPtr mirEvent = mir::events::make_event(0 /*DeviceID */, std::chrono::nanoseconds(222)/*timestamp*/,
             std::vector<uint8_t>{} /* cookie */, mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
             0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, relativeX + 3.3, relativeY + 3.3);
+#endif
         eventBuilder->store(mir_event_get_input_event(mirEvent.get()), qtTimestamp + 10);
     }
     {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+        mir::EventUPtr mirEvent = mir::events::make_pointer_event(0 /*DeviceID */, std::chrono::nanoseconds(333)/*timestamp*/,
+            mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
+            0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, relativeX + 4.4, relativeY + 4.4);
+#else
         mir::EventUPtr mirEvent = mir::events::make_event(0 /*DeviceID */, std::chrono::nanoseconds(333)/*timestamp*/,
             std::vector<uint8_t>{} /* cookie */, mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
             0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, relativeX + 4.4, relativeY + 4.4);
+#endif
         eventBuilder->store(mir_event_get_input_event(mirEvent.get()), qtTimestamp + 20);
     }
 
@@ -77,6 +98,7 @@ TEST_F(EventBuilderTest, ReconstructPointerEvent)
     EXPECT_EQ(relativeY, mir_pointer_event_axis_value(newMirPointerEvent, mir_pointer_axis_relative_y));
 }
 
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 17, 0)
 TEST_F(EventBuilderTest, ReconstructCookies)
 {
     QScopedPointer<EventBuilder> eventBuilder(new EventBuilder);
@@ -122,6 +144,7 @@ TEST_F(EventBuilderTest, ReconstructCookies)
     mir_cookie_release(cookie_ptr);
     EXPECT_EQ(cookieFromPointerEvent, cookie);
 }
+#endif
 
 TEST_F(EventBuilderTest, ReconstructDeviceId)
 {
@@ -132,18 +155,30 @@ TEST_F(EventBuilderTest, ReconstructDeviceId)
 
     // Store the event whose data we will get later when reconstructing it.
     {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+        mir::EventUPtr mirEvent = mir::events::make_key_event(deviceId, std::chrono::nanoseconds(111)/*timestamp*/,
+                mir_keyboard_action_down, 70, 50,
+                mir_input_event_modifier_none);
+#else
         mir::EventUPtr mirEvent = mir::events::make_event(deviceId, std::chrono::nanoseconds(111)/*timestamp*/,
                 std::vector<uint8_t>{}/*cookie*/, mir_keyboard_action_down, 70, 50,
                 mir_input_event_modifier_none);
+#endif
 
         eventBuilder->store(mir_event_get_input_event(mirEvent.get()), qtTimestamp);
     }
 
     // And store some other unrelated events in between
     {
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 17, 0)
+        mir::EventUPtr mirEvent = mir::events::make_pointer_event(0 /*DeviceID */, std::chrono::nanoseconds(222)/*timestamp*/,
+            mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
+            0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, 0 /*relativeX*/,0 /*relativeY*/);
+#else
         mir::EventUPtr mirEvent = mir::events::make_event(0 /*DeviceID */, std::chrono::nanoseconds(222)/*timestamp*/,
             std::vector<uint8_t>{} /* cookie */, mir_input_event_modifier_none, mir_pointer_action_motion, 0 /*buttons*/,
             0 /*x*/, 0 /*y*/, 0 /*hscroll*/, 0 /*vscroll*/, 0 /*relativeX*/,0 /*relativeY*/);
+#endif
         eventBuilder->store(mir_event_get_input_event(mirEvent.get()), qtTimestamp + 10);
     }
 

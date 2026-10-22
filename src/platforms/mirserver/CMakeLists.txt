@@ -276,10 +276,6 @@ install(
 )
 
 # Lomiri shell Application API: header-only interfaces that qtmir implements.
-# Kept as its own pkg-config module (versioned independently of qtmirserver's
-# SOVERSION) but shipped in the same libqt5mir1server-dev package, since a
-# shell consuming it already needs to build against a Mir server implementing
-# the interface.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/lomiri-shell-application.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/lomiri-shell-application.pc
     @ONLY
@@ -292,7 +288,7 @@ install(
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lomiri-shell-application.pc
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/pkgconfig
 )
 
 configure_file(mirserver.json.in mirserver.json)

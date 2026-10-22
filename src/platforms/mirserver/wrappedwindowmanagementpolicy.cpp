@@ -249,7 +249,17 @@ namespace qtmir
     bool WindowManagementPolicy::handle_keyboard_event(const MirKeyboardEvent *event)
     {
         d->m_eventFeeder->dispatchKey(event);
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+        // WORKAROUND
+        // This tells Mir to deliver the key event directly to the currently active window.
+        // What we actually want is to route the key press through Qt's event system.
+        // That currently doesn't work because the function that is used in the MirSurfaceItem
+        // to hand key presses back to Mir (miroil::dispatch_input_event) is broken in Mir2.
+        // Upstream fix: https://github.com/canonical/mir/pull/5327
+        return false;
+#else
         return true;
+#endif
     }
 
     bool WindowManagementPolicy::handle_touch_event(const MirTouchEvent *event)

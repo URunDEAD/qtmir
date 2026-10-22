@@ -15,7 +15,7 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 	dh $@
 
 override_dh_missing:
-	dh_missing --fail-missing
+	dh_missing --fail-missing --sourcedir=debian/tmp-mir2-qt5
 
 FLAGS := -DWITH_CONTENTHUB=ON -DWerror=ON
 # Explicitly disable building with Valgrind on architectures without it.
@@ -24,11 +24,45 @@ ifeq ($(filter $(DEB_HOST_ARCH), $(valgrind_architectures)),)
 	FLAGS += -DWITH_VALGRIND=OFF
 endif
 
+override_dh_gencontrol:
+	dh_gencontrol -- -VLomiriShellAppApiVersion=\
+	$(shell pkg-config --modversion debian/tmp-mir2-qt5/usr/share/pkgconfig/lomiri-shell-application.pc)
+
 override_dh_auto_configure:
-	dh_auto_configure -- $(FLAGS)
+	dh_auto_configure --builddirectory=build-mir1-qt5 -- $(FLAGS)
+	dh_auto_configure --builddirectory=build-mir2-qt5 -- $(FLAGS) -DWITH_MIR2=ON
+
+override_dh_auto_build:
+	dh_auto_build --builddirectory=build-mir1-qt5
+	dh_auto_build --builddirectory=build-mir2-qt5
+
+override_dh_auto_test:
+	dh_auto_test --builddirectory=build-mir1-qt5
+	dh_auto_test --builddirectory=build-mir2-qt5
+
+override_dh_auto_install:
+	dh_auto_install --builddirectory=build-mir1-qt5 --destdir=debian/tmp-mir1-qt5
+	dh_auto_install --builddirectory=build-mir2-qt5 --destdir=debian/tmp-mir2-qt5
+
+override_dh_auto_clean:
+	dh_auto_clean --builddirectory=build-mir1-qt5
+	dh_auto_clean --builddirectory=build-mir2-qt5
+	rm -rf debian/tmp-mir1-qt5 debian/tmp-mir2-qt5
 
 override_dh_install:
 	#clean gmock/gtest if it built in our build dir
-	-rm -f debian/tmp/usr/lib/libgmock*.a debian/tmp/usr/lib/libgtest*.a
-	-rm -rf debian/tmp/usr/include/gmock debian/tmp/usr/include/gtest
-	dh_install
+	-rm -f debian/tmp-mir*/usr/lib/libgmock*.a debian/tmp-mir*/usr/lib/libgtest*.a
+	-rm -rf debian/tmp-mir*/usr/include/gmock debian/tmp-mir*/usr/include/gtest
+	dh_install --sourcedir=debian/tmp-mir1-qt5 \
+		-pqtmir-qt5-mir1 \
+		-plibqt5mir1server1 \
+		-plibqt5mir1server-dev \
+		-pqml-module-qtmir0.1
+	dh_install --sourcedir=debian/tmp-mir2-qt5 \
+		-pqtmir-qt5-mir2 \
+		-plibqt5mir2server1 \
+		-plibqt5mir2server-dev \
+		-pqml-module-qtmir \
+		-pqtmir-common \
+		-pliblomiri-shell-api-dev \
+		-pqtmir-tests

@@ -17,6 +17,12 @@ Build-Depends: cmake,
                libmir1common-dev (>= 0.26.0),
                libmir1server-dev (>= 0.26.0),
                libmir1wayland-dev (>= 1.2),
+               libmiral-dev (>= 2.25),
+               libmircommon-dev (>= 2.25),
+               libmircore-dev (>= 2.25),
+               libmiroil-dev (>= 2.25),
+               libmirserver-dev (>= 2.25),
+               libmirwayland-dev (>= 2.25),
 # this should actually be a dependency of libmir1wayland-dev:
                libwayland-dev,
                libmtdev-dev,
@@ -67,21 +73,16 @@ Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: qtmir-qt5-mir1 (= ${binary:Version}),
+         liblomiri-shell-api-dev (= ${source:Version}),
          ${misc:Depends},
          libmir1al-dev (>= 1.3.0),
-Breaks:
- liblomiri-shell-api-dev (<< 0.4.0~),
-Replaces:
- liblomiri-shell-api-dev (<< 0.4.0~),
-Description: Developer files for QtMir server API
+         libmir1server-dev (>= 0.26.0),
+Description: Developer files for QtMir server API (Mir 1)
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
  a Mir server. It also exposes some internal Mir functionality.
  .
- This package contains the library headers for developers, including the
- header-only Application API (lomiri-shell-application pkg-config module)
- that a Lomiri shell uses to talk to a Mir server implementing it, such as
- QtMir.
+ This package contains the library headers for developers, targeting Mir 1.
 
 Package: libqt5mir1server1
 Architecture: linux-any
@@ -89,7 +90,7 @@ Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
       ${shlibs:Depends},
-Description: QtMir server API shared library
+Description: QtMir server API shared library (Mir 1)
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
  a Mir server. It also exposes some internal Mir functionality.
@@ -101,11 +102,14 @@ Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends},
 Depends: qtmir-qt5-mir1 (= ${binary:Version}),
+         qtmir-common (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
+Conflicts: qml-module-qtmir,
+Replaces: qml-module-qtmir,
 Provides: lomiri-application-impl,
-          lomiri-application-impl-28,
-Description: Qt/QML module for Lomiri specific Mir APIs
+          lomiri-application-impl-${LomiriShellAppApiVersion},
+Description: Qt/QML module for Lomiri specific Mir APIs (Mir 1)
  QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
  It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
  a Mir server. It also exposes some internal Mir functionality.
@@ -113,6 +117,98 @@ Description: Qt/QML module for Lomiri specific Mir APIs
  QtMir provides Qt/QML bindings for Mir features that are exposed through the
  qtmir QPA plugin such as Application management (start/stop/suspend/resume)
  and surface management.
+ .
+ This package provides the module for Mir 1.
+
+Package: qtmir-qt5-mir2
+Architecture: linux-any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Description: Qt platform abstraction (QPA) plugin for a Mir server
+ QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
+ It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
+ a Mir server. It also exposes some internal Mir functionality.
+ .
+ This package provides the QPA which is compatible with Qt 5 and Mir 2.
+
+Package: libqt5mir2server-dev
+Section: libdevel
+Architecture: linux-any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: qtmir-qt5-mir2 (= ${binary:Version}),
+         liblomiri-shell-api-dev (= ${source:Version}),
+         libmiral-dev (>= 2.25),
+         libmiroil-dev (>= 2.25),
+         libmirserver-dev (>= 2.25),
+         ${misc:Depends},
+Description: Developer files for QtMir server API (Mir 2)
+ QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
+ It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
+ a Mir server. It also exposes some internal Mir functionality.
+ .
+ This package contains the library headers for developers, targeting Mir 2.
+
+Package: libqt5mir2server1
+Architecture: linux-any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+      ${shlibs:Depends},
+Description: QtMir server API shared library (Mir 2)
+ QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
+ It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
+ a Mir server. It also exposes some internal Mir functionality.
+ .
+ Contains the shared library containing QtMir server API.
+
+Package: qml-module-qtmir
+Architecture: linux-any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends},
+Depends: qtmir-qt5-mir2 (= ${binary:Version}),
+         qtmir-common (= ${source:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends},
+Conflicts: qml-module-qtmir0.1,
+Replaces: qml-module-qtmir0.1,
+Provides: lomiri-application-impl,
+          lomiri-application-impl-${LomiriShellAppApiVersion},
+Description: Qt/QML module for Lomiri specific Mir APIs (Mir 2)
+ QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
+ It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
+ a Mir server. It also exposes some internal Mir functionality.
+ .
+ QtMir provides Qt/QML bindings for Mir features that are exposed through the
+ qtmir QPA plugin such as Application management (start/stop/suspend/resume)
+ and surface management.
+ .
+ This package provides the module for Mir 2.
+
+Package: qtmir-common
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends},
+Breaks: qml-module-qtmir0.1 (<< ${source:Version}),
+Replaces: qml-module-qtmir0.1 (<< ${source:Version}),
+Description: Common data files for QtMir
+
+Package: liblomiri-shell-api-dev
+Section: libdevel
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends},
+Breaks:
+ libqt5mir1server-dev (<< ${source:Version}),
+Replaces:
+ libqt5mir1server-dev (<< ${source:Version}),
+Description: Development headers for Lomiri shell integration
+ QtMir is a set of Qt5 components to enable one to write a Mir server with Qt.
+ It contains a QPA (Qt Platform Abstraction) plugin which creates and manages
+ a Mir server. It also exposes some internal Mir functionality.
+ .
+ This package contains the shell integration API for Qt 5 and Mir 1/2.
 
 Package: qtmir-tests
 Section: libdevel
@@ -126,8 +222,8 @@ Depends: littler,
          python3-evdev,
          python3-mir-perf-framework,
          qml-module-lomiri-components,
-         qml-module-qtmir0.1,
-         qtmir-qt5-mir1 (= ${binary:Version}),
+         qml-module-qtmir,
+         qtmir-qt5-mir2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Description: QtMir tests and demos

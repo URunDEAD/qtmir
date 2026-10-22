@@ -255,7 +255,6 @@ Files: CMakeLists.txt
  src/platforms/mirserver/qtmirserver.pc.in
  src/platforms/mirserver/tracepoints.tp
  tests/CMakeLists.txt
- tests/check-requires-provides.sh
  tests/convert-to-gles.sh
  tests/framework/CMakeLists.txt
  tests/framework/mock_persistent_surface_store.h

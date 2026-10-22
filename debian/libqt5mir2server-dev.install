@@ -1,0 +1,3 @@
+usr/include/qtmir-qt5-mir2
+usr/lib/*/pkgconfig/qt5mir2server.pc
+usr/lib/*/libqt5mir2server.so

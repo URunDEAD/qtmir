@@ -109,6 +109,8 @@ else()
     # Wayland extension qt-windowmanager support
     pkg_search_module(MIRWAYLAND mir1wayland>=1.2 REQUIRED)
 
+    pkg_check_modules(MIRTEST mir1test>=0.26 REQUIRED)
+
     # Bundled miroil for Mir1
     set(MIROIL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/src/platforms/mirserver/miroil/include)
 

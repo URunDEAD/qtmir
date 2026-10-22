@@ -29,6 +29,9 @@ const mg::DisplayConfigurationOutput fakeOutput1
 {
     mg::DisplayConfigurationOutputId{3},
     mg::DisplayConfigurationCardId{2},
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+    mg::DisplayConfigurationLogicalGroupId{0},
+#endif
     mg::DisplayConfigurationOutputType::dvid,
     {
         mir_pixel_format_abgr_8888
@@ -52,9 +55,11 @@ const mg::DisplayConfigurationOutput fakeOutput1
     mir_subpixel_arrangement_unknown,
     {},
     mir_output_gamma_unsupported,
-    {}
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+    {},
+#endif
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(0, 27, 0)
-    ,{}
+    {}
 #endif
 };
 
@@ -62,6 +67,9 @@ const mg::DisplayConfigurationOutput fakeOutput2
 {
     mg::DisplayConfigurationOutputId{2},
     mg::DisplayConfigurationCardId{4},
+#if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 0, 0)
+    mg::DisplayConfigurationLogicalGroupId{0},
+#endif
     mg::DisplayConfigurationOutputType::lvds,
     {
         mir_pixel_format_xbgr_8888
@@ -85,9 +93,11 @@ const mg::DisplayConfigurationOutput fakeOutput2
     mir_subpixel_arrangement_unknown,
     {},
     mir_output_gamma_unsupported,
-    {}
+#if MIR_SERVER_VERSION < MIR_VERSION_NUMBER(2, 0, 0)
+    {},
+#endif
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(0, 27, 0)
-    ,{}
+    {}
 #endif
 };
 

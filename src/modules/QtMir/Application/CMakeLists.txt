@@ -84,11 +84,6 @@ add_library(qtmirapplicationplugin SHARED
 )
 add_dependencies(qtmirapplicationplugin QtMirApplication_LTTNG)
 
-target_compile_definitions(qtmirapplicationplugin
-    PRIVATE
-    -DMIR_VERSION_MAJOR=${MIR_VERSION_MAJOR}
-)
-
 # Frig for files that still rely on mirserver-dev
 string(REPLACE ";" " -I" QTMIR_ADD_MIRSERVER "-I ${MIRSERVER_INCLUDE_DIRS}")
 set_source_files_properties(mirsurface.cpp         PROPERTIES COMPILE_FLAGS "${CMAKE_CXXFLAGS} ${QTMIR_ADD_MIRSERVER}")
@@ -116,6 +111,5 @@ target_link_libraries(
 
 
 # install
-set(QML_VERSION "0.${MIR_VERSION_MAJOR}")
-add_qml_plugin(QtMir.Application ${QML_VERSION} QtMir.${QML_VERSION}/Application TARGETS qtmirapplicationplugin)
+add_qml_plugin(QtMir.Application 0.1 QtMir/Application TARGETS qtmirapplicationplugin)
 install(FILES com.canonical.qtmir.gschema.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas)

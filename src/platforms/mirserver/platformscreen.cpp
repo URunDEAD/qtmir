@@ -509,8 +509,13 @@ void PlatformScreen::removeWindow(ScreenPlatformWindow *window)
 #if MIR_SERVER_VERSION >= MIR_VERSION_NUMBER(2, 20, 0)
 void PlatformScreen::setMirDisplaySink(mir::graphics::GLRenderingProvider &glProvider, mir::graphics::DisplaySink *sink, mir::graphics::DisplaySyncGroup *group)
 {
-    m_outputSurface = glProvider.surface_for_sink(*sink, MirGLConfig{});
-    DEBUG_MSG_SCREENS << "(outputSurface=" << m_outputSurface.get() << ", outputSink=" << sink <<  ", displayGroup=" << group << ")";
+    if (sink != m_lastDisplaySink) {
+        m_outputSurface = glProvider.surface_for_sink(*sink, MirGLConfig{});
+        m_lastDisplaySink = sink;
+        DEBUG_MSG_SCREENS << "(outputSurface=" << m_outputSurface.get() << ", outputSink=" << sink <<  ", displayGroup=" << group << ") [new sink]";
+    } else {
+        DEBUG_MSG_SCREENS << "(outputSurface=" << m_outputSurface.get() << ", outputSink=" << sink <<  ", displayGroup=" << group << ") [cached sink]";
+    }
     // This operation should only be performed while rendering is stopped
     m_displaySink = sink;
     m_displayGroup = group;
