@@ -89,6 +89,11 @@ void ScreenPlatformWindow::setVisible(bool visible)
 {
     DEBUG_MSG << "(visible=" << visible << ")";
     QPlatformWindow::setVisible(visible);
+    // addWindow() may activate the screen before this window is marked primary.
+    // Request focus once construction is complete so input contexts get a window.
+    if (visible) {
+        requestActivateWindow();
+    }
 }
 
 void ScreenPlatformWindow::setGeometry(const QRect &rect)
