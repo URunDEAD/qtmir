@@ -21,6 +21,7 @@
 #include <QtMir/Application/mirsurfacelistmodel.h>
 
 #include <QSharedPointer>
+#include <QMutex>
 #include <QSGTexture>
 #include <QPointer>
 
@@ -111,7 +112,8 @@ public:
     // methods called from the rendering (scene graph) thread:
     QSharedPointer<QSGTexture> texture(qintptr) override;
     QSGTexture *weakTexture(qintptr) const override;
-    bool updateTexture(qintptr) override;
+    std::vector<SubSurfaceTexture> updateTexture(qintptr) override;
+    QMutex* textureMutex() override { return &m_textureMutex; }
     unsigned int currentFrameNumber(qintptr) const override;
     bool numBuffersReadyForCompositor(qintptr) override;
     // end of methods called from the rendering (scene graph) thread
@@ -169,6 +171,7 @@ public:
 private:
     void updateVisibility();
 
+    QMutex m_textureMutex;
     bool m_ready;
     bool m_isFrameDropperRunning;
     bool m_live;

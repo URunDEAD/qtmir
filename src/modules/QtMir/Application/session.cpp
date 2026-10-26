@@ -204,6 +204,12 @@ void Session::setApplication(ApplicationInfoInterface* application)
 
 void Session::registerSurface(MirSurfaceInterface *newSurface)
 {
+    // Input-method windows are managed by the shell's dedicated input-method
+    // path. Hiding one destroys its Wayland surface, but must not make the
+    // application lifecycle stop the persistent keyboard service.
+    if (newSurface->type() == Mir::InputMethodType)
+        return;
+
     DEBUG_MSG << "(surface=" << newSurface << ")";
 
     // Only notify QML of surface creation once it has drawn its first frame.

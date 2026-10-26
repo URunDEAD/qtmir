@@ -1,3 +1,4 @@
+#include "untrackedclientcommand.h"
 /*
  * Copyright (C) 2013-2017 Canonical Ltd.
  *
@@ -649,11 +650,8 @@ void ApplicationManager::authorizeSession(const pid_t pid, bool &authorized)
         return;
     }
 
-    // We want to match both "maliit-server" and "/usr/bin/maliit-server"
-    QRegularExpression isMaliitOrQtWebProess(
-        QStringLiteral("((^|/)maliit6?-server|qt5/libexec/QtWebProcess)$"));
-
-    if (isMaliitOrQtWebProess.match(argv0).hasMatch()) {
+    // Standalone maliit-keyboard has the same service lifecycle as maliit-server.
+    if (qtmir::isUntrackedClientCommand(argv0)) {
         authorized = true;
         return;
     }

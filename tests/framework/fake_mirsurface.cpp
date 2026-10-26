@@ -159,7 +159,7 @@ QSharedPointer<QSGTexture> FakeMirSurface::texture(qintptr) { return QSharedPoin
 
 QSGTexture *FakeMirSurface::weakTexture(qintptr) const { return nullptr; }
 
-bool FakeMirSurface::updateTexture(qintptr) { return true; }
+std::vector<MirSurfaceInterface::SubSurfaceTexture> FakeMirSurface::updateTexture(qintptr) { return {}; }
 
 unsigned int FakeMirSurface::currentFrameNumber(qintptr) const { return 0; }
 

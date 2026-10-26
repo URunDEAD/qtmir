@@ -117,3 +117,17 @@ target_link_libraries(
 # install
 add_qml_plugin(QtMir.Application 0.1 QtMir/Application TARGETS qtmirapplicationplugin)
 install(FILES com.canonical.qtmir.gschema.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/glib-2.0/schemas)
+
+# This focused test needs no removed Mir2 mirtest headers or compositor.
+option(QTMIR_INPUTMETHOD_LIFECYCLE_TEST "Build the input-method lifecycle regression" OFF)
+if(QTMIR_INPUTMETHOD_LIFECYCLE_TEST)
+    add_executable(qtmir-inputmethod-lifecycle-test
+        ${CMAKE_SOURCE_DIR}/tests/inputmethod_lifecycle_test.cpp
+        ${CMAKE_SOURCE_DIR}/tests/framework/fake_mirsurface.cpp)
+    target_include_directories(qtmir-inputmethod-lifecycle-test PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/tests/framework
+        ${CMAKE_SOURCE_DIR}/src/modules)
+    target_link_libraries(qtmir-inputmethod-lifecycle-test
+        qtmirapplicationplugin Qt5::Test)
+endif()
