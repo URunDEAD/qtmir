@@ -18,6 +18,9 @@
 #include "orientationsensor.h"
 #include "logging.h"
 
+#include <QMetaObject>
+#include <QThread>
+
 // Qt sensors
 #include <QtSensors/QOrientationReading>
 #include <QtSensors/QOrientationSensor>
@@ -53,11 +56,19 @@ bool OrientationSensor::enabled() {
 }
 
 void OrientationSensor::start() {
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, &OrientationSensor::start, Qt::QueuedConnection);
+        return;
+    }
     m_started = true;
     startIfNeeded();
 }
 
 void OrientationSensor::stop() {
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, &OrientationSensor::stop, Qt::QueuedConnection);
+        return;
+    }
     if (m_orientationSensor != nullptr) {
         if (m_orientationSensor->isActive())
             m_orientationSensor->stop();
@@ -65,6 +76,10 @@ void OrientationSensor::stop() {
 }
 
 void OrientationSensor::enable() {
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, &OrientationSensor::enable, Qt::QueuedConnection);
+        return;
+    }
     m_enabled = true;
     startIfNeeded();
 }
