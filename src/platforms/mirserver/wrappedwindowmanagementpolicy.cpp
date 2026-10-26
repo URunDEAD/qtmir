@@ -206,6 +206,29 @@ namespace qtmir
                 extraWindowInfo->inputBounds |= toQRect(rect);
             }
         }
+        // Wayland toplevels initially have a placeholder size before their first
+        // buffer. Remember automatic child placement, without touching popups
+        // that supplied an anchor rectangle or positioning hints.
+        if (parameters.parent().is_set()) {
+            auto parentSurface = parameters.parent().value().lock();
+            if (parentSurface) {
+                auto parent = tools.info_for(parentSurface).window();
+                const bool eligible = (surfaceType == mir_window_type_normal
+                    || surfaceType == mir_window_type_dialog
+                    || surfaceType == mir_window_type_utility
+                    // Mir2 represents ordinary xdg_toplevel children as freestyle.
+                    || surfaceType == mir_window_type_freestyle)
+                    && !parameters.aux_rect().is_set()
+                    && !parameters.placement_hints().is_set()
+                    && parameters.state().is_set()
+                    && parameters.state().value() == mir_window_state_restored;
+                if (parameters.top_left().is_set() && parameters.size().is_set()) {
+                    extraWindowInfo->initialChildPlacement.remember(eligible,
+                        toQPoint(parameters.top_left().value()), toQSize(parameters.size().value()),
+                        toQPoint(parent.top_left()), toQSize(parent.size()));
+                }
+            }
+        }
         parameters.userdata() = extraWindowInfo;
 
         return parameters;
@@ -213,6 +236,25 @@ namespace qtmir
 
     void WindowManagementPolicy::handle_window_ready(miral::WindowInfo &windowInfo)
     {
+        auto extraWindowInfo = getExtraInfo(windowInfo);
+        QPoint newPosition;
+        bool reposition = false;
+        {
+            QMutexLocker locker(&extraWindowInfo->mutex);
+            if (auto parent = windowInfo.parent()) {
+                auto window = windowInfo.window();
+                reposition = extraWindowInfo->initialChildPlacement.takePosition(
+                    toQPoint(window.top_left()), toQSize(window.size()),
+                    toQPoint(parent.top_left()), toQSize(parent.size()), newPosition);
+            } else {
+                extraWindowInfo->initialChildPlacement.cancel();
+            }
+        }
+        if (reposition) {
+            miral::WindowSpecification placement;
+            placement.top_left() = toMirPoint(newPosition);
+            tools.modify_window(windowInfo, placement);
+        }
         MinimalWindowManager::handle_window_ready(windowInfo);
 
         Q_EMIT d->m_windowModel.windowReady(windowInfo);
@@ -225,6 +267,13 @@ namespace qtmir
                                                       const miral::WindowSpecification &modificationsClient)
     {
         miral::WindowSpecification modifications(modificationsClient);
+
+        if (modifications.top_left().is_set() || modifications.aux_rect().is_set()
+            || modifications.placement_hints().is_set() || modifications.parent().is_set()) {
+            auto extraWindowInfo = getExtraInfo(windowInfo);
+            QMutexLocker locker(&extraWindowInfo->mutex);
+            extraWindowInfo->initialChildPlacement.cancel();
+        }
 
         if (modifications.size().is_set()) {
             auto extraWindowInfo = qtmir::getExtraInfo(windowInfo);
@@ -750,7 +799,13 @@ void WrappedWindowManagementPolicy::move(const miral::Window &window, const Poin
     modifications.top_left() = topLeft;
     tools.invoke_under_lock([&window, &modifications, this]() {
         try {
-            tools.modify_window(tools.info_for(window), modifications);
+            auto &windowInfo = tools.info_for(window);
+            {
+                auto extraWindowInfo = qtmir::getExtraInfo(windowInfo);
+                QMutexLocker locker(&extraWindowInfo->mutex);
+                extraWindowInfo->initialChildPlacement.cancel();
+            }
+            tools.modify_window(windowInfo, modifications);
         } catch (const std::out_of_range&) {
             // usually shell trying to operate on a window which already closed, just ignore
             // TODO: see above comment in resize, same issue

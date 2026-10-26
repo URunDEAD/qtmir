@@ -17,6 +17,8 @@
 #ifndef WINDOWMODELNOTIFIER_H
 #define WINDOWMODELNOTIFIER_H
 
+#include "initialchildplacement.h"
+
 #include <QObject>
 #include <QPoint>
 #include <QRect>
@@ -66,6 +68,9 @@ struct ExtraWindowInfo {
 
     // Input-region updates may arrive before the queued MirSurface is created.
     QRect inputBounds; // guarded by mutex
+
+    // Used only by the Mir policy, under mutex when accessed after publication.
+    InitialChildPlacement initialChildPlacement;
 
     QMutex mutex;
 };
