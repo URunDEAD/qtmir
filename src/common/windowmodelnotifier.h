@@ -19,6 +19,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QRect>
 #include <QSize>
 #include <QMutex>
 
@@ -62,6 +63,9 @@ struct ExtraWindowInfo {
     Mir::State state{Mir::UnknownState};
 
     bool allowClientResize{true};
+
+    // Input-region updates may arrive before the queued MirSurface is created.
+    QRect inputBounds; // guarded by mutex
 
     QMutex mutex;
 };

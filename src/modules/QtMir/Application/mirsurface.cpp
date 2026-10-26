@@ -266,7 +266,15 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     connect(m_surfaceObserver.get(), &SurfaceObserver::shellChromeChanged, this, [&](MirShellChrome shell_chrome) {
         setShellChrome(toQtShellChrome(shell_chrome));
     });
-    connect(m_surfaceObserver.get(), &SurfaceObserver::inputBoundsChanged, this, &MirSurface::setInputBounds);
+    connect(m_surfaceObserver.get(), &SurfaceObserver::inputBoundsChanged, this, [this]() {
+        QRect bounds;
+        {
+            QMutexLocker locker(&m_extraInfo->mutex);
+            bounds = m_extraInfo->inputBounds;
+        }
+        // A queued notification can predate construction; always use the latest region.
+        setInputBounds(bounds);
+    });
     connect(m_surfaceObserver.get(), &SurfaceObserver::confinesMousePointerChanged, this, &MirSurface::confinesMousePointerChanged);
     connect(m_surfaceObserver.get(), &SurfaceObserver::resized, this, [&](QSize const &size){
         m_size = size;
@@ -277,6 +285,11 @@ MirSurface::MirSurface(NewWindow newWindowInfo,
     });
 
     m_surfaceObserver->setListener(this);
+
+    {
+        QMutexLocker locker(&m_extraInfo->mutex);
+        m_inputBounds = m_extraInfo->inputBounds;
+    }
 
     connect(session, &SessionInterface::stateChanged, this, [this]() {
         if (clientIsRunning() && m_pendingResize.isValid()) {

@@ -200,7 +200,13 @@ namespace qtmir
 
         parameters.server_side_decorated() = false;
 
-        parameters.userdata() = std::make_shared<ExtraWindowInfo>();
+        auto extraWindowInfo = std::make_shared<ExtraWindowInfo>();
+        if (parameters.input_shape().is_set()) {
+            for (const auto &rect : parameters.input_shape().value()) {
+                extraWindowInfo->inputBounds |= toQRect(rect);
+            }
+        }
+        parameters.userdata() = extraWindowInfo;
 
         return parameters;
     }
@@ -229,6 +235,17 @@ namespace qtmir
         }
 
         MinimalWindowManager::handle_modify_window(windowInfo, modifications);
+
+        // Keep the latest region even before a SurfaceObserver has been registered.
+        if (modifications.input_shape().is_set()) {
+            QRect bounds;
+            for (const auto &rect : modifications.input_shape().value()) {
+                bounds |= toQRect(rect);
+            }
+            auto extraWindowInfo = qtmir::getExtraInfo(windowInfo);
+            QMutexLocker locker(&extraWindowInfo->mutex);
+            extraWindowInfo->inputBounds = bounds;
+        }
 
         int surfaceType = modificationsClient.type().is_set() ? modificationsClient.type().value() : -1;
 
