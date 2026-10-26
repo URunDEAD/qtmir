@@ -242,7 +242,14 @@ void ScreensModel::updateInternal()
                          buffer.view_area().size.height.as_int());
 
             Q_FOREACH (auto screen, m_screenList) {
-                if (dbGeom == screen->geometry()) {
+                // Mir's view area is scaled, while PlatformScreen stores the
+                // mode's pixel size. Mirror the DisplaySink path above.
+                const QRect bufferGeometry(
+                    screen->geometry().x(),
+                    screen->geometry().y(),
+                    screen->geometry().width() / screen->scale(),
+                    screen->geometry().height() / screen->scale());
+                if (dbGeom == bufferGeometry) {
                     screen->setMirDisplayBuffer(&buffer, &group);
                     break;
                 }
