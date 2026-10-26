@@ -308,6 +308,28 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
             }
         }
 
+        // In Stretch mode the main texture is drawn into the item's
+        // width() x height(), but subsurfaces used to be drawn at their raw
+        // extent in surface coordinates. Whenever the item is not exactly the
+        // surface size (Lomiri's spread shrinks the window to a square preview)
+        // the subsurfaces did not follow: Firefox, which draws all its content
+        // into a subsurface, showed up unscaled and far taller than its card.
+        // Map each subsurface through the same scale as the main texture; at
+        // item size == surface size this is the identity.
+        const QRectF mainExtent = subtextures[0].extent;
+        qreal subScaleX = 1.0;
+        qreal subScaleY = 1.0;
+        if (m_fillMode == Stretch && mainExtent.width() > 0 && mainExtent.height() > 0) {
+            subScaleX = width() / mainExtent.width();
+            subScaleY = height() / mainExtent.height();
+        }
+        auto mapSubExtent = [&](const QRectF &e) {
+            return QRectF(mainExtent.x() + (e.x() - mainExtent.x()) * subScaleX,
+                          mainExtent.y() + (e.y() - mainExtent.y()) * subScaleY,
+                          e.width() * subScaleX,
+                          e.height() * subScaleY);
+        };
+
         // Meh, this is not great code
         int first = 0;
         for (auto sub : subtextures) {
@@ -338,8 +360,9 @@ QSGNode *MirSurfaceItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *
             subnode->setTexture(sub.texture.data());
 
             subnode->setSubSourceRect(QRectF(0, 0, 1, 1));
-            subnode->setTargetRect(sub.extent);
-            subnode->setInnerTargetRect(sub.extent);
+            const QRectF subRect = mapSubExtent(sub.extent);
+            subnode->setTargetRect(subRect);
+            subnode->setInnerTargetRect(subRect);
             subnode->setFiltering(smooth() ? QSGTexture::Linear : QSGTexture::Nearest);
             subnode->setAntialiasing(antialiasing());
             subnode->update();
